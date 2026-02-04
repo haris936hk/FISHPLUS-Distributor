@@ -1,12 +1,11 @@
-```javascript
 import { useEffect } from 'react';
 import { MantineProvider, Card, Text, Button, Group, Stack, Badge, Title } from '@mantine/core';
 import '@mantine/core/styles.css';
 import useStore from './store';
-import { useDatabase, useAppVersion, usePlatform } from './hooks/useDatabase';
+import { useAppVersion, usePlatform } from './hooks/useDatabase';
 
 function App() {
-  const { theme, loadSettings, saveSetting, loading } = useStore();
+  const { theme, loadSettings, saveSetting } = useStore();
   const version = useAppVersion();
   const platform = usePlatform();
   // Replaced direct database call with store state
@@ -15,7 +14,7 @@ function App() {
   // In a real app, we would select 'settings' from the store.
   // For this demo, let's just assume we want to show the current theme setting.
   const settingsList = [
-      { key: 'app_theme', value: theme }
+    { key: 'app_theme', value: theme }
   ];
 
   useEffect(() => {
@@ -26,7 +25,7 @@ function App() {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     useStore.getState().setTheme(newTheme);
     await saveSetting('app_theme', newTheme);
-    refetch();
+    // Store updates automatically, no need to manual refetch
   };
 
   return (
@@ -113,20 +112,14 @@ function App() {
               Database Settings
             </Title>
 
-            {loading ? (
-              <Text>Loading settings...</Text>
-            ) : settings && settings.length > 0 ? (
-              <Stack gap="xs">
-                {settings.map((setting) => (
-                  <Group key={setting.key} justify="space-between">
-                    <Text fw={500}>{setting.key}</Text>
-                    <Badge>{setting.value}</Badge>
-                  </Group>
-                ))}
-              </Stack>
-            ) : (
-              <Text c="dimmed">No settings found</Text>
-            )}
+            <Stack gap="xs">
+              {settingsList.map((setting) => (
+                <Group key={setting.key} justify="space-between">
+                  <Text fw={500}>{setting.key}</Text>
+                  <Badge>{setting.value}</Badge>
+                </Group>
+              ))}
+            </Stack>
           </Card>
 
           <Card

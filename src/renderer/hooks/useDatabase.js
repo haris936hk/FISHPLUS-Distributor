@@ -1,70 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
- * React hook for database operations
- * Provides a React Query-like API for database calls
+ * @deprecated This hook relies on raw SQL IPC which has been removed for security.
+ * Use the domain-specific APIs in `window.api` (e.g. `window.api.settings`) or the Zustand store.
  */
-export function useDatabase(initialQuery = null, initialParams = []) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const execute = useCallback(async (sql, params = []) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await window.api.db.query(sql, params);
-
-      if (result.success) {
-        setData(result.data);
-        return result.data;
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const mutate = useCallback(async (sql, params = []) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await window.api.db.execute(sql, params);
-
-      if (result.success) {
-        return result.data;
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Auto-execute initial query if provided
-  useEffect(() => {
-    if (initialQuery) {
-      execute(initialQuery, initialParams);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return {
-    data,
-    loading,
-    error,
-    execute,
-    mutate,
-    refetch: () => execute(initialQuery, initialParams),
-  };
+export function useDatabase(_initialQuery = null, _initialParams = []) {
+  throw new Error(
+    'useDatabase is deprecated and removed for security. Please use domain-specific APIs.'
+  );
 }
 
 /**
