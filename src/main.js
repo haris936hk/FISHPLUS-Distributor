@@ -2,6 +2,9 @@ const { app, BrowserWindow } = require('electron');
 const db = require('./database');
 const { registerHandlers } = require('./ipc/handlers');
 
+// Detect if running in development mode
+const isDev = !app.isPackaged;
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -22,8 +25,10 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Open DevTools only in development mode
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // This method will be called when Electron has finished

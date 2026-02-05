@@ -1,0 +1,106 @@
+import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Badge } from '@mantine/core';
+import PropTypes from 'prop-types';
+
+/**
+ * ItemStockDisplay Component
+ * Displays a list of items with their current stock quantities.
+ * Supports Urdu names with RTL text direction.
+ *
+ * @param {Array} data - Array of item objects with name, current_stock
+ * @param {boolean} loading - Loading state
+ */
+function ItemStockDisplay({ data = [], loading = false }) {
+    // Format quantity with 2 decimal places
+    const formatQuantity = (qty) => {
+        return new Intl.NumberFormat('en-PK', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(qty || 0);
+    };
+
+    // Get stock level badge color based on quantity
+    const getStockColor = (qty) => {
+        if (qty <= 0) return 'red';
+        if (qty < 10) return 'yellow';
+        return 'green';
+    };
+
+    if (loading) {
+        return (
+            <Card shadow="sm" padding="md" radius="md" withBorder h={250}>
+                <Center h="100%">
+                    <Loader size="lg" />
+                </Center>
+            </Card>
+        );
+    }
+
+    return (
+        <Card shadow="sm" padding="md" radius="md" withBorder>
+            <Stack gap="xs">
+                <Text fw={600} size="lg" className="text-gray-700 dark:text-gray-200">
+                    📦 Item Stock
+                </Text>
+                <Text size="sm" c="dimmed">
+                    Current inventory levels
+                </Text>
+
+                <ScrollArea h={180} type="auto">
+                    {data.length === 0 ? (
+                        <Center py="xl">
+                            <Text c="dimmed" size="sm">
+                                No items in inventory
+                            </Text>
+                        </Center>
+                    ) : (
+                        <Table striped highlightOnHover withTableBorder>
+                            <Table.Thead>
+                                <Table.Tr>
+                                    <Table.Th style={{ textAlign: 'right' }}>Item Name</Table.Th>
+                                    <Table.Th style={{ textAlign: 'center' }}>Quantity (kg)</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                {data.map((item) => (
+                                    <Table.Tr key={item.id}>
+                                        <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
+                                            <Text fw={500}>{item.name}</Text>
+                                            {item.name_english && (
+                                                <Text size="xs" c="dimmed" style={{ direction: 'ltr' }}>
+                                                    {item.name_english}
+                                                </Text>
+                                            )}
+                                        </Table.Td>
+                                        <Table.Td style={{ textAlign: 'center' }}>
+                                            <Badge
+                                                color={getStockColor(item.current_stock)}
+                                                variant="light"
+                                                size="lg"
+                                            >
+                                                {formatQuantity(item.current_stock)}
+                                            </Badge>
+                                        </Table.Td>
+                                    </Table.Tr>
+                                ))}
+                            </Table.Tbody>
+                        </Table>
+                    )}
+                </ScrollArea>
+            </Stack>
+        </Card>
+    );
+}
+
+ItemStockDisplay.propTypes = {
+    data: PropTypes.arrayOf(
+        PropTypes.shape({
+            id: PropTypes.number.isRequired,
+            name: PropTypes.string.isRequired,
+            name_english: PropTypes.string,
+            current_stock: PropTypes.number.isRequired,
+        })
+    ),
+    loading: PropTypes.bool,
+};
+
+export default ItemStockDisplay;

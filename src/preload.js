@@ -14,6 +14,13 @@ contextBridge.exposeInMainWorld('api', {
     save: (key, value) => ipcRenderer.invoke(channels.SETTINGS_SAVE_ONE, { key, value }),
   },
 
+  // Dashboard APIs
+  dashboard: {
+    getSupplierAdvances: () => ipcRenderer.invoke(channels.DASHBOARD_GET_SUPPLIER_ADVANCES),
+    getItemsStock: () => ipcRenderer.invoke(channels.DASHBOARD_GET_ITEMS_STOCK),
+    getSummary: () => ipcRenderer.invoke(channels.DASHBOARD_GET_SUMMARY),
+  },
+
   // App utilities
   app: {
     getVersion: () => ipcRenderer.invoke(channels.APP_GET_VERSION),

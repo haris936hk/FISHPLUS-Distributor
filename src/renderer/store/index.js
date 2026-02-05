@@ -13,6 +13,12 @@ const useStore = create(
       loading: false,
       error: null,
 
+      // Dashboard state
+      supplierAdvances: [],
+      itemsStock: [],
+      dashboardSummary: null,
+      dashboardLoading: false,
+
       // Actions
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
@@ -55,9 +61,59 @@ const useStore = create(
           set({ error: error.message });
         }
       },
+
+      // Dashboard actions
+      loadDashboardData: async () => {
+        try {
+          set({ dashboardLoading: true });
+
+          // Fetch all dashboard data in parallel
+          const [advancesResult, stockResult, summaryResult] = await Promise.all([
+            window.api.dashboard.getSupplierAdvances(),
+            window.api.dashboard.getItemsStock(),
+            window.api.dashboard.getSummary(),
+          ]);
+
+          set({
+            supplierAdvances: advancesResult.success ? advancesResult.data : [],
+            itemsStock: stockResult.success ? stockResult.data : [],
+            dashboardSummary: summaryResult.success ? summaryResult.data : null,
+            dashboardLoading: false,
+          });
+        } catch (error) {
+          console.error('Failed to load dashboard data:', error);
+          set({
+            error: error.message,
+            dashboardLoading: false,
+          });
+        }
+      },
+
+      refreshSupplierAdvances: async () => {
+        try {
+          const result = await window.api.dashboard.getSupplierAdvances();
+          if (result.success) {
+            set({ supplierAdvances: result.data });
+          }
+        } catch (error) {
+          console.error('Failed to refresh supplier advances:', error);
+        }
+      },
+
+      refreshItemsStock: async () => {
+        try {
+          const result = await window.api.dashboard.getItemsStock();
+          if (result.success) {
+            set({ itemsStock: result.data });
+          }
+        } catch (error) {
+          console.error('Failed to refresh items stock:', error);
+        }
+      },
     }),
     { name: 'app-store' }
   )
 );
 
 export default useStore;
+

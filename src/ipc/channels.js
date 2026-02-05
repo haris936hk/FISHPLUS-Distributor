@@ -6,6 +6,11 @@ module.exports = {
   SETTINGS_GET_ALL: 'settings:getAll',
   SETTINGS_SAVE_ONE: 'settings:saveOne',
 
+  // Dashboard channels
+  DASHBOARD_GET_SUPPLIER_ADVANCES: 'dashboard:getSupplierAdvances',
+  DASHBOARD_GET_ITEMS_STOCK: 'dashboard:getItemsStock',
+  DASHBOARD_GET_SUMMARY: 'dashboard:getSummary',
+
   // App channels
   APP_GET_VERSION: 'app:getVersion',
   APP_GET_PLATFORM: 'app:getPlatform',
