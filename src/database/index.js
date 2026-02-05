@@ -31,11 +31,30 @@ function initialize() {
     db.pragma('foreign_keys = ON');
 
     // Run initial schema if database is new
-    const schemaPath = path.join(__dirname, 'schema.sql');
-    if (fs.existsSync(schemaPath)) {
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      db.exec(schema);
-      console.log('Database schema initialized');
+    // Try multiple paths for schema.sql (handles both dev and production)
+    const possiblePaths = [
+      path.join(__dirname, 'schema.sql'),
+      path.join(__dirname, '..', 'src', 'database', 'schema.sql'),
+      path.join(app.getAppPath(), 'src', 'database', 'schema.sql'),
+      path.join(app.getAppPath(), '.webpack', 'main', 'schema.sql'),
+    ];
+
+    let schemaLoaded = false;
+    for (const schemaPath of possiblePaths) {
+      if (fs.existsSync(schemaPath)) {
+        console.log('Loading schema from:', schemaPath);
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        db.exec(schema);
+        console.log('Database schema initialized');
+        schemaLoaded = true;
+        break;
+      }
+    }
+
+    if (!schemaLoaded) {
+      console.warn('Schema file not found, trying inline schema...');
+      // Create essential tables inline if schema file not found
+      createEssentialTables();
     }
 
     return db;
@@ -43,6 +62,133 @@ function initialize() {
     console.error('Failed to initialize database:', error);
     throw error;
   }
+}
+
+/**
+ * Create essential tables if schema.sql is not available
+ */
+function createEssentialTables() {
+  db.exec(`
+    -- Settings Table
+    CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT NOT NULL UNIQUE,
+      value TEXT NOT NULL,
+      type TEXT DEFAULT 'string',
+      description TEXT,
+      is_editable INTEGER DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_by INTEGER
+    );
+
+    -- Default settings
+    INSERT OR IGNORE INTO settings (key, value, description) VALUES 
+      ('company_name', 'AL - SHEIKH FISH TRADER AND DISTRIBUTER', 'Company display name'),
+      ('app_theme', 'light', 'Application theme'),
+      ('app_language', 'ur', 'Application language');
+
+    -- Suppliers Table
+    CREATE TABLE IF NOT EXISTS suppliers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT,
+      name TEXT NOT NULL,
+      name_english TEXT,
+      nic TEXT,
+      phone TEXT,
+      mobile TEXT,
+      email TEXT,
+      address TEXT,
+      city_id INTEGER,
+      country_id INTEGER,
+      opening_balance REAL DEFAULT 0,
+      current_balance REAL DEFAULT 0,
+      advance_amount REAL DEFAULT 0,
+      default_commission_pct REAL DEFAULT 5.0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_by INTEGER
+    );
+
+    -- Customers Table
+    CREATE TABLE IF NOT EXISTS customers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT,
+      name TEXT NOT NULL,
+      name_english TEXT,
+      nic TEXT,
+      phone TEXT,
+      mobile TEXT,
+      email TEXT,
+      address TEXT,
+      city_id INTEGER,
+      country_id INTEGER,
+      opening_balance REAL DEFAULT 0,
+      current_balance REAL DEFAULT 0,
+      credit_limit REAL,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_by INTEGER
+    );
+
+    -- Items Table
+    CREATE TABLE IF NOT EXISTS items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT,
+      name TEXT NOT NULL,
+      name_english TEXT,
+      category_id INTEGER,
+      unit_price REAL DEFAULT 0,
+      min_stock_level REAL DEFAULT 0,
+      opening_stock REAL DEFAULT 0,
+      current_stock REAL DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_by INTEGER
+    );
+
+    -- Categories Table
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      name_urdu TEXT,
+      description TEXT,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Sales Table
+    CREATE TABLE IF NOT EXISTS sales (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sale_number TEXT NOT NULL UNIQUE,
+      sale_date DATE NOT NULL,
+      customer_id INTEGER NOT NULL,
+      supplier_id INTEGER,
+      vehicle_number TEXT,
+      details TEXT,
+      total_weight REAL DEFAULT 0,
+      net_weight REAL DEFAULT 0,
+      gross_amount REAL DEFAULT 0,
+      net_amount REAL DEFAULT 0,
+      cash_received REAL DEFAULT 0,
+      status TEXT DEFAULT 'draft',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_by INTEGER
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
+    CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+    CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+    CREATE INDEX IF NOT EXISTS idx_items_name ON items(name);
+  `);
+  console.log('Essential tables created inline');
 }
 
 /**

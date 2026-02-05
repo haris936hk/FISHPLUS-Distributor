@@ -11,6 +11,19 @@ module.exports = {
   DASHBOARD_GET_ITEMS_STOCK: 'dashboard:getItemsStock',
   DASHBOARD_GET_SUMMARY: 'dashboard:getSummary',
 
+  // Supplier channels
+  SUPPLIER_GET_ALL: 'supplier:getAll',
+  SUPPLIER_GET_BY_ID: 'supplier:getById',
+  SUPPLIER_CREATE: 'supplier:create',
+  SUPPLIER_UPDATE: 'supplier:update',
+  SUPPLIER_DELETE: 'supplier:delete',
+  SUPPLIER_SEARCH: 'supplier:search',
+  SUPPLIER_CHECK_NIC: 'supplier:checkNic',
+
+  // Reference data channels
+  REFERENCE_GET_CITIES: 'reference:getCities',
+  REFERENCE_GET_COUNTRIES: 'reference:getCountries',
+
   // App channels
   APP_GET_VERSION: 'app:getVersion',
   APP_GET_PLATFORM: 'app:getPlatform',

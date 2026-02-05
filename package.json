@@ -62,6 +62,7 @@
   "dependencies": {
     "@mantine/core": "^8.3.14",
     "@mantine/hooks": "^8.3.14",
+    "@mantine/modals": "^8.3.14",
     "@mantine/notifications": "^8.3.14",
     "better-sqlite3": "^12.6.2",
     "electron-squirrel-startup": "^1.0.1",

@@ -5,19 +5,24 @@ import {
     Card,
     SimpleGrid,
     Stack,
+    Group,
     Loader,
     Center,
+    Paper,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import PropTypes from 'prop-types';
 import useStore from '../store';
 import { DashboardButton, SupplierAdvancesList, ItemStockDisplay } from '../components';
 
 /**
  * Dashboard Page Component
- * Central navigation hub with quick access buttons and real-time data displays.
+ * Desktop-optimized central navigation hub with quick access buttons.
  * Implements FR-DASH-001 through FR-DASH-027.
+ *
+ * @param {function} onNavigate - Navigation callback for page switching
  */
-function Dashboard() {
+function Dashboard({ onNavigate }) {
     const {
         supplierAdvances,
         itemsStock,
@@ -45,20 +50,20 @@ function Dashboard() {
     const adminButtons = [
         { label: 'Supplier Bill', icon: '📄', key: 'supplier-bill' },
         { label: 'Supplier Stock Bill', icon: '📋', key: 'supplier-stock-bill' },
-        { label: 'Item', icon: '📦', key: 'item' },
+        { label: 'Item Management', icon: '📦', key: 'item' },
     ];
 
     const transactionButtons = [
-        { label: 'Sale', icon: '💵', key: 'sale' },
+        { label: 'New Sale', icon: '💵', key: 'sale' },
         { label: 'Search Sale', icon: '🔍', key: 'search-sale' },
-        { label: 'Purchase', icon: '✅', key: 'purchase' },
+        { label: 'New Purchase', icon: '🛒', key: 'purchase' },
         { label: 'Search Purchase', icon: '🔎', key: 'search-purchase' },
     ];
 
     const userButtons = [
         { label: 'Customer', icon: '👤', key: 'customer' },
         { label: 'Search Customers', icon: '🔍', key: 'search-customers' },
-        { label: 'Supplier', icon: '🏪', key: 'supplier' },
+        { label: 'Supplier', icon: '🏪', key: 'supplier', navigate: 'suppliers' },
     ];
 
     const reportButtons = [
@@ -73,162 +78,177 @@ function Dashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-800 p-4 md:p-6">
-            {/* Header */}
-            <Card
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-100 dark:from-gray-900 dark:to-slate-800">
+            {/* Header - Full Width */}
+            <Paper
                 shadow="md"
-                padding="lg"
-                radius="md"
-                className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-700"
+                className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800"
+                style={{ borderRadius: 0 }}
             >
-                <Stack gap="xs" align="center">
-                    <Title order={1} c="white" className="text-2xl md:text-3xl font-bold">
-                        🐟 AL - SHEIKH FISH TRADER AND DISTRIBUTER
-                    </Title>
-                    <Text c="white" opacity={0.9} size="sm">
-                        Shop No. W-644 Gunj Mandi Rawalpindi | +92-3008501724, 051-5534607
-                    </Text>
-                </Stack>
-            </Card>
-
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* Left Section - Navigation Buttons */}
-                <div className="flex-1 lg:flex-[2]">
-                    <Stack gap="lg">
-                        {/* Administration Section */}
-                        <Card shadow="sm" padding="md" radius="md" withBorder>
-                            <Text fw={600} size="lg" mb="sm" className="text-blue-700 dark:text-blue-400">
-                                📁 Administration
+                <div className="px-8 py-6">
+                    <Group justify="space-between" align="center">
+                        <Stack gap={4}>
+                            <Title order={1} c="white" className="text-3xl font-bold">
+                                🐟 AL - SHEIKH FISH TRADER AND DISTRIBUTER
+                            </Title>
+                            <Text c="white" opacity={0.9} size="md">
+                                Shop No. W-644 Gunj Mandi Rawalpindi | +92-3008501724, 051-5534607
                             </Text>
-                            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
-                                {adminButtons.map((btn) => (
-                                    <DashboardButton
-                                        key={btn.key}
-                                        label={btn.label}
-                                        icon={btn.icon}
-                                        variant="administration"
-                                        onClick={() => handleNavigation(btn.label)}
-                                    />
-                                ))}
-                            </SimpleGrid>
-                        </Card>
-
-                        {/* Transactions Section */}
-                        <Card shadow="sm" padding="md" radius="md" withBorder>
-                            <Text fw={600} size="lg" mb="sm" className="text-green-700 dark:text-green-400">
-                                💰 Transactions
-                            </Text>
-                            <SimpleGrid cols={{ base: 2, sm: 2, md: 4 }} spacing="sm">
-                                {transactionButtons.map((btn) => (
-                                    <DashboardButton
-                                        key={btn.key}
-                                        label={btn.label}
-                                        icon={btn.icon}
-                                        variant="transaction"
-                                        onClick={() => handleNavigation(btn.label)}
-                                    />
-                                ))}
-                            </SimpleGrid>
-                        </Card>
-
-                        {/* User Management Section */}
-                        <Card shadow="sm" padding="md" radius="md" withBorder>
-                            <Text fw={600} size="lg" mb="sm" className="text-violet-700 dark:text-violet-400">
-                                👥 User Management
-                            </Text>
-                            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
-                                {userButtons.map((btn) => (
-                                    <DashboardButton
-                                        key={btn.key}
-                                        label={btn.label}
-                                        icon={btn.icon}
-                                        variant="user"
-                                        onClick={() => handleNavigation(btn.label)}
-                                    />
-                                ))}
-                            </SimpleGrid>
-                        </Card>
-
-                        {/* Reports Section */}
-                        <Card shadow="sm" padding="md" radius="md" withBorder>
-                            <Text fw={600} size="lg" mb="sm" className="text-orange-600 dark:text-orange-400">
-                                📊 Reports
-                            </Text>
-                            <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
-                                {reportButtons.map((btn) => (
-                                    <DashboardButton
-                                        key={btn.key}
-                                        label={btn.label}
-                                        icon={btn.icon}
-                                        variant="report"
-                                        onClick={() => handleNavigation(btn.label)}
-                                    />
-                                ))}
-                            </SimpleGrid>
-                        </Card>
-                    </Stack>
+                        </Stack>
+                        {/* Quick Stats in Header */}
+                        <Group gap="lg">
+                            <Paper p="md" radius="md" className="bg-white/10 backdrop-blur-sm">
+                                <Stack gap={2} align="center">
+                                    <Text c="white" size="xl" fw={700}>
+                                        {dashboardSummary?.suppliers?.count || 0}
+                                    </Text>
+                                    <Text c="white" size="xs" opacity={0.8}>Suppliers</Text>
+                                </Stack>
+                            </Paper>
+                            <Paper p="md" radius="md" className="bg-white/10 backdrop-blur-sm">
+                                <Stack gap={2} align="center">
+                                    <Text c="white" size="xl" fw={700}>
+                                        {dashboardSummary?.customers?.count || 0}
+                                    </Text>
+                                    <Text c="white" size="xs" opacity={0.8}>Customers</Text>
+                                </Stack>
+                            </Paper>
+                            <Paper p="md" radius="md" className="bg-white/10 backdrop-blur-sm">
+                                <Stack gap={2} align="center">
+                                    <Text c="white" size="xl" fw={700}>
+                                        {dashboardSummary?.items?.count || 0}
+                                    </Text>
+                                    <Text c="white" size="xs" opacity={0.8}>Items</Text>
+                                </Stack>
+                            </Paper>
+                            <Paper p="md" radius="md" className="bg-white/10 backdrop-blur-sm">
+                                <Stack gap={2} align="center">
+                                    <Text c="white" size="xl" fw={700}>
+                                        {dashboardSummary?.todaySales?.count || 0}
+                                    </Text>
+                                    <Text c="white" size="xs" opacity={0.8}>Today&apos;s Sales</Text>
+                                </Stack>
+                            </Paper>
+                        </Group>
+                    </Group>
                 </div>
+            </Paper>
 
-                {/* Right Section - Information Panels */}
-                <div className="flex-1 lg:flex-[1]">
-                    <Stack gap="md">
-                        {/* Summary Stats */}
-                        <Card shadow="sm" padding="md" radius="md" withBorder>
-                            <Text fw={600} size="lg" mb="sm" className="text-gray-700 dark:text-gray-200">
-                                📈 Quick Summary
-                            </Text>
-                            {dashboardLoading ? (
-                                <Center py="md">
-                                    <Loader size="sm" />
-                                </Center>
-                            ) : (
-                                <SimpleGrid cols={2} spacing="xs">
-                                    <Card withBorder padding="xs" radius="sm">
-                                        <Text size="xs" c="dimmed">
-                                            Suppliers
-                                        </Text>
-                                        <Text fw={700} size="lg">
-                                            {dashboardSummary?.suppliers?.count || 0}
-                                        </Text>
-                                    </Card>
-                                    <Card withBorder padding="xs" radius="sm">
-                                        <Text size="xs" c="dimmed">
-                                            Customers
-                                        </Text>
-                                        <Text fw={700} size="lg">
-                                            {dashboardSummary?.customers?.count || 0}
-                                        </Text>
-                                    </Card>
-                                    <Card withBorder padding="xs" radius="sm">
-                                        <Text size="xs" c="dimmed">
-                                            Items
-                                        </Text>
-                                        <Text fw={700} size="lg">
-                                            {dashboardSummary?.items?.count || 0}
-                                        </Text>
-                                    </Card>
-                                    <Card withBorder padding="xs" radius="sm">
-                                        <Text size="xs" c="dimmed">
-                                            Today&apos;s Sales
-                                        </Text>
-                                        <Text fw={700} size="lg">
-                                            {dashboardSummary?.todaySales?.count || 0}
-                                        </Text>
-                                    </Card>
+            {/* Main Content Area */}
+            <div className="p-8">
+                <div className="flex gap-8">
+                    {/* Left Section - Navigation Buttons (Takes 70% width) */}
+                    <div className="flex-[7]">
+                        <Stack gap="xl">
+                            {/* Row 1: Administration & Transactions side by side */}
+                            <div className="flex gap-6">
+                                {/* Administration Section */}
+                                <Card shadow="sm" padding="xl" radius="lg" withBorder className="flex-1">
+                                    <Group gap="sm" mb="lg">
+                                        <Text size="xl">📁</Text>
+                                        <Title order={3} className="text-blue-700">Administration</Title>
+                                    </Group>
+                                    <SimpleGrid cols={3} spacing="md">
+                                        {adminButtons.map((btn) => (
+                                            <DashboardButton
+                                                key={btn.key}
+                                                label={btn.label}
+                                                icon={btn.icon}
+                                                variant="administration"
+                                                onClick={() => handleNavigation(btn.label)}
+                                            />
+                                        ))}
+                                    </SimpleGrid>
+                                </Card>
+
+                                {/* Transactions Section */}
+                                <Card shadow="sm" padding="xl" radius="lg" withBorder className="flex-1">
+                                    <Group gap="sm" mb="lg">
+                                        <Text size="xl">💰</Text>
+                                        <Title order={3} className="text-teal-700">Transactions</Title>
+                                    </Group>
+                                    <SimpleGrid cols={4} spacing="md">
+                                        {transactionButtons.map((btn) => (
+                                            <DashboardButton
+                                                key={btn.key}
+                                                label={btn.label}
+                                                icon={btn.icon}
+                                                variant="transaction"
+                                                onClick={() => handleNavigation(btn.label)}
+                                            />
+                                        ))}
+                                    </SimpleGrid>
+                                </Card>
+                            </div>
+
+                            {/* Row 2: User Management */}
+                            <Card shadow="sm" padding="xl" radius="lg" withBorder>
+                                <Group gap="sm" mb="lg">
+                                    <Text size="xl">👥</Text>
+                                    <Title order={3} className="text-violet-700">User Management</Title>
+                                </Group>
+                                <SimpleGrid cols={6} spacing="md">
+                                    {userButtons.map((btn) => (
+                                        <DashboardButton
+                                            key={btn.key}
+                                            label={btn.label}
+                                            icon={btn.icon}
+                                            variant="user"
+                                            onClick={() => btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)}
+                                        />
+                                    ))}
                                 </SimpleGrid>
+                            </Card>
+
+                            {/* Row 3: Reports - Full Width */}
+                            <Card shadow="sm" padding="xl" radius="lg" withBorder>
+                                <Group gap="sm" mb="lg">
+                                    <Text size="xl">📊</Text>
+                                    <Title order={3} className="text-orange-600">Reports</Title>
+                                </Group>
+                                <SimpleGrid cols={4} spacing="md">
+                                    {reportButtons.map((btn) => (
+                                        <DashboardButton
+                                            key={btn.key}
+                                            label={btn.label}
+                                            icon={btn.icon}
+                                            variant="report"
+                                            onClick={() => handleNavigation(btn.label)}
+                                        />
+                                    ))}
+                                </SimpleGrid>
+                            </Card>
+                        </Stack>
+                    </div>
+
+                    {/* Right Section - Information Panels (Takes 30% width) */}
+                    <div className="flex-[3]">
+                        <Stack gap="lg">
+                            {dashboardLoading ? (
+                                <Card shadow="sm" padding="xl" radius="lg" withBorder h={400}>
+                                    <Center h="100%">
+                                        <Loader size="lg" />
+                                    </Center>
+                                </Card>
+                            ) : (
+                                <>
+                                    {/* Supplier Advances Panel */}
+                                    <SupplierAdvancesList data={supplierAdvances} loading={dashboardLoading} />
+
+                                    {/* Item Stock Panel */}
+                                    <ItemStockDisplay data={itemsStock} loading={dashboardLoading} />
+                                </>
                             )}
-                        </Card>
-
-                        {/* Supplier Advances Panel */}
-                        <SupplierAdvancesList data={supplierAdvances} loading={dashboardLoading} />
-
-                        {/* Item Stock Panel */}
-                        <ItemStockDisplay data={itemsStock} loading={dashboardLoading} />
-                    </Stack>
+                        </Stack>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+
+Dashboard.propTypes = {
+    onNavigate: PropTypes.func,
+};
 
 export default Dashboard;

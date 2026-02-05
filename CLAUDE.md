@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-**FISHPLUS-Distributor** is a desktop application built with Electron Forge, React 19, and Zustand for state management. It uses SQLite for local data persistence, Mantine as the UI component library, and communicates between main/renderer processes via a secure IPC bridge.
+**FISHPLUS-Distributor** is a desktop (Desktop Optimized Layout mouse focused) application built with Electron Forge, React 19, and Zustand for state management. It uses SQLite for local data persistence, Mantine as the UI component library, and communicates between main/renderer processes via a secure IPC bridge.
 
 **Tech Stack:** Electron 40 · React 19 · Zustand · Mantine 8 · SQLite · Tailwind CSS 4 · Webpack
 

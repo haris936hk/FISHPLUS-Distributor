@@ -1,9 +1,10 @@
-import { Button, Text, Group } from '@mantine/core';
+import { Button, Text, Stack } from '@mantine/core';
 import PropTypes from 'prop-types';
 
 /**
  * DashboardButton Component
- * Navigation button for the dashboard with icon support and consistent styling.
+ * Large, desktop-optimized navigation button for the dashboard.
+ * Designed for mouse interaction with generous click targets.
  *
  * @param {string} label - Button text label
  * @param {React.ReactNode} icon - Optional icon element
@@ -15,7 +16,7 @@ function DashboardButton({ label, icon, onClick, disabled = false, variant = 'de
     // Color mapping for different button categories
     const colorMap = {
         administration: 'blue',
-        transaction: 'green',
+        transaction: 'teal',
         user: 'violet',
         report: 'orange',
         default: 'gray',
@@ -27,34 +28,38 @@ function DashboardButton({ label, icon, onClick, disabled = false, variant = 'de
         <Button
             variant="light"
             color={color}
-            size="md"
-            h={60}
+            size="xl"
+            h={100}
             fullWidth
             disabled={disabled}
             onClick={onClick}
-            className="transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
+            className="transition-all duration-150 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] cursor-pointer"
             styles={{
                 root: {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '4px',
+                    borderRadius: '12px',
+                    border: '2px solid transparent',
+                    '&:hover': {
+                        borderColor: 'var(--mantine-color-' + color + '-4)',
+                    },
                 },
                 label: {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '8px',
                 },
             }}
         >
-            <Group gap="xs" wrap="nowrap">
-                {icon && <span className="text-lg">{icon}</span>}
-                <Text size="sm" fw={500} className="whitespace-nowrap">
+            <Stack gap={6} align="center">
+                {icon && <span className="text-3xl">{icon}</span>}
+                <Text size="md" fw={600}>
                     {label}
                 </Text>
-            </Group>
+            </Stack>
         </Button>
     );
 }

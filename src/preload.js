@@ -21,6 +21,24 @@ contextBridge.exposeInMainWorld('api', {
     getSummary: () => ipcRenderer.invoke(channels.DASHBOARD_GET_SUMMARY),
   },
 
+  // Supplier APIs
+  suppliers: {
+    getAll: () => ipcRenderer.invoke(channels.SUPPLIER_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.SUPPLIER_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.SUPPLIER_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.SUPPLIER_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.SUPPLIER_DELETE, id),
+    search: (name) => ipcRenderer.invoke(channels.SUPPLIER_SEARCH, name),
+    checkNic: (nic, excludeId) =>
+      ipcRenderer.invoke(channels.SUPPLIER_CHECK_NIC, { nic, excludeId }),
+  },
+
+  // Reference data APIs
+  reference: {
+    getCities: () => ipcRenderer.invoke(channels.REFERENCE_GET_CITIES),
+    getCountries: () => ipcRenderer.invoke(channels.REFERENCE_GET_COUNTRIES),
+  },
+
   // App utilities
   app: {
     getVersion: () => ipcRenderer.invoke(channels.APP_GET_VERSION),

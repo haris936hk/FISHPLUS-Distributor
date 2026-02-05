@@ -1,22 +1,39 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { MantineProvider } from '@mantine/core';
+import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import useStore from './store';
-import { Dashboard } from './pages';
+import { Dashboard, Suppliers } from './pages';
 import { ErrorBoundary } from './components';
 
 /**
  * Root App Component
- * Provides theme context and renders the main Dashboard.
+ * Provides theme context and handles page navigation.
  */
 function App() {
   const { theme, loadSettings } = useStore();
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Navigation handler
+  const navigateTo = useCallback((page) => {
+    setCurrentPage(page);
+  }, []);
+
+  // Render current page
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'suppliers':
+        return <Suppliers onBack={() => navigateTo('dashboard')} />;
+      default:
+        return <Dashboard onNavigate={navigateTo} />;
+    }
+  };
 
   return (
     <MantineProvider
@@ -26,13 +43,14 @@ function App() {
         primaryColor: 'blue',
       }}
     >
-      <Notifications position="top-right" />
-      <ErrorBoundary>
-        <Dashboard />
-      </ErrorBoundary>
+      <ModalsProvider>
+        <Notifications position="top-right" />
+        <ErrorBoundary>
+          {renderPage()}
+        </ErrorBoundary>
+      </ModalsProvider>
     </MantineProvider>
   );
 }
 
 export default App;
-
