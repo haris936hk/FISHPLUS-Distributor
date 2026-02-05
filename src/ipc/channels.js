@@ -20,6 +20,15 @@ module.exports = {
   SUPPLIER_SEARCH: 'supplier:search',
   SUPPLIER_CHECK_NIC: 'supplier:checkNic',
 
+  // Customer channels
+  CUSTOMER_GET_ALL: 'customer:getAll',
+  CUSTOMER_GET_BY_ID: 'customer:getById',
+  CUSTOMER_CREATE: 'customer:create',
+  CUSTOMER_UPDATE: 'customer:update',
+  CUSTOMER_DELETE: 'customer:delete',
+  CUSTOMER_SEARCH: 'customer:search',
+  CUSTOMER_CHECK_NIC: 'customer:checkNic',
+
   // Reference data channels
   REFERENCE_GET_CITIES: 'reference:getCities',
   REFERENCE_GET_COUNTRIES: 'reference:getCountries',

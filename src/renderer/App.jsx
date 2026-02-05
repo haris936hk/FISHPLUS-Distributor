@@ -5,7 +5,7 @@ import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import useStore from './store';
-import { Dashboard, Suppliers } from './pages';
+import { Dashboard, Suppliers, Customers } from './pages';
 import { ErrorBoundary } from './components';
 
 /**
@@ -30,6 +30,8 @@ function App() {
     switch (currentPage) {
       case 'suppliers':
         return <Suppliers onBack={() => navigateTo('dashboard')} />;
+      case 'customers':
+        return <Customers onBack={() => navigateTo('dashboard')} />;
       default:
         return <Dashboard onNavigate={navigateTo} />;
     }

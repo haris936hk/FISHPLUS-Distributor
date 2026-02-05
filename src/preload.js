@@ -33,6 +33,18 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(channels.SUPPLIER_CHECK_NIC, { nic, excludeId }),
   },
 
+  // Customer APIs
+  customers: {
+    getAll: () => ipcRenderer.invoke(channels.CUSTOMER_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.CUSTOMER_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.CUSTOMER_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.CUSTOMER_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.CUSTOMER_DELETE, id),
+    search: (name) => ipcRenderer.invoke(channels.CUSTOMER_SEARCH, name),
+    checkNic: (nic, excludeId) =>
+      ipcRenderer.invoke(channels.CUSTOMER_CHECK_NIC, { nic, excludeId }),
+  },
+
   // Reference data APIs
   reference: {
     getCities: () => ipcRenderer.invoke(channels.REFERENCE_GET_CITIES),

@@ -153,6 +153,95 @@ function registerHandlers() {
     }
   });
 
+  // Customer handlers
+  ipcMain.handle(channels.CUSTOMER_GET_ALL, async () => {
+    try {
+      const result = queries.customers.getAll();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Customer getAll error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_GET_BY_ID, async (event, id) => {
+    try {
+      const result = queries.customers.getById(id);
+      if (!result) {
+        return { success: false, error: 'Customer not found' };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Customer getById error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_CREATE, async (event, data) => {
+    try {
+      // Check for duplicate NIC if provided
+      if (data.nic && queries.customers.checkNic(data.nic)) {
+        return { success: false, error: 'A customer with this NIC already exists' };
+      }
+      const result = queries.customers.create(data);
+      return { success: true, data: { id: result.lastInsertRowid } };
+    } catch (error) {
+      console.error('Customer create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_UPDATE, async (event, { id, data }) => {
+    try {
+      // Check for duplicate NIC if provided (excluding current customer)
+      if (data.nic && queries.customers.checkNic(data.nic, id)) {
+        return { success: false, error: 'A customer with this NIC already exists' };
+      }
+      queries.customers.update(id, data);
+      return { success: true };
+    } catch (error) {
+      console.error('Customer update error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_DELETE, async (event, id) => {
+    try {
+      // Check if customer has transactions
+      if (queries.customers.hasTransactions(id)) {
+        return {
+          success: false,
+          error: 'Cannot delete customer with existing transactions. Consider deactivating instead.'
+        };
+      }
+      queries.customers.delete(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Customer delete error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_SEARCH, async (event, name) => {
+    try {
+      const result = queries.customers.search(name || '');
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Customer search error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.CUSTOMER_CHECK_NIC, async (event, { nic, excludeId }) => {
+    try {
+      const exists = queries.customers.checkNic(nic, excludeId);
+      return { success: true, data: { exists } };
+    } catch (error) {
+      console.error('Customer checkNic error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // Reference data handlers
   ipcMain.handle(channels.REFERENCE_GET_CITIES, async () => {
     try {

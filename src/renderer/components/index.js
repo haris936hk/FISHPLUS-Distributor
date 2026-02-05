@@ -13,3 +13,5 @@ export { default as SupplierAdvancesList } from './SupplierAdvancesList';
 export { default as ItemStockDisplay } from './ItemStockDisplay';
 export { default as SupplierForm } from './SupplierForm';
 export { default as SupplierSearch } from './SupplierSearch';
+export { default as CustomerForm } from './CustomerForm';
+export { default as CustomerSearch } from './CustomerSearch';

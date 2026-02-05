@@ -61,8 +61,8 @@ function Dashboard({ onNavigate }) {
     ];
 
     const userButtons = [
-        { label: 'Customer', icon: '👤', key: 'customer' },
-        { label: 'Search Customers', icon: '🔍', key: 'search-customers' },
+        { label: 'Customer', icon: '👤', key: 'customer', navigate: 'customers' },
+        { label: 'Search Customers', icon: '🔍', key: 'search-customers', navigate: 'customers' },
         { label: 'Supplier', icon: '🏪', key: 'supplier', navigate: 'suppliers' },
     ];
 
