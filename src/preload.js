@@ -45,10 +45,35 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(channels.CUSTOMER_CHECK_NIC, { nic, excludeId }),
   },
 
+  // Supplier Bill APIs
+  supplierBills: {
+    getAll: () => ipcRenderer.invoke(channels.SUPPLIER_BILL_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.SUPPLIER_BILL_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.SUPPLIER_BILL_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.SUPPLIER_BILL_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.SUPPLIER_BILL_DELETE, id),
+    generatePreview: (supplierId, dateFrom, dateTo) =>
+      ipcRenderer.invoke(channels.SUPPLIER_BILL_GENERATE_PREVIEW, { supplierId, dateFrom, dateTo }),
+    getNextNumber: () => ipcRenderer.invoke(channels.SUPPLIER_BILL_GET_NEXT_NUMBER),
+  },
+
+  // Item APIs
+  items: {
+    getAll: () => ipcRenderer.invoke(channels.ITEM_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.ITEM_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.ITEM_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.ITEM_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.ITEM_DELETE, id),
+    search: (name) => ipcRenderer.invoke(channels.ITEM_SEARCH, name),
+    checkName: (name, excludeId) =>
+      ipcRenderer.invoke(channels.ITEM_CHECK_NAME, { name, excludeId }),
+  },
+
   // Reference data APIs
   reference: {
     getCities: () => ipcRenderer.invoke(channels.REFERENCE_GET_CITIES),
     getCountries: () => ipcRenderer.invoke(channels.REFERENCE_GET_COUNTRIES),
+    getCategories: () => ipcRenderer.invoke(channels.REFERENCE_GET_CATEGORIES),
   },
 
   // App utilities

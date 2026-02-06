@@ -48,9 +48,9 @@ function Dashboard({ onNavigate }) {
 
     // Navigation button configuration
     const adminButtons = [
-        { label: 'Supplier Bill', icon: '📄', key: 'supplier-bill' },
+        { label: 'Supplier Bill', icon: '📄', key: 'supplier-bill', navigate: 'supplier-bills' },
         { label: 'Supplier Stock Bill', icon: '📋', key: 'supplier-stock-bill' },
-        { label: 'Item Management', icon: '📦', key: 'item' },
+        { label: 'Item Management', icon: '📦', key: 'item', navigate: 'item' },
     ];
 
     const transactionButtons = [
@@ -155,7 +155,7 @@ function Dashboard({ onNavigate }) {
                                                 label={btn.label}
                                                 icon={btn.icon}
                                                 variant="administration"
-                                                onClick={() => handleNavigation(btn.label)}
+                                                onClick={() => btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)}
                                             />
                                         ))}
                                     </SimpleGrid>

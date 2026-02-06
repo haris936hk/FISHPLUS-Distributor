@@ -263,6 +263,179 @@ function registerHandlers() {
     }
   });
 
+  ipcMain.handle(channels.REFERENCE_GET_CATEGORIES, async () => {
+    try {
+      const result = queries.reference.getCategories();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Reference getCategories error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Supplier Bill handlers
+  ipcMain.handle(channels.SUPPLIER_BILL_GET_ALL, async () => {
+    try {
+      const result = queries.supplierBills.getAll();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Supplier Bill getAll error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_GET_BY_ID, async (event, id) => {
+    try {
+      const result = queries.supplierBills.getById(id);
+      if (!result) {
+        return { success: false, error: 'Supplier bill not found' };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Supplier Bill getById error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_CREATE, async (event, data) => {
+    try {
+      const result = queries.supplierBills.create(data);
+      return { success: true, data: { id: result.lastInsertRowid, billNumber: result.billNumber } };
+    } catch (error) {
+      console.error('Supplier Bill create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_UPDATE, async (event, { id, data }) => {
+    try {
+      queries.supplierBills.update(id, data);
+      return { success: true };
+    } catch (error) {
+      console.error('Supplier Bill update error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_DELETE, async (event, id) => {
+    try {
+      queries.supplierBills.delete(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Supplier Bill delete error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_GENERATE_PREVIEW, async (event, { supplierId, dateFrom, dateTo }) => {
+    try {
+      const result = queries.supplierBills.generatePreview(supplierId, dateFrom, dateTo);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Supplier Bill generatePreview error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SUPPLIER_BILL_GET_NEXT_NUMBER, async () => {
+    try {
+      const result = queries.supplierBills.getNextBillNumber();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Supplier Bill getNextNumber error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Item handlers
+  ipcMain.handle(channels.ITEM_GET_ALL, async () => {
+    try {
+      const result = queries.items.getAll();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Item getAll error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_GET_BY_ID, async (event, id) => {
+    try {
+      const result = queries.items.getById(id);
+      if (!result) {
+        return { success: false, error: 'Item not found' };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Item getById error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_CREATE, async (event, data) => {
+    try {
+      // Check for duplicate name if provided
+      if (data.name && queries.items.checkName(data.name)) {
+        return { success: false, error: 'An item with this name already exists' };
+      }
+      const result = queries.items.create(data);
+      return { success: true, data: { id: result.lastInsertRowid } };
+    } catch (error) {
+      console.error('Item create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_UPDATE, async (event, { id, data }) => {
+    try {
+      // Check for duplicate name if provided (excluding current item)
+      if (data.name && queries.items.checkName(data.name, id)) {
+        return { success: false, error: 'An item with this name already exists' };
+      }
+      queries.items.update(id, data);
+      return { success: true };
+    } catch (error) {
+      console.error('Item update error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_DELETE, async (event, id) => {
+    try {
+      // Check if item has transactions
+      if (queries.items.hasTransactions(id)) {
+        return {
+          success: false,
+          error: 'Cannot delete item with existing transactions. Consider deactivating instead.',
+        };
+      }
+      queries.items.delete(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Item delete error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_SEARCH, async (event, name) => {
+    try {
+      const result = queries.items.search(name || '');
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Item search error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.ITEM_CHECK_NAME, async (event, { name, excludeId }) => {
+    try {
+      const exists = queries.items.checkName(name, excludeId);
+      return { success: true, data: { exists } };
+    } catch (error) {
+      console.error('Item checkName error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // App handlers
   ipcMain.handle(channels.APP_GET_VERSION, () => {
     return app.getVersion();

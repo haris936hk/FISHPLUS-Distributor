@@ -5,7 +5,7 @@ import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import useStore from './store';
-import { Dashboard, Suppliers, Customers } from './pages';
+import { Dashboard, Suppliers, Customers, SupplierBills, Items } from './pages';
 import { ErrorBoundary } from './components';
 
 /**
@@ -32,6 +32,10 @@ function App() {
         return <Suppliers onBack={() => navigateTo('dashboard')} />;
       case 'customers':
         return <Customers onBack={() => navigateTo('dashboard')} />;
+      case 'supplier-bills':
+        return <SupplierBills onBack={() => navigateTo('dashboard')} />;
+      case 'item':
+        return <Items onBack={() => navigateTo('dashboard')} />;
       default:
         return <Dashboard onNavigate={navigateTo} />;
     }

@@ -9,3 +9,5 @@
 export { default as Dashboard } from './Dashboard';
 export { default as Suppliers } from './Suppliers';
 export { default as Customers } from './Customers';
+export { default as SupplierBills } from './SupplierBills';
+export { default as Items } from './Items';
