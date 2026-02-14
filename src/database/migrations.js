@@ -20,6 +20,20 @@ const migrations = [
       // Would need to recreate table
     },
   },
+  // Migration 2 -> 3: Add supplier_bill_id to sale_items (FR-SUPBILL-035)
+  {
+    version: 3,
+    up: (_database) => {
+      _database.exec(`
+        ALTER TABLE sale_items ADD COLUMN supplier_bill_id INTEGER DEFAULT NULL REFERENCES supplier_bills(id);
+        CREATE INDEX IF NOT EXISTS idx_sale_items_supplier_bill ON sale_items(supplier_bill_id);
+      `);
+    },
+    down: (_database) => {
+      // SQLite doesn't support DROP COLUMN easily
+      // Would need to recreate table
+    },
+  },
   // Add more migrations here as needed
 ];
 

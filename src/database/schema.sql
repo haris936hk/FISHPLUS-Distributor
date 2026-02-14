@@ -59,7 +59,6 @@ CREATE TABLE IF NOT EXISTS users (
     full_name_urdu TEXT,
     email TEXT,
     phone TEXT,
-    role TEXT DEFAULT 'user',
     is_active INTEGER DEFAULT 1,
     last_login_at DATETIME,
     failed_login_attempts INTEGER DEFAULT 0,
@@ -167,8 +166,6 @@ CREATE TABLE IF NOT EXISTS sales (
     balance_amount REAL DEFAULT 0,
     previous_balance REAL DEFAULT 0,
     status TEXT DEFAULT 'draft',
-    is_sms_sent INTEGER DEFAULT 0,
-    sms_sent_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_by INTEGER,
@@ -198,10 +195,12 @@ CREATE TABLE IF NOT EXISTS sale_items (
     cash_amount REAL DEFAULT 0,
     receipt_amount REAL DEFAULT 0,
     notes TEXT,
+    supplier_bill_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES items(id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (supplier_bill_id) REFERENCES supplier_bills(id)
 );
 
 -- ============================================================================
@@ -306,56 +305,6 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- ============================================================================
--- SECTION 6: AUDIT & LOGGING
--- ============================================================================
-
--- Audit Log
-CREATE TABLE IF NOT EXISTS audit_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    table_name TEXT NOT NULL,
-    record_id INTEGER NOT NULL,
-    action TEXT NOT NULL,
-    old_values TEXT,
-    new_values TEXT,
-    changed_fields TEXT,
-    user_id INTEGER,
-    username TEXT,
-    ip_address TEXT,
-    machine_name TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
--- Login History
-CREATE TABLE IF NOT EXISTS login_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    username TEXT NOT NULL,
-    login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    logout_at DATETIME,
-    ip_address TEXT,
-    machine_name TEXT,
-    is_successful INTEGER NOT NULL,
-    failure_reason TEXT,
-    session_duration INTEGER,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
--- SMS Log
-CREATE TABLE IF NOT EXISTS sms_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sale_id INTEGER,
-    customer_id INTEGER,
-    mobile_number TEXT NOT NULL,
-    message TEXT NOT NULL,
-    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status TEXT NOT NULL,
-    gateway_response TEXT,
-    retry_count INTEGER DEFAULT 0,
-    FOREIGN KEY (sale_id) REFERENCES sales(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-);
 
 -- ============================================================================
 -- SECTION 7: SYSTEM CONFIGURATION
@@ -421,6 +370,7 @@ CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
 -- Sale Items
 CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id);
 CREATE INDEX IF NOT EXISTS idx_sale_items_item ON sale_items(item_id);
+CREATE INDEX IF NOT EXISTS idx_sale_items_supplier_bill ON sale_items(supplier_bill_id);
 
 -- Purchases
 CREATE INDEX IF NOT EXISTS idx_purchases_date ON purchases(purchase_date);
@@ -435,10 +385,6 @@ CREATE INDEX IF NOT EXISTS idx_purchase_items_item ON purchase_items(item_id);
 CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(payment_date);
 CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments(customer_id);
 CREATE INDEX IF NOT EXISTS idx_payments_supplier ON payments(supplier_id);
-
--- Audit Logs
-CREATE INDEX IF NOT EXISTS idx_audit_logs_table ON audit_logs(table_name);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_date ON audit_logs(created_at);
 
 -- Settings
 CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
@@ -468,7 +414,6 @@ INSERT OR IGNORE INTO settings (key, value, description) VALUES
     ('company_phone1', '+92-3008501724', 'Primary phone number'),
     ('company_phone2', '051-5534607', 'Secondary phone number'),
     ('default_commission_pct', '5.00', 'Default commission percentage'),
-    ('sms_enabled', 'false', 'Enable SMS notifications'),
     ('session_timeout_minutes', '30', 'User session timeout'),
     ('date_format', 'dd-MM-yyyy', 'Default date format'),
     ('currency_symbol', 'Rs.', 'Currency symbol'),
@@ -485,8 +430,8 @@ INSERT OR IGNORE INTO number_sequences (name, prefix, current_number) VALUES
     ('supplier_bill', 'BILL-', 0);
 
 -- Default admin user (password: admin123 - should be changed)
-INSERT OR IGNORE INTO users (id, username, password_hash, full_name, role) 
-VALUES (1, 'admin', '$2b$10$placeholder_hash_change_this', 'Administrator', 'admin');
+INSERT OR IGNORE INTO users (id, username, password_hash, full_name) 
+VALUES (1, 'admin', '$2b$10$placeholder_hash_change_this', 'Administrator');
 
 -- ============================================================================
 -- END OF SCHEMA

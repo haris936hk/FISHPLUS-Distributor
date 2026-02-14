@@ -11,3 +11,6 @@ export { default as Suppliers } from './Suppliers';
 export { default as Customers } from './Customers';
 export { default as SupplierBills } from './SupplierBills';
 export { default as Items } from './Items';
+export { default as Sales } from './Sales';
+export { default as Purchases } from './Purchases';
+export { default as Reports } from './Reports';

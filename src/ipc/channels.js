@@ -47,6 +47,24 @@ module.exports = {
   ITEM_SEARCH: 'item:search',
   ITEM_CHECK_NAME: 'item:checkName',
 
+  // Sale channels
+  SALE_GET_ALL: 'sale:getAll',
+  SALE_GET_BY_ID: 'sale:getById',
+  SALE_CREATE: 'sale:create',
+  SALE_UPDATE: 'sale:update',
+  SALE_DELETE: 'sale:delete',
+  SALE_SEARCH: 'sale:search',
+  SALE_GET_NEXT_NUMBER: 'sale:getNextNumber',
+
+  // Purchase channels
+  PURCHASE_GET_ALL: 'purchase:getAll',
+  PURCHASE_GET_BY_ID: 'purchase:getById',
+  PURCHASE_CREATE: 'purchase:create',
+  PURCHASE_UPDATE: 'purchase:update',
+  PURCHASE_DELETE: 'purchase:delete',
+  PURCHASE_SEARCH: 'purchase:search',
+  PURCHASE_GET_NEXT_NUMBER: 'purchase:getNextNumber',
+
   // Reference data channels
   REFERENCE_GET_CITIES: 'reference:getCities',
   REFERENCE_GET_COUNTRIES: 'reference:getCountries',
@@ -56,6 +74,35 @@ module.exports = {
   APP_GET_VERSION: 'app:getVersion',
   APP_GET_PLATFORM: 'app:getPlatform',
   APP_GET_PATH: 'app:getPath',
+
+  // Report channels
+  REPORT_CLIENT_RECOVERY: 'report:clientRecovery',
+  REPORT_ITEM_SALES: 'report:itemSales',
+  REPORT_DAILY_SALES: 'report:dailySales',
+  REPORT_LEDGER: 'report:ledger',
+  REPORT_ITEM_PURCHASES: 'report:itemPurchases',
+  REPORT_STOCK: 'report:stock',
+  REPORT_CUSTOMER_REGISTER: 'report:customerRegister',
+  REPORT_CONCESSION: 'report:concession',
+  REPORT_DAILY_DETAILS: 'report:dailyDetails',
+  REPORT_VENDOR_SALES: 'report:vendorSales',
+  REPORT_NET_SUMMARY: 'report:netSummary',
+
+  // Print/Export channels (FR-PRINT-001 through FR-PRINT-012)
+  PRINT_REPORT: 'print:report',
+  EXPORT_PDF: 'export:pdf',
+  EXPORT_EXCEL: 'export:excel',
+  EXPORT_CSV: 'export:csv',
+
+  // Backup/Restore channels (FR-ADMIN-004)
+  BACKUP_CREATE: 'backup:create',
+  BACKUP_RESTORE: 'backup:restore',
+  BACKUP_LIST: 'backup:list',
+
+  // Year-End Processing channels (FR-ADMIN-007)
+  YEAR_END_GET_PREVIEW: 'yearEnd:getPreview',
+  YEAR_END_PROCESS: 'yearEnd:process',
+  YEAR_END_GET_HISTORY: 'yearEnd:getHistory',
 
   // Events (main -> renderer)
   DB_UPDATED: 'db:updated',

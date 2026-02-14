@@ -69,6 +69,28 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.invoke(channels.ITEM_CHECK_NAME, { name, excludeId }),
   },
 
+  // Sale APIs
+  sales: {
+    getAll: () => ipcRenderer.invoke(channels.SALE_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.SALE_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.SALE_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.SALE_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.SALE_DELETE, id),
+    search: (filters) => ipcRenderer.invoke(channels.SALE_SEARCH, filters),
+    getNextNumber: () => ipcRenderer.invoke(channels.SALE_GET_NEXT_NUMBER),
+  },
+
+  // Purchase APIs
+  purchases: {
+    getAll: () => ipcRenderer.invoke(channels.PURCHASE_GET_ALL),
+    getById: (id) => ipcRenderer.invoke(channels.PURCHASE_GET_BY_ID, id),
+    create: (data) => ipcRenderer.invoke(channels.PURCHASE_CREATE, data),
+    update: (id, data) => ipcRenderer.invoke(channels.PURCHASE_UPDATE, { id, data }),
+    delete: (id) => ipcRenderer.invoke(channels.PURCHASE_DELETE, id),
+    search: (filters) => ipcRenderer.invoke(channels.PURCHASE_SEARCH, filters),
+    getNextNumber: () => ipcRenderer.invoke(channels.PURCHASE_GET_NEXT_NUMBER),
+  },
+
   // Reference data APIs
   reference: {
     getCities: () => ipcRenderer.invoke(channels.REFERENCE_GET_CITIES),
@@ -81,6 +103,45 @@ contextBridge.exposeInMainWorld('api', {
     getVersion: () => ipcRenderer.invoke(channels.APP_GET_VERSION),
     getPlatform: () => ipcRenderer.invoke(channels.APP_GET_PLATFORM),
     getPath: (name) => ipcRenderer.invoke(channels.APP_GET_PATH, name),
+  },
+
+  // Reports
+  reports: {
+    getClientRecovery: (params) => ipcRenderer.invoke(channels.REPORT_CLIENT_RECOVERY, params),
+    getItemSales: (params) => ipcRenderer.invoke(channels.REPORT_ITEM_SALES, params),
+    getDailySales: (params) => ipcRenderer.invoke(channels.REPORT_DAILY_SALES, params),
+    getLedger: (params) => ipcRenderer.invoke(channels.REPORT_LEDGER, params),
+    getItemPurchases: (params) => ipcRenderer.invoke(channels.REPORT_ITEM_PURCHASES, params),
+    getStock: (params) => ipcRenderer.invoke(channels.REPORT_STOCK, params),
+    getCustomerRegister: (params) => ipcRenderer.invoke(channels.REPORT_CUSTOMER_REGISTER, params),
+    getConcession: (params) => ipcRenderer.invoke(channels.REPORT_CONCESSION, params),
+    getDailyDetails: (params) => ipcRenderer.invoke(channels.REPORT_DAILY_DETAILS, params),
+    getVendorSales: (params) => ipcRenderer.invoke(channels.REPORT_VENDOR_SALES, params),
+    getDailyNetSummary: (params) => ipcRenderer.invoke(channels.REPORT_NET_SUMMARY, params),
+  },
+
+  // Print/Export APIs (FR-PRINT-001 through FR-PRINT-012)
+  print: {
+    report: (htmlContent, options) =>
+      ipcRenderer.invoke(channels.PRINT_REPORT, { htmlContent, options }),
+    exportPDF: (htmlContent, options) =>
+      ipcRenderer.invoke(channels.EXPORT_PDF, { htmlContent, options }),
+    exportExcel: (data, options) => ipcRenderer.invoke(channels.EXPORT_EXCEL, { data, options }),
+    exportCSV: (data, options) => ipcRenderer.invoke(channels.EXPORT_CSV, { data, options }),
+  },
+
+  // Backup APIs (FR-ADMIN-004)
+  backup: {
+    create: () => ipcRenderer.invoke(channels.BACKUP_CREATE),
+    restore: (filePath) => ipcRenderer.invoke(channels.BACKUP_RESTORE, { filePath }),
+    list: () => ipcRenderer.invoke(channels.BACKUP_LIST),
+  },
+
+  // Year-End Processing APIs (FR-ADMIN-007)
+  yearEnd: {
+    getPreview: (asOfDate) => ipcRenderer.invoke(channels.YEAR_END_GET_PREVIEW, { asOfDate }),
+    process: (closingDate) => ipcRenderer.invoke(channels.YEAR_END_PROCESS, { closingDate }),
+    getHistory: () => ipcRenderer.invoke(channels.YEAR_END_GET_HISTORY),
   },
 
   // Event listeners (main -> renderer)

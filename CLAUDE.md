@@ -14,25 +14,25 @@
 
 ## Build & Development Commands
 
-| Task | Command |
-|------|---------|
-| Install dependencies | `npm install` |
-| Run dev server | `npm start` |
-| Package app | `npm run package` |
-| Build distributable | `npm run make` |
-| Lint code | `npm run lint` |
-| Auto-fix lint issues | `npm run lint:fix` |
-| Format code | `npm run format` |
-| Check formatting | `npm run format:check` |
+| Task                 | Command                |
+| -------------------- | ---------------------- |
+| Install dependencies | `npm install`          |
+| Run dev server       | `npm start`            |
+| Package app          | `npm run package`      |
+| Build distributable  | `npm run make`         |
+| Lint code            | `npm run lint`         |
+| Auto-fix lint issues | `npm run lint:fix`     |
+| Format code          | `npm run format`       |
+| Check formatting     | `npm run format:check` |
 
 ---
 
 ## Testing Instructions
 
-| Task | Command |
-|------|---------|
-| Run full test suite | `npm test` |
-| Watch mode | `npm run test:watch` |
+| Task                | Command              |
+| ------------------- | -------------------- |
+| Run full test suite | `npm test`           |
+| Watch mode          | `npm run test:watch` |
 
 - **Framework:** Mocha + Chai
 - **Config:** `.mocharc.json`
@@ -44,6 +44,7 @@
 ## Code Style & Conventions
 
 ### Formatting (Prettier)
+
 - Semicolons: **always**
 - Quotes: **single**
 - Tab width: **2 spaces**
@@ -51,14 +52,16 @@
 - Max line width: **100 chars**
 
 ### Naming Conventions
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `FeatureCard.jsx` |
-| Hooks | camelCase, `use` prefix | `useDatabase.js` |
-| Store files | camelCase | `store/index.js` |
-| Constants | SCREAMING_SNAKE_CASE | `FEATURES` |
+
+| Type        | Convention              | Example           |
+| ----------- | ----------------------- | ----------------- |
+| Components  | PascalCase              | `FeatureCard.jsx` |
+| Hooks       | camelCase, `use` prefix | `useDatabase.js`  |
+| Store files | camelCase               | `store/index.js`  |
+| Constants   | SCREAMING_SNAKE_CASE    | `FEATURES`        |
 
 ### Architectural Patterns
+
 - **Functional components only** — no class components
 - **Zustand store** with `devtools` middleware for state management
 - **IPC abstraction** via `window.api.*` — never call `ipcRenderer` directly
@@ -66,6 +69,7 @@
 - **Barrel exports** — use `index.js` in component/hook directories
 
 ### Do's
+
 - ✅ Use `PropTypes` for component props validation
 - ✅ Keep components small and focused
 - ✅ Use Mantine components for UI consistency
@@ -73,6 +77,7 @@
 - ✅ Use Tailwind utility classes for layout/spacing
 
 ### Don'ts
+
 - ❌ Don't use raw SQL queries in renderer — use domain-specific APIs
 - ❌ Don't disable `contextIsolation` or enable `nodeIntegration`
 - ❌ Don't import Electron directly in renderer process

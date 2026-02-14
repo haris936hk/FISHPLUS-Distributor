@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Modal,
     TextInput,
@@ -11,6 +11,7 @@ import {
     SimpleGrid,
     LoadingOverlay,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 
@@ -46,6 +47,9 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
     const [cities, setCities] = useState([]);
     const [countries, setCountries] = useState([]);
     const [errors, setErrors] = useState({});
+
+    // Track initial form data for dirty detection
+    const initialFormData = useRef(null);
 
     // Load reference data
     useEffect(() => {
@@ -86,7 +90,7 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
     // Populate form when editing
     useEffect(() => {
         if (customer && opened) {
-            setFormData({
+            const editData = {
                 name: customer.name || '',
                 name_english: customer.name_english || '',
                 nic: customer.nic || '',
@@ -97,9 +101,14 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
                 city_id: customer.city_id ? String(customer.city_id) : null,
                 country_id: customer.country_id ? String(customer.country_id) : null,
                 notes: customer.notes || '',
-            });
+            };
+            setFormData(editData);
+            initialFormData.current = editData;
             setErrors({});
+        } else if (opened && !customer) {
+            initialFormData.current = { ...formData };
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [customer, opened]);
 
     // Handle input change
@@ -110,24 +119,27 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
     }, []);
 
     // Format NIC as user types (XXXXX-XXXXXXX-X)
-    const handleNicChange = useCallback((value) => {
-        // Remove all non-digits
-        const digits = value.replace(/\D/g, '');
+    const handleNicChange = useCallback(
+        (value) => {
+            // Remove all non-digits
+            const digits = value.replace(/\D/g, '');
 
-        // Format: XXXXX-XXXXXXX-X
-        let formatted = '';
-        if (digits.length > 0) {
-            formatted = digits.slice(0, 5);
-        }
-        if (digits.length > 5) {
-            formatted += '-' + digits.slice(5, 12);
-        }
-        if (digits.length > 12) {
-            formatted += '-' + digits.slice(12, 13);
-        }
+            // Format: XXXXX-XXXXXXX-X
+            let formatted = '';
+            if (digits.length > 0) {
+                formatted = digits.slice(0, 5);
+            }
+            if (digits.length > 5) {
+                formatted += '-' + digits.slice(5, 12);
+            }
+            if (digits.length > 12) {
+                formatted += '-' + digits.slice(12, 13);
+            }
 
-        handleChange('nic', formatted);
-    }, [handleChange]);
+            handleChange('nic', formatted);
+        },
+        [handleChange]
+    );
 
     // Validate form
     const validate = useCallback(() => {
@@ -179,11 +191,34 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
         setErrors({});
     }, []);
 
+    // Check if form has unsaved changes
+    const isDirty = useCallback(() => {
+        if (!initialFormData.current) return false;
+        return JSON.stringify(formData) !== JSON.stringify(initialFormData.current);
+    }, [formData]);
+
     // Handle close with unsaved changes check
     const handleClose = useCallback(() => {
-        handleClear();
-        onClose();
-    }, [handleClear, onClose]);
+        if (isDirty()) {
+            modals.openConfirmModal({
+                title: 'Unsaved Changes',
+                children: (
+                    <Text size="sm">
+                        You have unsaved changes. Are you sure you want to close? All changes will be lost.
+                    </Text>
+                ),
+                labels: { confirm: 'Discard', cancel: 'Keep Editing' },
+                confirmProps: { color: 'red' },
+                onConfirm: () => {
+                    handleClear();
+                    onClose();
+                },
+            });
+        } else {
+            handleClear();
+            onClose();
+        }
+    }, [isDirty, handleClear, onClose]);
 
     // Submit form
     const handleSubmit = useCallback(async () => {

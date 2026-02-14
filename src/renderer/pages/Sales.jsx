@@ -1,0 +1,90 @@
+import { useState, useCallback } from 'react';
+import { Box, Container, Group, Title, Button, Tabs } from '@mantine/core';
+import PropTypes from 'prop-types';
+import { SaleForm, SaleSearch } from '../components';
+
+/**
+ * Sales Page Component
+ * Container for Sales module with tabs for new sale entry and search.
+ *
+ * @param {function} onBack - Callback to navigate back to dashboard
+ */
+function Sales({ onBack }) {
+  const [activeTab, setActiveTab] = useState('new');
+  const [editSale, setEditSale] = useState(null);
+
+  // Handle sale saved
+  const handleSaleSaved = useCallback(() => {
+    setEditSale(null);
+    setActiveTab('search');
+  }, []);
+
+  // Handle edit from search
+  const handleEdit = useCallback(async (sale) => {
+    try {
+      const response = await window.api.sales.getById(sale.id);
+      if (response.success) {
+        setEditSale(response.data);
+        setActiveTab('new');
+      }
+    } catch (error) {
+      console.error('Failed to load sale:', error);
+    }
+  }, []);
+
+  // Handle cancel edit
+  const handleCancelEdit = useCallback(() => {
+    setEditSale(null);
+  }, []);
+
+  return (
+    <Box
+      className="min-h-screen"
+      style={{
+        background: 'linear-gradient(180deg, #1a365d 0%, #2d3748 50%, #1a202c 100%)',
+      }}
+    >
+      <Container size="xl" py="xl">
+        {/* Header */}
+        <Group justify="space-between" align="center" mb="xl">
+          <Title order={2} c="white">
+            💰 Sales / بکری
+          </Title>
+          <Button variant="light" color="gray" onClick={onBack}>
+            ← Back to Dashboard
+          </Button>
+        </Group>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs.List mb="md">
+            <Tabs.Tab value="new" color="blue">
+              {editSale ? 'Edit Sale' : 'New Sale'}
+            </Tabs.Tab>
+            <Tabs.Tab value="search" color="teal">
+              Search Sales
+            </Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="new">
+            <SaleForm
+              editSale={editSale}
+              onSaved={handleSaleSaved}
+              onCancel={editSale ? handleCancelEdit : null}
+            />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="search">
+            <SaleSearch onEdit={handleEdit} />
+          </Tabs.Panel>
+        </Tabs>
+      </Container>
+    </Box>
+  );
+}
+
+Sales.propTypes = {
+  onBack: PropTypes.func.isRequired,
+};
+
+export default Sales;

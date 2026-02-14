@@ -1,12 +1,5 @@
 import { useState, useCallback } from 'react';
-import {
-    Title,
-    Text,
-    Button,
-    Group,
-    Stack,
-    Paper,
-} from '@mantine/core';
+import { Title, Text, Button, Group, Stack, Paper } from '@mantine/core';
 import PropTypes from 'prop-types';
 import { SupplierBillForm, SupplierBillPreview } from '../components';
 
@@ -18,72 +11,67 @@ import { SupplierBillForm, SupplierBillPreview } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function SupplierBills({ onBack }) {
-    const [previewData, setPreviewData] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
 
-    // Handle preview generation
-    const handlePreviewGenerated = useCallback((data) => {
-        setPreviewData(data);
-    }, []);
+  // Handle preview generation
+  const handlePreviewGenerated = useCallback((data) => {
+    setPreviewData(data);
+  }, []);
 
-    // Handle bill saved
-    const handleBillSaved = useCallback((result) => {
-        // Reset preview after save
-        setPreviewData(null);
-    }, []);
+  // Handle bill saved
+  const handleBillSaved = useCallback((_result) => {
+    // Reset preview after save
+    setPreviewData(null);
+  }, []);
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-100 dark:from-gray-900 dark:to-slate-800">
-            {/* Header */}
-            <Paper
-                shadow="md"
-                className="bg-gradient-to-r from-teal-600 via-teal-700 to-cyan-800"
-                style={{ borderRadius: 0 }}
-            >
-                <div className="px-8 py-6">
-                    <Group justify="space-between" align="center">
-                        <Stack gap={4}>
-                            <Title order={1} c="white" className="text-3xl font-bold">
-                                📄 Supplier Bill (بیوپاری بل)
-                            </Title>
-                            <Text c="white" opacity={0.9} size="md">
-                                Generate and print supplier bills
-                            </Text>
-                        </Stack>
-                        <Button
-                            variant="light"
-                            color="gray"
-                            onClick={onBack}
-                            leftSection={<span>🏠</span>}
-                        >
-                            Back to Dashboard
-                        </Button>
-                    </Group>
-                </div>
-            </Paper>
-
-            {/* Main Content - Split Layout */}
-            <div className="p-8">
-                <div className="flex gap-8">
-                    {/* Left Panel - Form */}
-                    <div className="flex-[4]">
-                        <SupplierBillForm
-                            onPreviewGenerated={handlePreviewGenerated}
-                            onBillSaved={handleBillSaved}
-                        />
-                    </div>
-
-                    {/* Right Panel - Preview */}
-                    <div className="flex-[6]">
-                        <SupplierBillPreview previewData={previewData} />
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-100 dark:from-gray-900 dark:to-slate-800">
+      {/* Header */}
+      <Paper
+        shadow="md"
+        className="bg-gradient-to-r from-teal-600 via-teal-700 to-cyan-800"
+        style={{ borderRadius: 0 }}
+      >
+        <div className="px-8 py-6">
+          <Group justify="space-between" align="center">
+            <Stack gap={4}>
+              <Title order={1} c="white" className="text-3xl font-bold">
+                📄 Supplier Bill (بیوپاری بل)
+              </Title>
+              <Text c="white" opacity={0.9} size="md">
+                Generate and print supplier bills
+              </Text>
+            </Stack>
+            <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>
+              Back to Dashboard
+            </Button>
+          </Group>
         </div>
-    );
+      </Paper>
+
+      {/* Main Content - Split Layout */}
+      <div className="p-8">
+        <div className="flex gap-8">
+          {/* Left Panel - Form */}
+          <div className="flex-[4]">
+            <SupplierBillForm
+              onPreviewGenerated={handlePreviewGenerated}
+              onBillSaved={handleBillSaved}
+            />
+          </div>
+
+          {/* Right Panel - Preview */}
+          <div className="flex-[6]">
+            <SupplierBillPreview previewData={previewData} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 SupplierBills.propTypes = {
-    onBack: PropTypes.func.isRequired,
+  onBack: PropTypes.func.isRequired,
 };
 
 export default SupplierBills;

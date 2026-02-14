@@ -9,19 +9,19 @@ import PropTypes from 'prop-types';
  * @param {string} description - Short description of the feature
  */
 function FeatureCard({ title, description }) {
-    return (
-        <Card withBorder>
-            <Text fw={600}>{title}</Text>
-            <Text size="sm" c="dimmed">
-                {description}
-            </Text>
-        </Card>
-    );
+  return (
+    <Card withBorder>
+      <Text fw={600}>{title}</Text>
+      <Text size="sm" c="dimmed">
+        {description}
+      </Text>
+    </Card>
+  );
 }
 
 FeatureCard.propTypes = {
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
 };
 
 export default FeatureCard;

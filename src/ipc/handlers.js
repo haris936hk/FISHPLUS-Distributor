@@ -122,7 +122,8 @@ function registerHandlers() {
       if (queries.suppliers.hasTransactions(id)) {
         return {
           success: false,
-          error: 'Cannot delete supplier with existing transactions. Consider deactivating instead.'
+          error:
+            'Cannot delete supplier with existing transactions. Consider deactivating instead.',
         };
       }
       queries.suppliers.delete(id);
@@ -211,7 +212,8 @@ function registerHandlers() {
       if (queries.customers.hasTransactions(id)) {
         return {
           success: false,
-          error: 'Cannot delete customer with existing transactions. Consider deactivating instead.'
+          error:
+            'Cannot delete customer with existing transactions. Consider deactivating instead.',
         };
       }
       queries.customers.delete(id);
@@ -327,15 +329,18 @@ function registerHandlers() {
     }
   });
 
-  ipcMain.handle(channels.SUPPLIER_BILL_GENERATE_PREVIEW, async (event, { supplierId, dateFrom, dateTo }) => {
-    try {
-      const result = queries.supplierBills.generatePreview(supplierId, dateFrom, dateTo);
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Supplier Bill generatePreview error:', error);
-      return { success: false, error: error.message };
+  ipcMain.handle(
+    channels.SUPPLIER_BILL_GENERATE_PREVIEW,
+    async (event, { supplierId, dateFrom, dateTo }) => {
+      try {
+        const result = queries.supplierBills.generatePreview(supplierId, dateFrom, dateTo);
+        return { success: true, data: result };
+      } catch (error) {
+        console.error('Supplier Bill generatePreview error:', error);
+        return { success: false, error: error.message };
+      }
     }
-  });
+  );
 
   ipcMain.handle(channels.SUPPLIER_BILL_GET_NEXT_NUMBER, async () => {
     try {
@@ -436,6 +441,302 @@ function registerHandlers() {
     }
   });
 
+  // Sale handlers
+  ipcMain.handle(channels.SALE_GET_ALL, async () => {
+    try {
+      const result = queries.sales.getAll();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Sale getAll error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_GET_BY_ID, async (event, id) => {
+    try {
+      const result = queries.sales.getById(id);
+      if (!result) {
+        return { success: false, error: 'Sale not found' };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Sale getById error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_CREATE, async (event, data) => {
+    try {
+      if (!data.customer_id) {
+        return { success: false, error: 'Customer is required' };
+      }
+      if (!data.items || data.items.length === 0) {
+        return { success: false, error: 'At least one line item is required' };
+      }
+      const result = queries.sales.create(data);
+      return { success: true, data: { id: result.lastInsertRowid, saleNumber: result.saleNumber } };
+    } catch (error) {
+      console.error('Sale create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_UPDATE, async (event, { id, data }) => {
+    try {
+      if (!data.customer_id) {
+        return { success: false, error: 'Customer is required' };
+      }
+      if (!data.items || data.items.length === 0) {
+        return { success: false, error: 'At least one line item is required' };
+      }
+      queries.sales.update(id, data);
+      return { success: true };
+    } catch (error) {
+      console.error('Sale update error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_DELETE, async (event, id) => {
+    try {
+      queries.sales.delete(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Sale delete error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_SEARCH, async (event, filters) => {
+    try {
+      const result = queries.sales.search(filters || {});
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Sale search error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.SALE_GET_NEXT_NUMBER, async () => {
+    try {
+      const result = queries.sales.getNextSaleNumber();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Sale getNextNumber error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Purchase handlers
+  ipcMain.handle(channels.PURCHASE_GET_ALL, async () => {
+    try {
+      const result = queries.purchases.getAll();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Purchase getAll error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_GET_BY_ID, async (event, id) => {
+    try {
+      const result = queries.purchases.getById(id);
+      if (!result) {
+        return { success: false, error: 'Purchase not found' };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Purchase getById error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_CREATE, async (event, data) => {
+    try {
+      if (!data.supplier_id) {
+        return { success: false, error: 'Supplier is required' };
+      }
+      if (!data.items || data.items.length === 0) {
+        return { success: false, error: 'At least one line item is required' };
+      }
+      const result = queries.purchases.create(data);
+      return {
+        success: true,
+        data: { id: result.lastInsertRowid, purchaseNumber: result.purchaseNumber },
+      };
+    } catch (error) {
+      console.error('Purchase create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_UPDATE, async (event, { id, data }) => {
+    try {
+      if (!data.supplier_id) {
+        return { success: false, error: 'Supplier is required' };
+      }
+      if (!data.items || data.items.length === 0) {
+        return { success: false, error: 'At least one line item is required' };
+      }
+      queries.purchases.update(id, data);
+      return { success: true };
+    } catch (error) {
+      console.error('Purchase update error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_DELETE, async (event, id) => {
+    try {
+      queries.purchases.delete(id);
+      return { success: true };
+    } catch (error) {
+      console.error('Purchase delete error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_SEARCH, async (event, filters) => {
+    try {
+      const result = queries.purchases.search(filters || {});
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Purchase search error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.PURCHASE_GET_NEXT_NUMBER, async () => {
+    try {
+      const result = queries.purchases.getNextPurchaseNumber();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Purchase getNextNumber error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+  // Report handlers
+  ipcMain.handle(channels.REPORT_CLIENT_RECOVERY, async (event, params) => {
+    try {
+      const { customerId, dateFrom, dateTo, allClients } = params;
+      const result = queries.reports.getClientRecovery(customerId, dateFrom, dateTo, allClients);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report clientRecovery error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_ITEM_SALES, async (event, params) => {
+    try {
+      const { itemId, dateFrom, dateTo } = params;
+      const result = queries.reports.getItemSales(itemId, dateFrom, dateTo);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report itemSales error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_DAILY_SALES, async (event, params) => {
+    try {
+      const { dateFrom, dateTo } = params;
+      const result = queries.reports.getDailySales(dateFrom, dateTo);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report dailySales error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_LEDGER, async (event, params) => {
+    try {
+      const { accountId, accountType, dateFrom, dateTo } = params;
+      const result = queries.reports.getLedger(accountId, accountType, dateFrom, dateTo);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report ledger error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_ITEM_PURCHASES, async (event, params) => {
+    try {
+      const { itemId, dateFrom, dateTo } = params;
+      const result = queries.reports.getItemPurchases(itemId, dateFrom, dateTo);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report itemPurchases error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_STOCK, async (event, params) => {
+    try {
+      const { asOfDate } = params;
+      const result = queries.reports.getStockReport(asOfDate);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report stock error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_CUSTOMER_REGISTER, async (event, params) => {
+    try {
+      const { asOfDate } = params;
+      const result = queries.reports.getCustomerRegister(asOfDate);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report customerRegister error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_CONCESSION, async (event, params) => {
+    try {
+      const { customerId, dateFrom, dateTo, allClients } = params;
+      const result = queries.reports.getConcessionReport(customerId, dateFrom, dateTo, allClients);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report concession error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_DAILY_DETAILS, async (event, params) => {
+    try {
+      const { date } = params;
+      const result = queries.reports.getDailySalesDetails(date);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report dailyDetails error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_VENDOR_SALES, async (event, params) => {
+    try {
+      const { supplierId, dateFrom, dateTo, allVendors } = params;
+      const result = queries.reports.getVendorSales(supplierId, dateFrom, dateTo, allVendors);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report vendorSales error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.REPORT_NET_SUMMARY, async (event, params) => {
+    try {
+      const { asOfDate } = params;
+      const result = queries.reports.getDailyNetAmountSummary(asOfDate);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report netSummary error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // App handlers
   ipcMain.handle(channels.APP_GET_VERSION, () => {
     return app.getVersion();
@@ -447,6 +748,129 @@ function registerHandlers() {
 
   ipcMain.handle(channels.APP_GET_PATH, (event, name) => {
     return app.getPath(name);
+  });
+
+  // Print/Export handlers
+  ipcMain.handle(channels.PRINT_REPORT, async (event, { htmlContent, options }) => {
+    try {
+      const printService = require('../services/printService');
+      const mainWindow = require('electron').BrowserWindow.getFocusedWindow();
+      await printService.printReport(mainWindow, htmlContent, options);
+      return { success: true };
+    } catch (error) {
+      console.error('Print report error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.EXPORT_PDF, async (event, { htmlContent, options }) => {
+    try {
+      const printService = require('../services/printService');
+      const mainWindow = require('electron').BrowserWindow.getFocusedWindow();
+      const filePath = await printService.exportToPDF(mainWindow, htmlContent, options);
+      if (!filePath) {
+        return { success: false, error: 'Export cancelled' };
+      }
+      return { success: true, data: { filePath } };
+    } catch (error) {
+      console.error('Export PDF error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.EXPORT_EXCEL, async (event, { data, options }) => {
+    try {
+      const printService = require('../services/printService');
+      const mainWindow = require('electron').BrowserWindow.getFocusedWindow();
+      const filePath = await printService.exportToExcel(mainWindow, data, options);
+      if (!filePath) {
+        return { success: false, error: 'Export cancelled' };
+      }
+      return { success: true, data: { filePath } };
+    } catch (error) {
+      console.error('Export Excel error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.EXPORT_CSV, async (event, { data, options }) => {
+    try {
+      const printService = require('../services/printService');
+      const mainWindow = require('electron').BrowserWindow.getFocusedWindow();
+      const filePath = await printService.exportToExcel(mainWindow, data, {
+        ...options,
+        filename: options?.filename || 'export.csv',
+      });
+      if (!filePath) {
+        return { success: false, error: 'Export cancelled' };
+      }
+      return { success: true, data: { filePath } };
+    } catch (error) {
+      console.error('Export CSV error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Backup handlers
+  ipcMain.handle(channels.BACKUP_CREATE, async () => {
+    try {
+      const result = queries.backup.create();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Backup create error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.BACKUP_RESTORE, async (event, { filePath }) => {
+    try {
+      queries.backup.restore(filePath);
+      return { success: true };
+    } catch (error) {
+      console.error('Backup restore error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.BACKUP_LIST, async () => {
+    try {
+      const result = queries.backup.list();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Backup list error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Year-End Processing handlers
+  ipcMain.handle(channels.YEAR_END_GET_PREVIEW, async (event, { asOfDate }) => {
+    try {
+      const result = queries.yearEnd.getPreview(asOfDate);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Year-end preview error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.YEAR_END_PROCESS, async (event, { closingDate }) => {
+    try {
+      const result = queries.yearEnd.process(closingDate);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Year-end process error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.YEAR_END_GET_HISTORY, async () => {
+    try {
+      const result = queries.yearEnd.getHistory();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Year-end history error:', error);
+      return { success: false, error: error.message };
+    }
   });
 }
 

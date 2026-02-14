@@ -5,7 +5,16 @@ import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import useStore from './store';
-import { Dashboard, Suppliers, Customers, SupplierBills, Items } from './pages';
+import {
+  Dashboard,
+  Suppliers,
+  Customers,
+  SupplierBills,
+  Items,
+  Sales,
+  Purchases,
+  Reports,
+} from './pages';
 import { ErrorBoundary } from './components';
 
 /**
@@ -15,14 +24,35 @@ import { ErrorBoundary } from './components';
 function App() {
   const { theme, loadSettings } = useStore();
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [reportTab, setReportTab] = useState(null);
 
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
 
-  // Navigation handler
-  const navigateTo = useCallback((page) => {
+  // Dynamic window title (FR-NAV-001)
+  useEffect(() => {
+    const pageTitles = {
+      dashboard: 'FISHPLUS - Dashboard',
+      suppliers: 'FISHPLUS - Suppliers',
+      customers: 'FISHPLUS - Customers',
+      'supplier-bills': 'FISHPLUS - Supplier Bills',
+      item: 'FISHPLUS - Items',
+      sales: 'FISHPLUS - Sales',
+      purchases: 'FISHPLUS - Purchases',
+      reports: 'FISHPLUS - Reports',
+    };
+    document.title = pageTitles[currentPage] || 'FISHPLUS Distributor';
+  }, [currentPage]);
+
+  // Navigation handler - supports optional data object with tab parameter
+  const navigateTo = useCallback((page, data = {}) => {
     setCurrentPage(page);
+    if (data.tab) {
+      setReportTab(data.tab);
+    } else {
+      setReportTab(null);
+    }
   }, []);
 
   // Render current page
@@ -36,6 +66,12 @@ function App() {
         return <SupplierBills onBack={() => navigateTo('dashboard')} />;
       case 'item':
         return <Items onBack={() => navigateTo('dashboard')} />;
+      case 'sales':
+        return <Sales onBack={() => navigateTo('dashboard')} />;
+      case 'purchases':
+        return <Purchases onBack={() => navigateTo('dashboard')} />;
+      case 'reports':
+        return <Reports onBack={() => navigateTo('dashboard')} initialTab={reportTab} />;
       default:
         return <Dashboard onNavigate={navigateTo} />;
     }
@@ -51,9 +87,7 @@ function App() {
     >
       <ModalsProvider>
         <Notifications position="top-right" />
-        <ErrorBoundary>
-          {renderPage()}
-        </ErrorBoundary>
+        <ErrorBoundary>{renderPage()}</ErrorBoundary>
       </ModalsProvider>
     </MantineProvider>
   );

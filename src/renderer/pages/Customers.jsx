@@ -1,12 +1,5 @@
 import { useState, useCallback } from 'react';
-import {
-    Title,
-    Text,
-    Button,
-    Group,
-    Stack,
-    Paper,
-} from '@mantine/core';
+import { Title, Text, Button, Group, Stack, Paper } from '@mantine/core';
 import PropTypes from 'prop-types';
 import { CustomerForm, CustomerSearch } from '../components';
 
@@ -18,95 +11,87 @@ import { CustomerForm, CustomerSearch } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function Customers({ onBack }) {
-    // Modal state
-    const [formOpened, setFormOpened] = useState(false);
-    const [editingCustomer, setEditingCustomer] = useState(null);
-    const [refreshKey, setRefreshKey] = useState(0);
+  // Modal state
+  const [formOpened, setFormOpened] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-    // Open form for new customer
-    const handleAdd = useCallback(() => {
-        setEditingCustomer(null);
-        setFormOpened(true);
-    }, []);
+  // Open form for new customer
+  const handleAdd = useCallback(() => {
+    setEditingCustomer(null);
+    setFormOpened(true);
+  }, []);
 
-    // Open form for editing
-    const handleEdit = useCallback((customer) => {
-        setEditingCustomer(customer);
-        setFormOpened(true);
-    }, []);
+  // Open form for editing
+  const handleEdit = useCallback((customer) => {
+    setEditingCustomer(customer);
+    setFormOpened(true);
+  }, []);
 
-    // Close form
-    const handleCloseForm = useCallback(() => {
-        setFormOpened(false);
-        setEditingCustomer(null);
-    }, []);
+  // Close form
+  const handleCloseForm = useCallback(() => {
+    setFormOpened(false);
+    setEditingCustomer(null);
+  }, []);
 
-    // Refresh list after save
-    const handleSuccess = useCallback(() => {
-        setRefreshKey((prev) => prev + 1);
-    }, []);
+  // Refresh list after save
+  const handleSuccess = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-green-100 dark:from-gray-900 dark:to-slate-800">
-            {/* Header */}
-            <Paper
-                shadow="md"
-                className="bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-800"
-                style={{ borderRadius: 0 }}
-            >
-                <div className="px-8 py-6">
-                    <Group justify="space-between" align="center">
-                        <Stack gap={4}>
-                            <Title order={1} c="white" className="text-3xl font-bold">
-                                👥 Customer Management
-                            </Title>
-                            <Text c="white" opacity={0.9} size="md">
-                                Add, Edit, and Search Customers
-                            </Text>
-                        </Stack>
-                        <Group>
-                            <Button
-                                variant="white"
-                                color="teal"
-                                onClick={handleAdd}
-                                leftSection={<span>➕</span>}
-                            >
-                                Add New Customer
-                            </Button>
-                            <Button
-                                variant="light"
-                                color="gray"
-                                onClick={onBack}
-                                leftSection={<span>🏠</span>}
-                            >
-                                Back to Dashboard
-                            </Button>
-                        </Group>
-                    </Group>
-                </div>
-            </Paper>
-
-            {/* Main Content */}
-            <div className="p-8">
-                <CustomerSearch
-                    onEdit={handleEdit}
-                    onRefresh={{ refreshKey }}
-                />
-            </div>
-
-            {/* Customer Form Modal */}
-            <CustomerForm
-                opened={formOpened}
-                onClose={handleCloseForm}
-                customer={editingCustomer}
-                onSuccess={handleSuccess}
-            />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-green-100 dark:from-gray-900 dark:to-slate-800">
+      {/* Header */}
+      <Paper
+        shadow="md"
+        className="bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-800"
+        style={{ borderRadius: 0 }}
+      >
+        <div className="px-8 py-6">
+          <Group justify="space-between" align="center">
+            <Stack gap={4}>
+              <Title order={1} c="white" className="text-3xl font-bold">
+                👥 Customer Management
+              </Title>
+              <Text c="white" opacity={0.9} size="md">
+                Add, Edit, and Search Customers
+              </Text>
+            </Stack>
+            <Group>
+              <Button
+                variant="white"
+                color="teal"
+                onClick={handleAdd}
+                leftSection={<span>➕</span>}
+              >
+                Add New Customer
+              </Button>
+              <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>
+                Back to Dashboard
+              </Button>
+            </Group>
+          </Group>
         </div>
-    );
+      </Paper>
+
+      {/* Main Content */}
+      <div className="p-8">
+        <CustomerSearch onEdit={handleEdit} onRefresh={{ refreshKey }} />
+      </div>
+
+      {/* Customer Form Modal */}
+      <CustomerForm
+        opened={formOpened}
+        onClose={handleCloseForm}
+        customer={editingCustomer}
+        onSuccess={handleSuccess}
+      />
+    </div>
+  );
 }
 
 Customers.propTypes = {
-    onBack: PropTypes.func.isRequired,
+  onBack: PropTypes.func.isRequired,
 };
 
 export default Customers;

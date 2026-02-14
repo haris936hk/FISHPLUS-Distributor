@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-    Modal,
-    TextInput,
-    NumberInput,
-    Textarea,
-    Select,
-    Button,
-    Group,
-    Stack,
-    Text,
-    SimpleGrid,
-    LoadingOverlay,
+  Modal,
+  TextInput,
+  NumberInput,
+  Textarea,
+  Select,
+  Button,
+  Group,
+  Stack,
+  Text,
+  SimpleGrid,
+  LoadingOverlay,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 
@@ -26,256 +27,287 @@ import PropTypes from 'prop-types';
  * @param {function} onSuccess - Callback after successful save
  */
 function ItemForm({ opened, onClose, item = null, onSuccess }) {
-    const isEditMode = !!item;
+  const isEditMode = !!item;
 
-    // Form state
-    const [formData, setFormData] = useState({
-        name: '',
-        name_english: '',
-        unit_price: 0,
-        category_id: null,
-        notes: '',
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    name_english: '',
+    unit_price: 0,
+    category_id: null,
+    notes: '',
+  });
+
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [errors, setErrors] = useState({});
+
+  // Track initial form data for dirty detection
+  const initialFormData = useRef(null);
+
+  // Load reference data
+  useEffect(() => {
+    const loadReferenceData = async () => {
+      try {
+        const categoriesResult = await window.api.reference.getCategories();
+
+        if (categoriesResult.success) {
+          setCategories([
+            { value: '', label: 'None' },
+            ...categoriesResult.data.map((c) => ({
+              value: String(c.id),
+              label: c.name_urdu ? `${c.name} (${c.name_urdu})` : c.name,
+            })),
+          ]);
+        }
+      } catch (error) {
+        console.error('Failed to load reference data:', error);
+      }
+    };
+
+    if (opened) {
+      loadReferenceData();
+    }
+  }, [opened]);
+
+  // Populate form when editing
+  useEffect(() => {
+    if (item && opened) {
+      const editData = {
+        name: item.name || '',
+        name_english: item.name_english || '',
+        unit_price: item.unit_price || 0,
+        category_id: item.category_id ? String(item.category_id) : null,
+        notes: item.notes || '',
+      };
+      setFormData(editData);
+      initialFormData.current = editData;
+      setErrors({});
+    } else if (opened && !item) {
+      initialFormData.current = { ...formData };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item, opened]);
+
+  // Handle input change
+  const handleChange = useCallback((field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    setErrors((prev) => ({ ...prev, [field]: null }));
+  }, []);
+
+  // Validate form
+  const validate = useCallback(() => {
+    const newErrors = {};
+
+    // Required: Name (Urdu)
+    if (!formData.name.trim()) {
+      newErrors.name = 'نام ضروری ہے (Name is required)';
+    }
+
+    // Unit price must be non-negative
+    if (formData.unit_price < 0) {
+      newErrors.unit_price = 'Unit price cannot be negative';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
+
+  // Clear form
+  const handleClear = useCallback(() => {
+    setFormData({
+      name: '',
+      name_english: '',
+      unit_price: 0,
+      category_id: null,
+      notes: '',
     });
+    setErrors({});
+  }, []);
 
-    // UI state
-    const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [errors, setErrors] = useState({});
+  // Check if form has unsaved changes
+  const isDirty = useCallback(() => {
+    if (!initialFormData.current) return false;
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData.current);
+  }, [formData]);
 
-    // Load reference data
-    useEffect(() => {
-        const loadReferenceData = async () => {
-            try {
-                const categoriesResult = await window.api.reference.getCategories();
+  // Handle close with unsaved changes check
+  const handleClose = useCallback(() => {
+    if (isDirty()) {
+      modals.openConfirmModal({
+        title: 'Unsaved Changes',
+        children: (
+          <Text size="sm">
+            You have unsaved changes. Are you sure you want to close? All changes will be lost.
+          </Text>
+        ),
+        labels: { confirm: 'Discard', cancel: 'Keep Editing' },
+        confirmProps: { color: 'red' },
+        onConfirm: () => {
+          handleClear();
+          onClose();
+        },
+      });
+    } else {
+      handleClear();
+      onClose();
+    }
+  }, [isDirty, handleClear, onClose]);
 
-                if (categoriesResult.success) {
-                    setCategories([
-                        { value: '', label: 'None' },
-                        ...categoriesResult.data.map((c) => ({
-                            value: String(c.id),
-                            label: c.name_urdu ? `${c.name} (${c.name_urdu})` : c.name,
-                        })),
-                    ]);
-                }
-            } catch (error) {
-                console.error('Failed to load reference data:', error);
-            }
-        };
+  // Submit form
+  const handleSubmit = useCallback(async () => {
+    if (!validate()) {
+      notifications.show({
+        title: 'Validation Error',
+        message: 'Please fix the errors before saving',
+        color: 'red',
+      });
+      return;
+    }
 
-        if (opened) {
-            loadReferenceData();
-        }
-    }, [opened]);
+    setLoading(true);
+    try {
+      const dataToSubmit = {
+        ...formData,
+        category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
+        unit_price: parseFloat(formData.unit_price) || 0,
+      };
 
-    // Populate form when editing
-    useEffect(() => {
-        if (item && opened) {
-            setFormData({
-                name: item.name || '',
-                name_english: item.name_english || '',
-                unit_price: item.unit_price || 0,
-                category_id: item.category_id ? String(item.category_id) : null,
-                notes: item.notes || '',
-            });
-            setErrors({});
-        }
-    }, [item, opened]);
+      let result;
+      if (isEditMode) {
+        result = await window.api.items.update(item.id, dataToSubmit);
+      } else {
+        result = await window.api.items.create(dataToSubmit);
+      }
 
-    // Handle input change
-    const handleChange = useCallback((field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-        // Clear error when user starts typing
-        setErrors((prev) => ({ ...prev, [field]: null }));
-    }, []);
-
-    // Validate form
-    const validate = useCallback(() => {
-        const newErrors = {};
-
-        // Required: Name (Urdu)
-        if (!formData.name.trim()) {
-            newErrors.name = 'نام ضروری ہے (Name is required)';
-        }
-
-        // Unit price must be non-negative
-        if (formData.unit_price < 0) {
-            newErrors.unit_price = 'Unit price cannot be negative';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }, [formData]);
-
-    // Clear form
-    const handleClear = useCallback(() => {
-        setFormData({
-            name: '',
-            name_english: '',
-            unit_price: 0,
-            category_id: null,
-            notes: '',
+      if (result.success) {
+        notifications.show({
+          title: isEditMode ? 'Item Updated' : 'Item Created',
+          message: `Item "${formData.name}" has been ${isEditMode ? 'updated' : 'created'} successfully`,
+          color: 'green',
         });
-        setErrors({});
-    }, []);
-
-    // Handle close
-    const handleClose = useCallback(() => {
         handleClear();
+        onSuccess?.();
         onClose();
-    }, [handleClear, onClose]);
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: result.error || 'Failed to save item',
+          color: 'red',
+        });
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'An unexpected error occurred',
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, isEditMode, item, validate, handleClear, onSuccess, onClose]);
 
-    // Submit form
-    const handleSubmit = useCallback(async () => {
-        if (!validate()) {
-            notifications.show({
-                title: 'Validation Error',
-                message: 'Please fix the errors before saving',
-                color: 'red',
-            });
-            return;
-        }
+  return (
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={
+        <Group gap="sm">
+          <Text size="xl">📦</Text>
+          <Text size="lg" fw={600}>
+            {isEditMode ? 'Edit Item' : 'Add New Item'}
+          </Text>
+        </Group>
+      }
+      size="md"
+      centered
+      closeOnClickOutside={false}
+    >
+      <LoadingOverlay visible={loading} />
 
-        setLoading(true);
-        try {
-            const dataToSubmit = {
-                ...formData,
-                category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
-                unit_price: parseFloat(formData.unit_price) || 0,
-            };
+      <Stack gap="md">
+        <SimpleGrid cols={2}>
+          {/* Name (Urdu) - Required */}
+          <TextInput
+            label="Item Name (Urdu) - مال"
+            placeholder="Enter item name in Urdu"
+            value={formData.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            error={errors.name}
+            required
+            dir="rtl"
+            styles={{ input: { textAlign: 'right' } }}
+          />
 
-            let result;
-            if (isEditMode) {
-                result = await window.api.items.update(item.id, dataToSubmit);
-            } else {
-                result = await window.api.items.create(dataToSubmit);
-            }
+          {/* Name (English) */}
+          <TextInput
+            label="Item Name (English)"
+            placeholder="Enter item name in English"
+            value={formData.name_english}
+            onChange={(e) => handleChange('name_english', e.target.value)}
+          />
+        </SimpleGrid>
 
-            if (result.success) {
-                notifications.show({
-                    title: isEditMode ? 'Item Updated' : 'Item Created',
-                    message: `Item "${formData.name}" has been ${isEditMode ? 'updated' : 'created'} successfully`,
-                    color: 'green',
-                });
-                handleClear();
-                onSuccess?.();
-                onClose();
-            } else {
-                notifications.show({
-                    title: 'Error',
-                    message: result.error || 'Failed to save item',
-                    color: 'red',
-                });
-            }
-        } catch (error) {
-            console.error('Submit error:', error);
-            notifications.show({
-                title: 'Error',
-                message: error.message || 'An unexpected error occurred',
-                color: 'red',
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, [formData, isEditMode, item, validate, handleClear, onSuccess, onClose]);
+        <SimpleGrid cols={2}>
+          {/* Unit Price */}
+          <NumberInput
+            label="Unit Price (Rs.)"
+            placeholder="0.00"
+            value={formData.unit_price}
+            onChange={(value) => handleChange('unit_price', value || 0)}
+            error={errors.unit_price}
+            min={0}
+            decimalScale={2}
+            fixedDecimalScale
+            thousandSeparator=","
+          />
 
-    return (
-        <Modal
-            opened={opened}
-            onClose={handleClose}
-            title={
-                <Group gap="sm">
-                    <Text size="xl">📦</Text>
-                    <Text size="lg" fw={600}>
-                        {isEditMode ? 'Edit Item' : 'Add New Item'}
-                    </Text>
-                </Group>
-            }
-            size="md"
-            centered
-            closeOnClickOutside={false}
-        >
-            <LoadingOverlay visible={loading} />
+          {/* Category */}
+          <Select
+            label="Category"
+            placeholder="Select category"
+            data={categories}
+            value={formData.category_id}
+            onChange={(value) => handleChange('category_id', value)}
+            searchable
+            clearable
+          />
+        </SimpleGrid>
 
-            <Stack gap="md">
-                <SimpleGrid cols={2}>
-                    {/* Name (Urdu) - Required */}
-                    <TextInput
-                        label="Item Name (Urdu) - مال"
-                        placeholder="Enter item name in Urdu"
-                        value={formData.name}
-                        onChange={(e) => handleChange('name', e.target.value)}
-                        error={errors.name}
-                        required
-                        dir="rtl"
-                        styles={{ input: { textAlign: 'right' } }}
-                    />
+        {/* Notes */}
+        <Textarea
+          label="Notes"
+          placeholder="Additional notes (optional)"
+          value={formData.notes}
+          onChange={(e) => handleChange('notes', e.target.value)}
+          rows={3}
+        />
 
-                    {/* Name (English) */}
-                    <TextInput
-                        label="Item Name (English)"
-                        placeholder="Enter item name in English"
-                        value={formData.name_english}
-                        onChange={(e) => handleChange('name_english', e.target.value)}
-                    />
-                </SimpleGrid>
-
-                <SimpleGrid cols={2}>
-                    {/* Unit Price */}
-                    <NumberInput
-                        label="Unit Price (Rs.)"
-                        placeholder="0.00"
-                        value={formData.unit_price}
-                        onChange={(value) => handleChange('unit_price', value || 0)}
-                        error={errors.unit_price}
-                        min={0}
-                        decimalScale={2}
-                        fixedDecimalScale
-                        thousandSeparator=","
-                    />
-
-                    {/* Category */}
-                    <Select
-                        label="Category"
-                        placeholder="Select category"
-                        data={categories}
-                        value={formData.category_id}
-                        onChange={(value) => handleChange('category_id', value)}
-                        searchable
-                        clearable
-                    />
-                </SimpleGrid>
-
-                {/* Notes */}
-                <Textarea
-                    label="Notes"
-                    placeholder="Additional notes (optional)"
-                    value={formData.notes}
-                    onChange={(e) => handleChange('notes', e.target.value)}
-                    rows={3}
-                />
-
-                {/* Action Buttons */}
-                <Group justify="flex-end" mt="md">
-                    <Button variant="subtle" color="gray" onClick={handleClose}>
-                        Close
-                    </Button>
-                    <Button variant="light" onClick={handleClear}>
-                        Clear
-                    </Button>
-                    <Button onClick={handleSubmit} loading={loading}>
-                        {isEditMode ? 'Update' : 'Save'}
-                    </Button>
-                </Group>
-            </Stack>
-        </Modal>
-    );
+        {/* Action Buttons */}
+        <Group justify="flex-end" mt="md">
+          <Button variant="subtle" color="gray" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="light" onClick={handleClear}>
+            Clear
+          </Button>
+          <Button onClick={handleSubmit} loading={loading}>
+            {isEditMode ? 'Update' : 'Save'}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
 }
 
 ItemForm.propTypes = {
-    opened: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    item: PropTypes.object,
-    onSuccess: PropTypes.func,
+  opened: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  item: PropTypes.object,
+  onSuccess: PropTypes.func,
 };
 
 export default ItemForm;
