@@ -33,7 +33,14 @@ export function ReportViewer({
         <head>
           <title>${title}</title>
           <style>
-            @page { margin: 1cm; }
+            @page {
+              margin: 1cm 1cm 1.5cm 1cm;
+              @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #666;
+              }
+            }
             body { 
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               margin: 0;

@@ -352,7 +352,12 @@ function wrapInPrintHTML(bodyContent, options = {}) {
       <style>
         @page {
           size: A4;
-          margin: 15mm;
+          margin: 15mm 15mm 20mm 15mm;
+          @bottom-center {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 10px;
+            color: #666;
+          }
         }
         body {
           font-family: 'Jameel Noori Nastaleeq', 'Segoe UI', Arial, sans-serif;
@@ -385,9 +390,7 @@ function wrapInPrintHTML(bodyContent, options = {}) {
         .text-right { text-align: right; }
         .text-left { text-align: left; }
         .text-center { text-align: center; }
-        .page-number::after {
-          content: counter(page);
-        }
+
         @media print {
           .no-print { display: none; }
         }
