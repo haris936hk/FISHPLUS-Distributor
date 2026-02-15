@@ -124,6 +124,8 @@ contextBridge.exposeInMainWorld('api', {
   print: {
     report: (htmlContent, options) =>
       ipcRenderer.invoke(channels.PRINT_REPORT, { htmlContent, options }),
+    preview: (htmlContent, options) =>
+      ipcRenderer.invoke(channels.PRINT_PREVIEW, { htmlContent, options }),
     exportPDF: (htmlContent, options) =>
       ipcRenderer.invoke(channels.EXPORT_PDF, { htmlContent, options }),
     exportExcel: (data, options) => ipcRenderer.invoke(channels.EXPORT_EXCEL, { data, options }),

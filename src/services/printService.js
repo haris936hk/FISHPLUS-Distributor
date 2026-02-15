@@ -404,8 +404,57 @@ function wrapInPrintHTML(bodyContent, options = {}) {
   `;
 }
 
+/**
+ * Open a print preview window with Print/Cancel controls
+ * @param {BrowserWindow} mainWindow - Main application window
+ * @param {string} htmlContent - HTML content to preview
+ * @param {Object} options - Preview options
+ * @returns {Promise<void>}
+ */
+async function printPreview(mainWindow, htmlContent, options = {}) {
+  const { width = 800, height = 600, title = 'Print Preview' } = options;
+
+  const previewWindow = new BrowserWindow({
+    parent: mainWindow,
+    width,
+    height,
+    title,
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  // Add print/cancel buttons at the top of the HTML (using a fixed header)
+  const htmlWithControls = htmlContent.replace(
+    '</body>',
+    `<div style="position:fixed;top:0;left:0;right:0;background:#f8f9fa;padding:12px 20px;border-bottom:1px solid #dee2e6;z-index:9999;text-align:right;box-shadow: 0 2px 4px rgba(0,0,0,0.1);" class="no-print">
+      <span style="float:left;font-weight:bold;font-size:16px;margin-top:6px;color:#333;">🖨️ Print Preview</span>
+      <button onclick="window.print()" style="padding:8px 24px;margin-right:10px;cursor:pointer;background:#228be6;color:white;border:none;border-radius:4px;font-weight:600;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">Print</button>
+      <button onclick="window.close()" style="padding:8px 24px;cursor:pointer;background:#868e96;color:white;border:none;border-radius:4px;font-weight:600;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">Close</button>
+    </div>
+    <style>@media print { .no-print { display: none !important; } body { padding-top: 0 !important; } }</style>
+    <div style="height:60px;"></div>
+    </body>`
+  );
+
+  try {
+    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(htmlWithControls)}`;
+    await previewWindow.loadURL(dataUrl);
+    previewWindow.show();
+  } catch (error) {
+    console.error('Print preview error:', error);
+    if (!previewWindow.isDestroyed()) {
+      previewWindow.destroy();
+    }
+    throw error;
+  }
+}
+
 module.exports = {
   printReport,
+  printPreview,
   exportToPDF,
   exportToExcel,
   generateCSV,

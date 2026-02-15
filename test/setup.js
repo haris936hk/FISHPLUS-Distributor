@@ -1,14 +1,7 @@
-const { JSDOM } = require('jsdom');
+import '@testing-library/jest-dom';
 
-// Set up JSDOM for React component testing
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-  url: 'http://localhost',
-  pretendToBeVisual: true,
-});
-
-global.window = dom.window;
-global.document = dom.window.document;
-global.navigator = dom.window.navigator;
+// JSDOM is handled by Vitest environment config, no manual setup needed here
+// but we can add global mocks if necessary
 
 // Suppress React 18 console errors in tests
 const originalError = console.error;

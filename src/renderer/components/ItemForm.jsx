@@ -15,6 +15,7 @@ import {
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
+import { validateRequired, validatePositiveNumber } from '../utils/validators';
 
 /**
  * ItemForm Component
@@ -98,16 +99,19 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
   }, []);
 
   // Validate form
+  // Validate form using centralized validators
   const validate = useCallback(() => {
     const newErrors = {};
 
     // Required: Name (Urdu)
-    if (!formData.name.trim()) {
+    const nameResult = validateRequired(formData.name, 'نام / Name');
+    if (!nameResult.isValid) {
       newErrors.name = 'نام ضروری ہے (Name is required)';
     }
 
     // Unit price must be non-negative
-    if (formData.unit_price < 0) {
+    const priceResult = validatePositiveNumber(formData.unit_price, 'Unit Price', true);
+    if (!priceResult.isValid) {
       newErrors.unit_price = 'Unit price cannot be negative';
     }
 
@@ -160,8 +164,8 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
   const handleSubmit = useCallback(async () => {
     if (!validate()) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Please fix the errors before saving',
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
         color: 'red',
       });
       return;
@@ -184,8 +188,8 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
 
       if (result.success) {
         notifications.show({
-          title: isEditMode ? 'Item Updated' : 'Item Created',
-          message: `Item "${formData.name}" has been ${isEditMode ? 'updated' : 'created'} successfully`,
+          title: 'مال محفوظ / Item Saved',
+          message: `Item "${formData.name}" کامیابی سے ${isEditMode ? 'اپ ڈیٹ' : 'محفوظ'} ہو گیا / ${isEditMode ? 'updated' : 'created'} successfully`,
           color: 'green',
         });
         handleClear();
@@ -193,16 +197,16 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
         onClose();
       } else {
         notifications.show({
-          title: 'Error',
-          message: result.error || 'Failed to save item',
+          title: 'خرابی / Error',
+          message: result.error || 'مال محفوظ کرنے میں خرابی / Failed to save item',
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Submit error:', error);
       notifications.show({
-        title: 'Error',
-        message: error.message || 'An unexpected error occurred',
+        title: 'خرابی / Error',
+        message: error.message || 'ایک غیر متوقع خرابی / An unexpected error occurred',
         color: 'red',
       });
     } finally {

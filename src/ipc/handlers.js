@@ -763,6 +763,18 @@ function registerHandlers() {
     }
   });
 
+  ipcMain.handle(channels.PRINT_PREVIEW, async (event, { htmlContent, options }) => {
+    try {
+      const printService = require('../services/printService');
+      const mainWindow = require('electron').BrowserWindow.getFocusedWindow();
+      await printService.printPreview(mainWindow, htmlContent, options);
+      return { success: true };
+    } catch (error) {
+      console.error('Print preview error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle(channels.EXPORT_PDF, async (event, { htmlContent, options }) => {
     try {
       const printService = require('../services/printService');

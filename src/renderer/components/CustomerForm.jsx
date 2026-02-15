@@ -14,6 +14,7 @@ import {
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
+import { validateNIC, validateEmail, validatePhone } from '../utils/validators';
 
 /**
  * CustomerForm Component
@@ -141,33 +142,60 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
         [handleChange]
     );
 
-    // Validate form
+    // Format phone number as user types (03XX-XXXXXXX or 0XX-XXXXXXX)
+    const handlePhoneChange = useCallback(
+        (field, value) => {
+            const digits = value.replace(/\D/g, '');
+            let formatted = digits;
+            // Mobile format: 03XX-XXXXXXX
+            if (digits.length >= 4 && digits.startsWith('03')) {
+                formatted = digits.slice(0, 4) + (digits.length > 4 ? '-' + digits.slice(4, 11) : '');
+            }
+            // Landline format: 0XX-XXXXXXX
+            else if (digits.length >= 3 && digits.startsWith('0')) {
+                formatted = digits.slice(0, 3) + (digits.length > 3 ? '-' + digits.slice(3, 10) : '');
+            }
+            handleChange(field, formatted);
+        },
+        [handleChange]
+    );
+
+    // Validate form using centralized validators
     const validate = useCallback(() => {
         const newErrors = {};
 
         // Required: At least one name (Urdu or English)
         if (!formData.name.trim() && !formData.name_english.trim()) {
-            newErrors.name = 'نام ضروری ہے (At least one name is required)';
+            newErrors.name = 'کم از کم ایک نام ضروری ہے / At least one name is required';
         }
 
         // NIC format validation (if provided)
-        if (formData.nic && !/^\d{5}-\d{7}-\d{1}$/.test(formData.nic)) {
-            newErrors.nic = 'Invalid NIC format. Use: XXXXX-XXXXXXX-X';
+        const nicResult = validateNIC(formData.nic);
+        if (!nicResult.isValid) {
+            newErrors.nic = nicResult.error;
         }
 
-        // Mobile format validation (if provided) - Pakistan format
-        if (formData.mobile && !/^03\d{9}$/.test(formData.mobile.replace(/\D/g, ''))) {
-            newErrors.mobile = 'Invalid mobile format. Use: 03XXXXXXXXX';
+        // Mobile format validation (if provided)
+        const mobileResult = validatePhone(formData.mobile);
+        if (!mobileResult.isValid) {
+            newErrors.mobile = mobileResult.error;
+        }
+
+        // Phone format validation (if provided)
+        const phoneResult = validatePhone(formData.phone);
+        if (!phoneResult.isValid) {
+            newErrors.phone = phoneResult.error;
         }
 
         // Email format validation (if provided)
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Invalid email format';
+        const emailResult = validateEmail(formData.email);
+        if (!emailResult.isValid) {
+            newErrors.email = emailResult.error;
         }
 
         // At least one contact method
         if (!formData.phone && !formData.mobile && !formData.email) {
-            newErrors.contact = 'At least one contact method is required (Phone, Mobile, or Email)';
+            newErrors.contact = 'کم از کم ایک رابطے کا طریقہ ضروری ہے / At least one contact method is required';
         }
 
         setErrors(newErrors);
@@ -224,8 +252,8 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
     const handleSubmit = useCallback(async () => {
         if (!validate()) {
             notifications.show({
-                title: 'Validation Error',
-                message: 'Please fix the errors before saving',
+                title: 'توثیق کی خرابی / Validation Error',
+                message: 'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
                 color: 'red',
             });
             return;
@@ -248,8 +276,8 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
 
             if (result.success) {
                 notifications.show({
-                    title: isEditMode ? 'Customer Updated' : 'Customer Created',
-                    message: `Customer "${formData.name || formData.name_english}" has been ${isEditMode ? 'updated' : 'created'} successfully`,
+                    title: 'گاہک محفوظ / Customer Saved',
+                    message: `"${formData.name || formData.name_english}" کامیابی سے ${isEditMode ? 'اپ ڈیٹ' : 'محفوظ'} ہو گیا / ${isEditMode ? 'updated' : 'created'} successfully`,
                     color: 'green',
                 });
                 handleClear();
@@ -257,16 +285,16 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
                 onClose();
             } else {
                 notifications.show({
-                    title: 'Error',
-                    message: result.error || 'Failed to save customer',
+                    title: 'خرابی / Error',
+                    message: result.error || 'گاہک محفوظ کرنے میں خرابی / Failed to save customer',
                     color: 'red',
                 });
             }
         } catch (error) {
             console.error('Submit error:', error);
             notifications.show({
-                title: 'Error',
-                message: error.message || 'An unexpected error occurred',
+                title: 'خرابی / Error',
+                message: error.message || 'ایک غیر متوقع خرابی / An unexpected error occurred',
                 color: 'red',
             });
         } finally {
@@ -335,9 +363,9 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
                     {/* Mobile */}
                     <TextInput
                         label="Mobile #"
-                        placeholder="Like: 03338988999"
+                        placeholder="Like: 0333-8988999"
                         value={formData.mobile}
-                        onChange={(e) => handleChange('mobile', e.target.value)}
+                        onChange={(e) => handlePhoneChange('mobile', e.target.value)}
                         error={errors.mobile}
                     />
                 </SimpleGrid>
@@ -348,7 +376,8 @@ function CustomerForm({ opened, onClose, customer = null, onSuccess }) {
                         label="Phone #"
                         placeholder="e.g., 051-1234567"
                         value={formData.phone}
-                        onChange={(e) => handleChange('phone', e.target.value)}
+                        onChange={(e) => handlePhoneChange('phone', e.target.value)}
+                        error={errors.phone}
                     />
 
                     {/* Email */}

@@ -22,6 +22,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import { validateRequired } from '../utils/validators';
 
 /**
  * SaleForm Component
@@ -239,16 +240,22 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
   // Save sale
   const handleSave = useCallback(async () => {
-    if (!selectedCustomer) {
-      notifications.show({ title: 'Error', message: 'Please select a customer', color: 'red' });
+    // Validate customer
+    const customerResult = validateRequired(selectedCustomer, 'گاہک / Customer');
+    if (!customerResult.isValid) {
+      notifications.show({
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم گاہک منتخب کریں / Please select a customer',
+        color: 'red',
+      });
       return;
     }
 
     const validItems = lineItems.filter((item) => item.item_id);
     if (validItems.length === 0) {
       notifications.show({
-        title: 'Error',
-        message: 'Please add at least one item',
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم کم از کم ایک آئٹم شامل کریں / Please add at least one item',
         color: 'red',
       });
       return;
@@ -341,23 +348,27 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
       if (response.success) {
         notifications.show({
-          title: 'Success',
+          title: 'بکری محفوظ / Sale Saved',
           message: editSale
-            ? 'Sale updated successfully'
-            : `Sale ${response.data.saleNumber} created successfully`,
+            ? 'Sale updated successfully / بکری کامیابی سے اپ ڈیٹ ہو گئی'
+            : `Sale ${response.data.saleNumber} created successfully / بکری نمبر ${response.data.saleNumber} کامیابی سے محفوظ`,
           color: 'green',
         });
         onSaved?.(response.data);
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to save sale',
+          title: 'خرابی / Error',
+          message: response.error || 'بکری محفوظ کرنے میں خرابی / Failed to save sale',
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Save sale error:', error);
-      notifications.show({ title: 'Error', message: 'Failed to save sale', color: 'red' });
+      notifications.show({
+        title: 'خرابی / Error',
+        message: 'بکری محفوظ کرنے میں خرابی / Failed to save sale',
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }
@@ -433,13 +444,21 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         </table>
         </body></html>`;
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-      printWindow.close();
-    };
+    // Use print preview instead of direct print
+    try {
+      window.api.print.preview(html, {
+        title: `Sale Receipt - ${saleNumber} `,
+        width: 1000,
+        height: 800,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      notifications.show({
+        title: 'Print Error',
+        message: 'Failed to open print preview',
+        color: 'red',
+      });
+    }
   }, [
     customers,
     selectedCustomer,

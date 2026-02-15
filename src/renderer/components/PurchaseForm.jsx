@@ -22,6 +22,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import { validateRequired } from '../utils/validators';
 
 /**
  * PurchaseForm Component
@@ -211,16 +212,22 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
 
   // Save purchase
   const handleSave = useCallback(async () => {
-    if (!selectedSupplier) {
-      notifications.show({ title: 'Error', message: 'Please select a supplier', color: 'red' });
+    // Validate supplier
+    const supplierResult = validateRequired(selectedSupplier, 'بیوپاری / Supplier');
+    if (!supplierResult.isValid) {
+      notifications.show({
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم بیوپاری منتخب کریں / Please select a supplier',
+        color: 'red',
+      });
       return;
     }
 
     const validItems = lineItems.filter((item) => item.item_id);
     if (validItems.length === 0) {
       notifications.show({
-        title: 'Error',
-        message: 'Please add at least one item',
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم کم از کم ایک آئٹم شامل کریں / Please add at least one item',
         color: 'red',
       });
       return;
@@ -253,23 +260,27 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
 
       if (response.success) {
         notifications.show({
-          title: 'Success',
+          title: 'خریداری محفوظ / Purchase Saved',
           message: editPurchase
-            ? 'Purchase updated successfully'
-            : `Purchase ${response.data.purchaseNumber} created successfully`,
+            ? 'Purchase updated successfully / خریداری کامیابی سے اپ ڈیٹ ہو گئی'
+            : `Purchase ${response.data.purchaseNumber} created successfully / خریداری نمبر ${response.data.purchaseNumber} کامیابی سے محفوظ`,
           color: 'green',
         });
         onSaved?.(response.data);
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to save purchase',
+          title: 'خرابی / Error',
+          message: response.error || 'خریداری محفوظ کرنے میں خرابی / Failed to save purchase',
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Save purchase error:', error);
-      notifications.show({ title: 'Error', message: 'Failed to save purchase', color: 'red' });
+      notifications.show({
+        title: 'خرابی / Error',
+        message: 'خریداری محفوظ کرنے میں خرابی / Failed to save purchase',
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }
@@ -344,13 +355,21 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
         </table>
         </body></html>`;
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-      printWindow.close();
-    };
+    // Use print preview instead of direct print
+    try {
+      window.api.print.preview(html, {
+        title: `Purchase Receipt - ${purchaseNumber} `,
+        width: 1000,
+        height: 800,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      notifications.show({
+        title: 'Print Error',
+        message: 'Failed to open print preview',
+        color: 'red',
+      });
+    }
   }, [
     suppliers,
     selectedSupplier,

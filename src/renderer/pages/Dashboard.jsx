@@ -149,6 +149,7 @@ function Dashboard({ onNavigate }) {
     },
     { label: 'Item Sales', icon: '🐟', key: 'item-sale', navigate: 'reports', tab: 'item-sale' },
     { label: 'Concessions', icon: '💸', key: 'concession', navigate: 'reports', tab: 'concession' },
+    { label: 'Net Summary', icon: '📊', key: 'net-summary', navigate: 'reports', tab: 'net-summary' },
   ];
 
   return (

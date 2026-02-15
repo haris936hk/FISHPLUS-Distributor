@@ -90,6 +90,7 @@ module.exports = {
 
   // Print/Export channels (FR-PRINT-001 through FR-PRINT-012)
   PRINT_REPORT: 'print:report',
+  PRINT_PREVIEW: 'print:preview',
   EXPORT_PDF: 'export:pdf',
   EXPORT_EXCEL: 'export:excel',
   EXPORT_CSV: 'export:csv',

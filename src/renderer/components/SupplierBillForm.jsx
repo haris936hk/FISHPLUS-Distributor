@@ -16,6 +16,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import { validateRequired } from '../utils/validators';
 
 /**
  * SupplierBillForm Component
@@ -82,10 +83,11 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
   // Generate preview (Go button)
   const handleGeneratePreview = useCallback(async () => {
-    if (!selectedSupplier) {
+    const supplierResult = validateRequired(selectedSupplier, 'بیوپاری / Supplier');
+    if (!supplierResult.isValid) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Please select a supplier',
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'براہ کرم بیوپاری منتخب کریں / Please select a supplier',
         color: 'red',
       });
       return;
@@ -93,8 +95,8 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
     if (dateFrom > dateTo) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Start date cannot be after end date',
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'شروع کی تاریخ ختم ہونے کی تاریخ سے بعد نہیں ہو سکتی / Start date cannot be after end date',
         color: 'red',
       });
       return;
@@ -125,23 +127,23 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
         if (data.items.length === 0) {
           notifications.show({
-            title: 'No Data',
-            message: 'No sales found for this supplier in the selected date range',
+            title: 'کوئی ڈیٹا نہیں / No Data',
+            message: 'منتخب تاریخوں میں اس بیوپاری کا کوئی ڈیٹا نہیں ملا / No sales found for this supplier in the selected date range',
             color: 'yellow',
           });
         }
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to generate preview',
+          title: 'خرابی / Error',
+          message: response.error || 'پیش نظارہ بنانے میں ناکامی / Failed to generate preview',
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Preview generation error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Failed to generate preview',
+        title: 'خرابی / Error',
+        message: 'پیش نظارہ بنانے میں ناکامی / Failed to generate preview',
         color: 'red',
       });
     } finally {
@@ -186,8 +188,8 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
       if (response.success) {
         notifications.show({
-          title: 'Success',
-          message: `Bill ${response.data.billNumber} created successfully`,
+          title: 'بل محفوظ / Bill Saved',
+          message: `Bill ${response.data.billNumber} created successfully / بل نمبر ${response.data.billNumber} کامیابی سے محفوظ`,
           color: 'green',
         });
         onBillSaved?.(response.data);
@@ -199,16 +201,16 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
         setCashPaid(0);
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to save bill',
+          title: 'خرابی / Error',
+          message: response.error || 'بل محفوظ کرنے میں خرابی / Failed to save bill',
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Save bill error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Failed to save bill',
+        title: 'خرابی / Error',
+        message: 'بل محفوظ کرنے میں خرابی / Failed to save bill',
         color: 'red',
       });
     } finally {

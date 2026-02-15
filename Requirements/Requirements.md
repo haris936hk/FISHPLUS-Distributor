@@ -2175,7 +2175,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 **FR-ADMIN-002:** [Inferred] The system shall provide backup and restore functionality.
 
-**FR-ADMIN-003:** [Inferred] The system shall log system errors for troubleshooting.
 
 **FR-ADMIN-004:** [Inferred] The system shall provide database maintenance utilities.
 
@@ -2320,7 +2319,6 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 
 **FR-BACKUP-002:** [Inferred] The system shall support database restore functionality.
 
-**FR-BACKUP-003:** [Inferred] The system shall log backup operations for audit purposes.
 
 ### 12.4 Year-End Processing
 
@@ -2401,7 +2399,7 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 - Item-wise reports
 - Supplier sales analysis
 - Profit margin calculations
-- SMS notifications
+
 
 ### 14.3 Document Revision History
 

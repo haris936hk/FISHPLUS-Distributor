@@ -14,8 +14,9 @@
     "lint:fix": "eslint src test --fix",
     "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
-    "test": "mocha",
-    "test:watch": "mocha --watch"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "keywords": [],
   "author": {
@@ -37,8 +38,10 @@
     "@electron-forge/plugin-webpack": "^7.11.1",
     "@electron/fuses": "^1.8.0",
     "@eslint/js": "^9.39.2",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@vercel/webpack-asset-relocator-loader": "^1.7.3",
     "autoprefixer": "^10.4.24",
@@ -50,14 +53,15 @@
     "eslint-plugin-mocha": "^11.2.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "jsdom": "^28.0.0",
+    "jsdom": "^28.1.0",
     "mocha": "^11.7.5",
     "node-loader": "^2.1.0",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
     "prettier": "^3.8.1",
     "style-loader": "^3.3.4",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@mantine/core": "^8.3.14",
