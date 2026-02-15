@@ -13,10 +13,12 @@ import {
   Loader,
   Badge,
   ScrollArea,
+  Checkbox,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
+import { useResizableColumns } from '../hooks/useResizableColumns';
 
 /**
  * CustomerSearch Component
@@ -31,6 +33,14 @@ function CustomerSearch({ onEdit, onRefresh }) {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+
+  // Bulk selection (FR-GRID-006)
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  // Column resizing (FR-GRID-008)
+  const { getResizeProps } = useResizableColumns({
+    name: 200, city: 120, country: 120, contact: 150, balance: 100, actions: 100,
+  });
 
   // Load all customers initially
   const loadCustomers = useCallback(async () => {
@@ -159,7 +169,19 @@ function CustomerSearch({ onEdit, onRefresh }) {
 
   // Table rows
   const rows = customers.map((customer) => (
-    <Table.Tr key={customer.id}>
+    <Table.Tr key={customer.id} bg={selectedIds.has(customer.id) ? 'green.0' : undefined}>
+      <Table.Td>
+        <Checkbox
+          checked={selectedIds.has(customer.id)}
+          onChange={(e) => {
+            setSelectedIds((prev) => {
+              const next = new Set(prev);
+              e.target.checked ? next.add(customer.id) : next.delete(customer.id);
+              return next;
+            });
+          }}
+        />
+      </Table.Td>
       <Table.Td>
         <Text fw={500} dir="rtl">
           {customer.name}
@@ -226,6 +248,39 @@ function CustomerSearch({ onEdit, onRefresh }) {
           </Text>
         </Group>
 
+        {/* Bulk Actions (FR-GRID-006) */}
+        {selectedIds.size > 0 && (
+          <Group gap="sm" p="xs" style={{ background: 'var(--mantine-color-green-0)', borderRadius: 8 }}>
+            <Text size="sm" fw={500}>{selectedIds.size} selected</Text>
+            <Button
+              size="xs"
+              variant="light"
+              color="red"
+              onClick={() => {
+                modals.openConfirmModal({
+                  title: 'Delete Selected Customers',
+                  children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected customer(s)?</Text>,
+                  labels: { confirm: 'Delete All', cancel: 'Cancel' },
+                  confirmProps: { color: 'red' },
+                  onConfirm: async () => {
+                    for (const id of selectedIds) {
+                      await window.api.customers.delete(id);
+                    }
+                    setSelectedIds(new Set());
+                    loadCustomers();
+                    notifications.show({ title: 'Deleted', message: `${selectedIds.size} customer(s) deleted`, color: 'green' });
+                  },
+                });
+              }}
+            >
+              🗑️ Delete Selected
+            </Button>
+            <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
+              Clear Selection
+            </Button>
+          </Group>
+        )}
+
         {/* Results Table */}
         <ScrollArea h={400}>
           {loading && initialLoad ? (
@@ -240,15 +295,31 @@ function CustomerSearch({ onEdit, onRefresh }) {
               </Stack>
             </Center>
           ) : (
-            <Table striped highlightOnHover>
+            <Table striped highlightOnHover style={{ tableLayout: 'fixed' }}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>City</Table.Th>
-                  <Table.Th>Country</Table.Th>
-                  <Table.Th>Contact</Table.Th>
-                  <Table.Th>Balance</Table.Th>
-                  <Table.Th>Actions</Table.Th>
+                  <Table.Th style={{ width: 40 }}>
+                    <Checkbox
+                      checked={customers.length > 0 && customers.every((c) => selectedIds.has(c.id))}
+                      indeterminate={customers.some((c) => selectedIds.has(c.id)) && !customers.every((c) => selectedIds.has(c.id))}
+                      onChange={(e) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          customers.forEach((c) => e.target.checked ? next.add(c.id) : next.delete(c.id));
+                          return next;
+                        });
+                      }}
+                    />
+                  </Table.Th>
+                  {[['name', 'Name'], ['city', 'City'], ['country', 'Country'], ['contact', 'Contact'], ['balance', 'Balance'], ['actions', 'Actions']].map(([key, label]) => {
+                    const rp = getResizeProps(key);
+                    return (
+                      <Table.Th key={key} style={rp.style}>
+                        {label}
+                        <div {...rp.resizeHandle} />
+                      </Table.Th>
+                    );
+                  })}
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{rows}</Table.Tbody>

@@ -1,10 +1,13 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Paper, Stack, Group, Title, Text, Button, Divider, Menu } from '@mantine/core';
 import {
   IconPrinter,
   IconFileTypePdf,
   IconFileSpreadsheet,
   IconChevronDown,
+  IconZoomIn,
+  IconZoomOut,
+  IconZoomReset,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
@@ -24,6 +27,11 @@ export function ReportViewer({
   exportColumns = null, // Optional: Column definitions for CSV export
 }) {
   const printRef = useRef();
+  const [zoom, setZoom] = useState(100);
+
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 10, 200));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 10, 50));
+  const handleZoomReset = () => setZoom(100);
 
   const generatePrintHTML = () => {
     const content = printRef.current;
@@ -297,6 +305,20 @@ export function ReportViewer({
             )}
           </Stack>
           <Group gap="xs">
+            <Button.Group>
+              <Button variant="default" size="xs" onClick={handleZoomOut} title="Zoom Out">
+                <IconZoomOut size={16} />
+              </Button>
+              <Button variant="default" size="xs" style={{ pointerEvents: 'none', minWidth: 50 }}>
+                {zoom}%
+              </Button>
+              <Button variant="default" size="xs" onClick={handleZoomIn} title="Zoom In">
+                <IconZoomIn size={16} />
+              </Button>
+              <Button variant="default" size="xs" onClick={handleZoomReset} title="Reset Zoom">
+                <IconZoomReset size={16} />
+              </Button>
+            </Button.Group>
             <Button leftSection={<IconPrinter size={16} />} onClick={handlePrint} variant="light">
               Print
             </Button>
@@ -324,7 +346,19 @@ export function ReportViewer({
         <Divider />
 
         {/* Report Content (printable area) */}
-        <div ref={printRef}>{children}</div>
+        <div style={{ overflow: 'auto' }}>
+          <div
+            ref={printRef}
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top left',
+              width: zoom !== 100 ? `${10000 / zoom}%` : '100%',
+              transition: 'transform 0.15s ease',
+            }}
+          >
+            {children}
+          </div>
+        </div>
       </Stack>
     </Paper>
   );

@@ -21,14 +21,13 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Main Dashboard
 - **Purpose:** Central navigation hub and quick access to core functions
-- **User Role:** Administrative user with full system access
 
 ### 1.2 UI Element Inventory
 
 **Administration Section:**
 
-- Button: "Vender Bill" (Supplier Bill)
-- Button: "Vender Stock Bill"
+- Button: "Supplier Bill" (Supplier Bill)
+- Button: "Supplier Stock Bill"
 - Button: "Item"
 - Icon: Green folder icon for Item
 
@@ -43,7 +42,7 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - Button: "Customer" with user icon
 - Button: "Search Customers"
-- Button: "Vender" (Supplier) with user icon
+- Button: "Supplier" (Supplier) with user icon
 
 **Reports Section:**
 
@@ -54,7 +53,7 @@ This document details the functional requirements for a comprehensive fish tradi
 - Button: "Client Sales Report"
 - Button: "Daily Sales Details Report"
 - Button: "Client Sales Discount Report"
-- Button: "Vender Sales Report"
+- Button: "Supplier Sales Report"
 - Button: "Item Sale Report"
 - Button: "Daily Sales Report"
 - Button: "Daily Net Amount Summary"
@@ -91,9 +90,9 @@ This document details the functional requirements for a comprehensive fish tradi
 
 **FR-DASH-001:** The system shall provide a central dashboard as the primary navigation interface.
 
-**FR-DASH-002:** The system shall allow users to navigate to the Supplier Bill creation screen via the "Vender Bill" button.
+**FR-DASH-002:** The system shall allow users to navigate to the Supplier Bill creation screen via the "Supplier Bill" button.
 
-**FR-DASH-003:** The system shall allow users to navigate to the Supplier Stock Bill screen via the "Vender Stock Bill" button.
+**FR-DASH-003:** The system shall allow users to navigate to the Supplier Stock Bill screen via the "Supplier Stock Bill" button.
 
 **FR-DASH-004:** The system shall allow users to navigate to the Item management screen via the "Item" button.
 
@@ -109,7 +108,7 @@ This document details the functional requirements for a comprehensive fish tradi
 
 **FR-DASH-010:** The system shall allow users to navigate to the Customer search screen via the "Search Customers" button.
 
-**FR-DASH-011:** The system shall allow users to navigate to the Supplier management screen via the "Vender" button.
+**FR-DASH-011:** The system shall allow users to navigate to the Supplier management screen via the "Supplier" button.
 
 **FR-DASH-012:** The system shall allow users to access all report functions through dedicated report buttons.
 
@@ -149,7 +148,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Supplier Entry Form
 - **Purpose:** Create and edit supplier records
-- **User Role:** Administrative/Data Entry user
 
 #### 2.1.2 UI Element Inventory
 
@@ -239,9 +237,6 @@ This document details the functional requirements for a comprehensive fish tradi
 #### E. Business Rules
 
 **FR-SUP-029:** The system shall store all supplier data in a centralized supplier master table.
-
-**FR-SUP-030:** [Inferred] The system shall maintain audit trail information (created by, created date, modified by, modified date) for each supplier record.
-
 ---
 
 ### 2.2 Supplier Search Screen (Screenshot 3)
@@ -250,7 +245,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Manage Clients (Supplier Search)
 - **Purpose:** Search, view, and manage existing suppliers
-- **User Role:** Administrative/Data Entry user
 
 #### 2.2.2 UI Element Inventory
 
@@ -331,7 +325,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Clients Entry Form
 - **Purpose:** Create and edit customer records
-- **User Role:** Administrative/Sales user
 
 #### 3.1.2 UI Element Inventory
 
@@ -418,9 +411,6 @@ This document details the functional requirements for a comprehensive fish tradi
 #### E. Business Rules
 
 **FR-CUST-029:** The system shall store all customer data in a centralized customer master table.
-
-**FR-CUST-030:** [Inferred] The system shall maintain audit trail information for each customer record.
-
 **FR-CUST-031:** The system shall differentiate between customers and suppliers in the data model (they appear to be separate entities).
 
 ---
@@ -433,7 +423,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Supplier Bill Report (بیوپاری بل)
 - **Purpose:** Generate and print supplier purchase bills
-- **User Role:** Administrative/Purchasing user
 
 #### 4.1.2 UI Element Inventory (Screenshot 5)
 
@@ -567,9 +556,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-SUPBILL-035:** [Inferred] The system shall mark associated purchase transactions as "billed" to prevent duplicate billing.
 
 **FR-SUPBILL-036:** The system shall support Urdu language display for all bill elements.
-
-**FR-SUPBILL-037:** [Inferred] The system shall maintain bill history and prevent modification of posted bills.
-
 **FR-SUPBILL-038:** The system shall treat commission, grocery, labor, and ice as deductions from the gross amount (or additions to supplier debt).
 
 ---
@@ -582,7 +568,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Items Entry Form
 - **Purpose:** Create and manage inventory items
-- **User Role:** Administrative/Inventory user
 
 #### 5.1.2 UI Element Inventory
 
@@ -666,7 +651,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Sale Transaction Entry
 - **Purpose:** Record customer sales transactions
-- **User Role:** Sales user
 
 #### 6.1.2 UI Element Inventory
 
@@ -796,23 +780,11 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-SALE-045:** [Inferred] The system shall remove deleted line items from the transaction when save is executed.
 
 **FR-SALE-046:** [Inferred] The system shall display a success message after successfully saving a sale.
-
-#### E. Permissions & Access Control
-
-**FR-SALE-047:** [Inferred] The system shall restrict sale creation to users with sales permissions.
-
-**FR-SALE-048:** [Inferred] The system shall restrict sale editing to authorized users based on transaction status.
-
-**FR-SALE-049:** [Inferred] The system shall restrict sale deletion based on user permissions and time constraints.
-
 #### F. Business Rules
 
 **FR-SALE-050:** The system shall default sale date to the current system date.
 
 **FR-SALE-051:** The system shall default sale number to "00000" for new entries (auto-increment on save).
-
-**FR-SALE-052:** [Inferred] The system shall prevent modification of posted sales beyond a configurable time period.
-
 **FR-SALE-053:** The system shall treat grocery and ice as additions to the sale amount (charges to customer).
 
 **FR-SALE-054:** [Inferred] The system shall support both cash and credit sales (cash < net amount implies credit).
@@ -827,7 +799,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Inventory Sale Search
 - **Purpose:** Search and manage existing sales transactions
-- **User Role:** Sales/Administrative user
 
 #### 6.2.2 UI Element Inventory
 
@@ -921,9 +892,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-SALESEARCH-026:** [Inferred] The system shall limit search results to a maximum number of records per page.
 
 #### E. Business Rules
-
-**FR-SALESEARCH-027:** [Inferred] The system shall prevent deletion of sales that have been posted to accounting.
-
 **FR-SALESEARCH-028:** The system shall support batch printing of client transaction slips.
 
 ---
@@ -936,7 +904,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Purchase Transaction Entry (خرداری ساحب)
 - **Purpose:** Record supplier purchase transactions
-- **User Role:** Purchasing user
 
 #### 7.1.2 UI Element Inventory
 
@@ -1057,13 +1024,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-PURCH-037:** The system shall clear all fields when "New" is clicked.
 
 **FR-PURCH-038:** [Inferred] The system shall generate a printable purchase receipt when "Print" is clicked.
-
-#### E. Permissions & Access Control
-
-**FR-PURCH-039:** [Inferred] The system shall restrict purchase creation to users with purchasing permissions.
-
-**FR-PURCH-040:** [Inferred] The system shall restrict purchase editing based on transaction status.
-
 #### F. Business Rules
 
 **FR-PURCH-041:** The system shall default purchase date to current system date.
@@ -1086,7 +1046,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Purchase Search
 - **Purpose:** Search and manage existing purchase transactions
-- **User Role:** Purchasing/Administrative user
 
 #### 7.2.2 UI Element Inventory
 
@@ -1172,17 +1131,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-PURCHSEARCH-022:** The system shall refresh the grid after a purchase is deleted.
 
 **FR-PURCHSEARCH-023:** [Inferred] The system shall apply active filters in combination (AND logic).
-
-#### E. Permissions & Access Control
-
-**FR-PURCHSEARCH-024:** [Inferred] The system shall restrict purchase deletion to authorized users.
-
-**FR-PURCHSEARCH-025:** [Inferred] The system shall restrict purchase editing based on status and permissions.
-
 #### F. Business Rules
-
-**FR-PURCHSEARCH-026:** [Inferred] The system shall prevent deletion of purchases that have been posted to accounting.
-
 **FR-PURCHSEARCH-027:** [Inferred] The system shall reverse inventory and account updates when a purchase is deleted.
 
 ---
@@ -1195,7 +1144,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Client Recovery Report (کلائنٹ بکری)
 - **Purpose:** Generate client-wise sales recovery report
-- **User Role:** Sales/Accounting user
 
 #### 8.1.2 UI Element Inventory
 
@@ -1291,11 +1239,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CLIENTRPT-022:** The system shall group transactions by client when reporting for all clients.
 
 **FR-CLIENTRPT-023:** [Inferred] The system shall display subtotals for each client in multi-client reports.
-
-#### E. Permissions & Access Control
-
-**FR-CLIENTRPT-024:** [Inferred] The system shall restrict report access to users with sales or accounting permissions.
-
 #### F. Business Rules
 
 **FR-CLIENTRPT-025:** The system shall use the same calculation logic as individual sale transactions.
@@ -1310,7 +1253,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Item Wholesale Report (مجملہ بکری)
 - **Purpose:** Generate item-wise sales report
-- **User Role:** Sales/Inventory user
 
 #### 8.2.2 UI Element Inventory
 
@@ -1376,11 +1318,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-ITEMRPT-014:** The system shall display the report preview after clicking "Go".
 
 **FR-ITEMRPT-015:** [Inferred] The system shall sort transactions by date in chronological order.
-
-#### E. Permissions & Access Control
-
-**FR-ITEMRPT-016:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
 **FR-ITEMRPT-017:** The system shall include all sale transactions regardless of payment status.
@@ -1393,7 +1330,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Daily Sales Summary (امروزہ بکری)
 - **Purpose:** Generate daily sales summary report
-- **User Role:** Sales/Management user
 
 #### 8.3.2 UI Element Inventory
 
@@ -1472,11 +1408,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-DAILYRPT-018:** The system shall calculate net balance as (net amount - cash - collections - concessions).
 
 **FR-DAILYRPT-019:** The system shall display the report preview after clicking "Go".
-
-#### E. Permissions & Access Control
-
-**FR-DAILYRPT-020:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
 **FR-DAILYRPT-021:** The system shall include all transactions within the date range regardless of status.
@@ -1491,7 +1422,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Account Ledger
 - **Purpose:** Generate account ledger for customers/suppliers
-- **User Role:** Accounting user
 
 #### 8.4.2 UI Element Inventory
 
@@ -1563,13 +1493,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-LEDGER-019:** The system shall display page count and current page number.
 
 **FR-LEDGER-020:** The system shall support zoom functionality for report preview.
-
-#### E. Permissions & Access Control
-
-**FR-LEDGER-021:** [Inferred] The system shall restrict ledger access to accounting users.
-
-**FR-LEDGER-022:** [Inferred] The system shall restrict account visibility based on user permissions.
-
 #### F. Business Rules
 
 **FR-LEDGER-023:** [Inferred] The system shall classify transactions as debits (sales, advances from customer) or credits (payments, returns).
@@ -1586,7 +1509,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Item Purchase Report
 - **Purpose:** Generate item-wise purchase report
-- **User Role:** Purchasing/Inventory user
 
 #### 8.5.2 UI Element Inventory
 
@@ -1644,11 +1566,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-ITEMPURCHRPT-012:** [Inferred] The system shall calculate average purchase rate.
 
 **FR-ITEMPURCHRPT-013:** The system shall display the report preview after clicking "Go".
-
-#### E. Permissions & Access Control
-
-**FR-ITEMPURCHRPT-014:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
 **FR-ITEMPURCHRPT-015:** The system shall include all purchase transactions regardless of payment status.
@@ -1661,7 +1578,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Stock Report (سٹاک رپورٹ)
 - **Purpose:** Generate current inventory stock report
-- **User Role:** Inventory/Management user
 
 #### 8.6.2 UI Element Inventory
 
@@ -1728,17 +1644,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-STOCKRPT-014:** The system shall display the report preview after clicking "Go".
 
 **FR-STOCKRPT-015:** [Inferred] The system shall list items even if stock is zero for completeness.
-
-#### E. Permissions & Access Control
-
-**FR-STOCKRPT-016:** [Inferred] The system shall restrict report access to inventory and management users.
-
 #### F. Business Rules
-
-**FR-STOCKRPT-017:** The system shall calculate stock based on all posted transactions up to and including the specified date.
-
-**FR-STOCKRPT-018:** [Inferred] The system shall exclude pending/draft transactions from stock calculations.
-
 **FR-STOCKRPT-019:** The system shall support weight-based inventory tracking (not unit-based).
 
 ---
@@ -1749,7 +1655,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Customer Account Register (رجسٹر کھاتہ رقم)
 - **Purpose:** Generate customer account summary report
-- **User Role:** Accounting/Sales user
 
 #### 8.7.2 UI Element Inventory
 
@@ -1817,15 +1722,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CUSTREG-014:** The system shall display the report preview after clicking "Go".
 
 **FR-CUSTREG-015:** [Inferred] The system shall list all active customers regardless of balance.
-
-#### E. Permissions & Access Control
-
-**FR-CUSTREG-016:** [Inferred] The system shall restrict report access to accounting and sales users.
-
 #### F. Business Rules
-
-**FR-CUSTREG-017:** The system shall calculate balances based on all posted transactions up to the specified date.
-
 **FR-CUSTREG-018:** [Inferred] The system shall highlight customers with outstanding balances.
 
 **FR-CUSTREG-019:** The system shall support both Urdu names and English codes for customer identification.
@@ -1838,7 +1735,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Client Sales Discount Report (رعایت رپورٹ)
 - **Purpose:** Generate report of concessions/discounts granted to clients
-- **User Role:** Sales/Management user
 
 #### 8.8.2 UI Element Inventory
 
@@ -1901,11 +1797,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CONCESSIONRPT-013:** [Inferred] The system shall exclude transactions with zero concession.
 
 **FR-CONCESSIONRPT-014:** [Inferred] The system shall group by client when reporting for all clients.
-
-#### E. Permissions & Access Control
-
-**FR-CONCESSIONRPT-015:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
 **FR-CONCESSIONRPT-016:** The system shall include only sales transactions (not purchases) in the concession report.
@@ -1918,7 +1809,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Daily Sales Details (امروزہ بکری)
 - **Purpose:** Generate detailed daily sales report with line items
-- **User Role:** Sales/Management user
 
 #### 8.9.2 UI Element Inventory
 
@@ -1976,11 +1866,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-DAILYDETAIL-010:** The system shall calculate total sales for the day.
 
 **FR-DAILYDETAIL-011:** The system shall display the report preview after clicking "Go".
-
-#### E. Permissions & Access Control
-
-**FR-DAILYDETAIL-012:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
 **FR-DAILYDETAIL-013:** The system shall include all sales transactions for the specified date.
@@ -1989,19 +1874,18 @@ This document details the functional requirements for a comprehensive fish tradi
 
 ---
 
-### 8.10 Vendor Sales Report (Screenshot 21)
+### 8.10 Supplier Sales Report (Screenshot 21)
 
 #### 8.10.1 Screen Identification
 
-- **Screen Name:** Vendor Sales Details (بیوپاری بکری)
-- **Purpose:** Generate vendor/supplier-wise sales report showing all sales linked to a specific supplier's stock
-- **User Role:** Sales/Purchasing user
+- **Screen Name:** Supplier Sales Details (بیوپاری بکری)
+- **Purpose:** Generate Supplier-wise sales report showing all sales linked to a specific supplier's stock
 
 #### 8.10.2 UI Element Inventory
 
 **Filter Section:**
 
-- Dropdown: "بیوپاری" (Vendor/Supplier) - Default: "All"
+- Dropdown: "بیوپاری" (Supplier) - Default: "All"
 - Date Picker: "Sale Date From" - Default: "03/ February /2026"
 - Date Picker: "Sale Date To" - Default: "03/ February /2026"
 - Button: "Go"
@@ -2011,7 +1895,7 @@ This document details the functional requirements for a comprehensive fish tradi
 - Header: "AL - SHEIKH FISH TRADER AND DISTRIBUTER"
 - Subheader: "Shop No. W-644 Gunj Mandi Rawalpindi"
 - Contact: "+92-3008501724, 051-5534607"
-- Title: "بیوپاری بکری" (Vendor Sales)
+- Title: "بیوپاری بکری" (Supplier Sales)
 - Date range: "تاریخ 02-03-2026 سے 02-03-2026 تک"
 - Table with columns:
   - "نمبر" (Number/Serial)
@@ -2029,9 +1913,9 @@ This document details the functional requirements for a comprehensive fish tradi
 
 #### A. User Actions
 
-**FR-VENDORSALES-001:** The system shall allow users to generate vendor-wise sales reports.
+**FR-VENDORSALES-001:** The system shall allow users to generate Supplier-wise sales reports.
 
-**FR-VENDORSALES-002:** The system shall allow users to filter by specific vendor/supplier or select "All" vendors.
+**FR-VENDORSALES-002:** The system shall allow users to filter by specific Supplier or select "All" suppliers.
 
 **FR-VENDORSALES-003:** The system shall allow users to specify a date range for the report.
 
@@ -2043,13 +1927,13 @@ This document details the functional requirements for a comprehensive fish tradi
 
 #### B. Data Handling
 
-**FR-VENDORSALES-007:** The system shall retrieve all sales transactions where items originated from the selected vendor's stock.
+**FR-VENDORSALES-007:** The system shall retrieve all sales transactions where items originated from the selected supplier's stock.
 
 **FR-VENDORSALES-008:** The system shall display transaction details including customer, vehicle number, item type, weight, rate, and amount.
 
-**FR-VENDORSALES-009:** The system shall group transactions by vendor/supplier.
+**FR-VENDORSALES-009:** The system shall group transactions by Supplier.
 
-**FR-VENDORSALES-010:** The system shall display vehicle number count per vendor.
+**FR-VENDORSALES-010:** The system shall display vehicle number count per supplier.
 
 **FR-VENDORSALES-011:** The system shall track the relationship between purchased stock and subsequent sales.
 
@@ -2059,27 +1943,22 @@ This document details the functional requirements for a comprehensive fish tradi
 
 #### D. System Responses
 
-**FR-VENDORSALES-013:** The system shall calculate total weight sold per vendor.
+**FR-VENDORSALES-013:** The system shall calculate total weight sold per supplier.
 
-**FR-VENDORSALES-014:** The system shall calculate total amount per vendor.
+**FR-VENDORSALES-014:** The system shall calculate total amount per supplier.
 
-**FR-VENDORSALES-015:** The system shall count unique vehicles (گاڑیاں) used for each vendor's sales.
+**FR-VENDORSALES-015:** The system shall count unique vehicles (گاڑیاں) used for each supplier's sales.
 
-**FR-VENDORSALES-016:** The system shall calculate grand totals across all vendors.
+**FR-VENDORSALES-016:** The system shall calculate grand totals across all suppliers.
 
 **FR-VENDORSALES-017:** The system shall display the report preview after clicking "Go".
-
-#### E. Permissions & Access Control
-
-**FR-VENDORSALES-018:** [Inferred] The system shall restrict report access to authorized users.
-
 #### F. Business Rules
 
-**FR-VENDORSALES-019:** The system shall link sales transactions back to their original purchase source (vendor traceability).
+**FR-VENDORSALES-019:** The system shall link sales transactions back to their original purchase source (supplier traceability).
 
-**FR-VENDORSALES-020:** The system shall support tracking sales by the source vendor, enabling vendor performance analysis.
+**FR-VENDORSALES-020:** The system shall support tracking sales by the source vendor, enabling supplier performance analysis.
 
-**FR-VENDORSALES-021:** [Inferred] The system shall calculate profit margin per vendor if purchase and sale rates are available.
+**FR-VENDORSALES-021:** [Inferred] The system shall calculate profit margin per supplier if purchase and sale rates are available.
 
 ---
 
@@ -2089,7 +1968,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 - **Screen Name:** Daily Net Amount Summary (رجسٹر ٹوٹل رقم)
 - **Purpose:** Generate summary of total outstanding balances across all accounts
-- **User Role:** Accounting/Management user
 
 #### 8.11.2 UI Element Inventory
 
@@ -2155,11 +2033,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-NETSUMMARY-016:** The system shall display the report preview after clicking "Go".
 
 **FR-NETSUMMARY-017:** The system shall format large currency values with thousand separators.
-
-#### E. Permissions & Access Control
-
-**FR-NETSUMMARY-018:** [Inferred] The system shall restrict report access to accounting and management users.
-
 #### F. Business Rules
 
 **FR-NETSUMMARY-019:** The system shall provide a single-view snapshot of the entire receivables position.
@@ -2316,7 +2189,7 @@ This document details the functional requirements for a comprehensive fish tradi
 
 ### 10.1 Areas Requiring Clarification
 
-**[AMBIGUOUS-001]** The distinction between "Vender" (supplier) and "Client"/"Customer" needs clarification in some screens (e.g., Sale screen shows "بیوپاری" which typically means supplier).
+**[AMBIGUOUS-001]** The distinction between "Supplier" (supplier) and "Client"/"Customer" needs clarification in some screens (e.g., Sale screen shows "بیوپاری" which typically means supplier).
 
 **[AMBIGUOUS-002]** The exact calculation formula for supplier bills is not entirely clear from the UI (are commission, grocery, labor, ice added or subtracted?).
 
@@ -2331,9 +2204,6 @@ This document details the functional requirements for a comprehensive fish tradi
 **[AMBIGUOUS-007]** Whether the system supports returns, refunds, or reverse transactions is not evident from the screenshots.
 
 **[AMBIGUOUS-008]** Multi-currency support is not evident - system appears to use a single currency (Pakistani Rupees assumed).
-
-**[AMBIGUOUS-009]** The exact workflow for posting transactions to accounting and the concept of "posted" vs "draft" transactions is not visible in the UI.
-
 **[AMBIGUOUS-010]** Integration with external systems (accounting, ERP, e-commerce) is not evident from the screenshots.
 
 ### 10.2 Inferred Business Rules Requiring Validation
@@ -2418,9 +2288,6 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 ```
 
 **FR-DATAMODEL-002:** The system shall track stock per item using weight (kg) as the unit of measure.
-
-**FR-DATAMODEL-003:** Stock calculations shall consider only posted/saved transactions.
-
 ---
 
 ## 12. ADDITIONAL INFERRED REQUIREMENTS
@@ -2489,7 +2356,7 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 | 18           | 10.21.48 PM | Customer Register Report         | Section 8.7       |
 | 19           | 10.22.03 PM | Client Sales Discount Report     | Section 8.8       |
 | 20           | 10.22.19 PM | Daily Sales Details Report       | Section 8.9       |
-| 21           | 10.22.35 PM | Vendor Sales Report              | Section 8.10      |
+| 21           | 10.22.35 PM | Supplier Sales Report              | Section 8.10      |
 | 22           | 10.23.07 PM | Daily Net Amount Summary         | Section 8.11      |
 
 ---
@@ -2532,7 +2399,7 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 **P3 - Analytics & Advanced:**
 
 - Item-wise reports
-- Vendor sales analysis
+- Supplier sales analysis
 - Profit margin calculations
 - SMS notifications
 
@@ -2541,7 +2408,7 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 | Version | Date       | Author       | Changes                                                                                                               |
 | ------- | ---------- | ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | 1.0     | 2026-02-04 | BA Team      | Initial extraction from screenshots                                                                                   |
-| 1.1     | 2026-02-06 | AI Assistant | Added Vendor Sales Report, Daily Net Amount Summary, Data Model, Additional Inferred Requirements, Screenshot Mapping |
+| 1.1     | 2026-02-06 | AI Assistant | Added Supplier Sales Report, Daily Net Amount Summary, Data Model, Additional Inferred Requirements, Screenshot Mapping |
 
 ---
 

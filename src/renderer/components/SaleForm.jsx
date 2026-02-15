@@ -263,6 +263,17 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           stockMap[String(item.id)] = { stock: item.current_stock || 0, name: item.name };
         });
 
+        // When editing, add back the weights already allocated to this sale
+        // so we don't get false negatives on re-saves without quantity changes
+        if (editSale?.items) {
+          for (const existingItem of editSale.items) {
+            const key = String(existingItem.item_id);
+            if (stockMap[key]) {
+              stockMap[key].stock += existingItem.net_weight || 0;
+            }
+          }
+        }
+
         const insufficientItems = validItems
           .map((item) => {
             const calculated = calculateLineValues(item);
@@ -278,7 +289,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           notifications.show({
             title: 'Insufficient Stock',
             message: insufficientItems.join('\n'),
-            color: 'orange',
+            color: 'red',
             autoClose: 8000,
           });
           return;
@@ -286,7 +297,12 @@ function SaleForm({ editSale, onSaved, onCancel }) {
       }
     } catch (error) {
       console.error('Stock check error:', error);
-      // Continue with save if stock check fails — don't block the sale
+      notifications.show({
+        title: 'Error',
+        message: 'Unable to verify stock availability. Please try again.',
+        color: 'red',
+      });
+      return;
     }
 
     setLoading(true);

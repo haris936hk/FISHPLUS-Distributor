@@ -23,6 +23,7 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import { useResizableColumns } from '../hooks/useResizableColumns';
 
 /**
  * PurchaseSearch Component
@@ -45,6 +46,15 @@ function PurchaseSearch({ onEdit }) {
     const [filterByDate, setFilterByDate] = useState(true);
     const [filterBySupplier, setFilterBySupplier] = useState(false);
     const [purchaseNumber, setPurchaseNumber] = useState('');
+
+    // Bulk selection (FR-GRID-006)
+    const [selectedIds, setSelectedIds] = useState(new Set());
+
+    // Column resizing (FR-GRID-008)
+    const { getResizeProps } = useResizableColumns({
+        purchNum: 100, date: 100, supplier: 180,
+        vehicle: 100, weight: 100, netAmt: 120, balance: 120, status: 80, actions: 100,
+    });
 
     // Load suppliers on mount
     useEffect(() => {
@@ -260,6 +270,39 @@ function PurchaseSearch({ onEdit }) {
 
                 <Divider />
 
+                {/* Bulk Actions (FR-GRID-006) */}
+                {selectedIds.size > 0 && (
+                    <Group gap="sm" p="xs" style={{ background: 'var(--mantine-color-green-0)', borderRadius: 8 }}>
+                        <Text size="sm" fw={500}>{selectedIds.size} selected</Text>
+                        <Button
+                            size="xs"
+                            variant="light"
+                            color="red"
+                            onClick={() => {
+                                modals.openConfirmModal({
+                                    title: 'Delete Selected Purchases',
+                                    children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected purchase(s)?</Text>,
+                                    labels: { confirm: 'Delete All', cancel: 'Cancel' },
+                                    confirmProps: { color: 'red' },
+                                    onConfirm: async () => {
+                                        for (const id of selectedIds) {
+                                            await window.api.purchases.delete(id);
+                                        }
+                                        setSelectedIds(new Set());
+                                        handleSearch();
+                                        notifications.show({ title: 'Deleted', message: `${selectedIds.size} purchase(s) deleted`, color: 'green' });
+                                    },
+                                });
+                            }}
+                        >
+                            🗑️ Delete Selected
+                        </Button>
+                        <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
+                            Clear Selection
+                        </Button>
+                    </Group>
+                )}
+
                 {/* Results */}
                 <Group justify="space-between">
                     <Text size="sm" c="dimmed">
@@ -268,18 +311,32 @@ function PurchaseSearch({ onEdit }) {
                 </Group>
 
                 <ScrollArea h={400}>
-                    <Table striped withTableBorder highlightOnHover>
+                    <Table striped withTableBorder highlightOnHover style={{ tableLayout: 'fixed' }}>
                         <Table.Thead>
                             <Table.Tr>
-                                <Table.Th>Purchase #</Table.Th>
-                                <Table.Th>Date</Table.Th>
-                                <Table.Th>Supplier</Table.Th>
-                                <Table.Th>Vehicle No</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Weight (kg)</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Net Amount</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Balance</Table.Th>
-                                <Table.Th>Status</Table.Th>
-                                <Table.Th style={{ width: 100 }}>Actions</Table.Th>
+                                <Table.Th style={{ width: 40 }}>
+                                    <Checkbox
+                                        checked={purchases.length > 0 && purchases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).every((p) => selectedIds.has(p.id))}
+                                        indeterminate={purchases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).some((p) => selectedIds.has(p.id)) && !purchases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).every((p) => selectedIds.has(p.id))}
+                                        onChange={(e) => {
+                                            const pageIds = purchases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((p) => p.id);
+                                            setSelectedIds((prev) => {
+                                                const next = new Set(prev);
+                                                pageIds.forEach((id) => e.target.checked ? next.add(id) : next.delete(id));
+                                                return next;
+                                            });
+                                        }}
+                                    />
+                                </Table.Th>
+                                {[['purchNum', 'Purchase #'], ['date', 'Date'], ['supplier', 'Supplier'], ['vehicle', 'Vehicle No'], ['weight', 'Weight (kg)'], ['netAmt', 'Net Amount'], ['balance', 'Balance'], ['status', 'Status'], ['actions', 'Actions']].map(([key, label]) => {
+                                    const rp = getResizeProps(key);
+                                    return (
+                                        <Table.Th key={key} style={{ ...rp.style, textAlign: ['weight', 'netAmt', 'balance'].includes(key) ? 'right' : undefined }}>
+                                            {label}
+                                            <div {...rp.resizeHandle} />
+                                        </Table.Th>
+                                    );
+                                })}
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
@@ -293,7 +350,19 @@ function PurchaseSearch({ onEdit }) {
                                 </Table.Tr>
                             ) : (
                                 purchases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((purchase) => (
-                                    <Table.Tr key={purchase.id}>
+                                    <Table.Tr key={purchase.id} bg={selectedIds.has(purchase.id) ? 'green.0' : undefined}>
+                                        <Table.Td>
+                                            <Checkbox
+                                                checked={selectedIds.has(purchase.id)}
+                                                onChange={(e) => {
+                                                    setSelectedIds((prev) => {
+                                                        const next = new Set(prev);
+                                                        e.target.checked ? next.add(purchase.id) : next.delete(purchase.id);
+                                                        return next;
+                                                    });
+                                                }}
+                                            />
+                                        </Table.Td>
                                         <Table.Td>
                                             <Text fw={500}>{purchase.purchase_number}</Text>
                                         </Table.Td>

@@ -23,6 +23,7 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import { useResizableColumns } from '../hooks/useResizableColumns';
 
 /**
  * SaleSearch Component
@@ -45,6 +46,15 @@ function SaleSearch({ onEdit }) {
     const [allCustomers, setAllCustomers] = useState(true);
     const [saleNumber, setSaleNumber] = useState('');
     const [searchBySaleNumber, setSearchBySaleNumber] = useState(false);
+
+    // Bulk selection (FR-GRID-006)
+    const [selectedIds, setSelectedIds] = useState(new Set());
+
+    // Column resizing (FR-GRID-008)
+    const { getResizeProps } = useResizableColumns({
+        saleNum: 90, date: 100, customer: 150, supplier: 150,
+        vehicle: 100, netAmt: 120, balance: 120, status: 80, actions: 100,
+    });
 
     // Load customers on mount
     useEffect(() => {
@@ -361,6 +371,39 @@ function SaleSearch({ onEdit }) {
 
                 <Divider />
 
+                {/* Bulk Actions (FR-GRID-006) */}
+                {selectedIds.size > 0 && (
+                    <Group gap="sm" p="xs" style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}>
+                        <Text size="sm" fw={500}>{selectedIds.size} selected</Text>
+                        <Button
+                            size="xs"
+                            variant="light"
+                            color="red"
+                            onClick={() => {
+                                modals.openConfirmModal({
+                                    title: 'Delete Selected Sales',
+                                    children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected sale(s)?</Text>,
+                                    labels: { confirm: 'Delete All', cancel: 'Cancel' },
+                                    confirmProps: { color: 'red' },
+                                    onConfirm: async () => {
+                                        for (const id of selectedIds) {
+                                            await window.api.sales.delete(id);
+                                        }
+                                        setSelectedIds(new Set());
+                                        handleSearch();
+                                        notifications.show({ title: 'Deleted', message: `${selectedIds.size} sale(s) deleted`, color: 'green' });
+                                    },
+                                });
+                            }}
+                        >
+                            🗑️ Delete Selected
+                        </Button>
+                        <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
+                            Clear Selection
+                        </Button>
+                    </Group>
+                )}
+
                 {/* Results */}
                 <Group justify="space-between">
                     <Text size="sm" c="dimmed">
@@ -369,18 +412,32 @@ function SaleSearch({ onEdit }) {
                 </Group>
 
                 <ScrollArea h={400}>
-                    <Table striped withTableBorder highlightOnHover>
+                    <Table striped withTableBorder highlightOnHover style={{ tableLayout: 'fixed' }}>
                         <Table.Thead>
                             <Table.Tr>
-                                <Table.Th>Sale #</Table.Th>
-                                <Table.Th>Date</Table.Th>
-                                <Table.Th>Customer</Table.Th>
-                                <Table.Th>Supplier</Table.Th>
-                                <Table.Th>Vehicle No</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Net Amount</Table.Th>
-                                <Table.Th style={{ textAlign: 'right' }}>Balance</Table.Th>
-                                <Table.Th>Status</Table.Th>
-                                <Table.Th style={{ width: 100 }}>Actions</Table.Th>
+                                <Table.Th style={{ width: 40 }}>
+                                    <Checkbox
+                                        checked={sales.length > 0 && sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).every((s) => selectedIds.has(s.id))}
+                                        indeterminate={sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).some((s) => selectedIds.has(s.id)) && !sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).every((s) => selectedIds.has(s.id))}
+                                        onChange={(e) => {
+                                            const pageIds = sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((s) => s.id);
+                                            setSelectedIds((prev) => {
+                                                const next = new Set(prev);
+                                                pageIds.forEach((id) => e.target.checked ? next.add(id) : next.delete(id));
+                                                return next;
+                                            });
+                                        }}
+                                    />
+                                </Table.Th>
+                                {[['saleNum', 'Sale #'], ['date', 'Date'], ['customer', 'Customer'], ['supplier', 'Supplier'], ['vehicle', 'Vehicle No'], ['netAmt', 'Net Amount'], ['balance', 'Balance'], ['status', 'Status'], ['actions', 'Actions']].map(([key, label]) => {
+                                    const rp = getResizeProps(key);
+                                    return (
+                                        <Table.Th key={key} style={{ ...rp.style, textAlign: ['netAmt', 'balance'].includes(key) ? 'right' : undefined }}>
+                                            {label}
+                                            <div {...rp.resizeHandle} />
+                                        </Table.Th>
+                                    );
+                                })}
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
@@ -394,7 +451,19 @@ function SaleSearch({ onEdit }) {
                                 </Table.Tr>
                             ) : (
                                 sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((sale) => (
-                                    <Table.Tr key={sale.id}>
+                                    <Table.Tr key={sale.id} bg={selectedIds.has(sale.id) ? 'blue.0' : undefined}>
+                                        <Table.Td>
+                                            <Checkbox
+                                                checked={selectedIds.has(sale.id)}
+                                                onChange={(e) => {
+                                                    setSelectedIds((prev) => {
+                                                        const next = new Set(prev);
+                                                        e.target.checked ? next.add(sale.id) : next.delete(sale.id);
+                                                        return next;
+                                                    });
+                                                }}
+                                            />
+                                        </Table.Td>
                                         <Table.Td>
                                             <Text fw={500}>{sale.sale_number}</Text>
                                         </Table.Td>
