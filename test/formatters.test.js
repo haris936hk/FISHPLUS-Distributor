@@ -37,6 +37,19 @@ describe('Formatters Utility', () => {
     it('should format without symbol when specified', () => {
       expect(formatCurrency(1234.56, { showSymbol: false })).toBe('1,234.56');
     });
+
+    it('should handle NaN', () => {
+      expect(formatCurrency(NaN)).toBe('Rs. 0.00');
+    });
+
+    it('should handle Infinity', () => {
+      // Depending on implementation, might return Infinity or something else.
+      // Standard toLocaleString handles Infinity.
+      // But our implementation checks isNaN. Infinity is not NaN.
+      // Let's see what happens.
+      // Actually `toLocaleString` on Infinity returns "∞"
+      expect(formatCurrency(Infinity)).toContain('∞');
+    });
   });
 
   describe('formatWeight', () => {
@@ -55,6 +68,10 @@ describe('Formatters Utility', () => {
 
     it('should format without unit when specified', () => {
       expect(formatWeight(25.5, { showUnit: false })).toBe('25.500');
+    });
+
+    it('should handle NaN', () => {
+      expect(formatWeight(NaN)).toBe('0.000 kg');
     });
   });
 
@@ -77,6 +94,10 @@ describe('Formatters Utility', () => {
     it('should handle empty values', () => {
       expect(formatDate(null)).toBe('');
       expect(formatDate('')).toBe('');
+    });
+
+    it('should handle invalid date string', () => {
+      expect(formatDate('invalid-date')).toBe('');
     });
   });
 

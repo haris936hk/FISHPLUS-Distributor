@@ -82,6 +82,14 @@ describe('Validators Utility', () => {
       expect(validateNIC('12345').isValid).toBe(false);
       expect(validateNIC('12345678901234').isValid).toBe(false);
     });
+
+    it('should fail for non-numeric characters', () => {
+      expect(validateNIC('12345-abcde-1').isValid).toBe(false);
+    });
+
+    it('should fail for invalid format with dashes', () => {
+      expect(validateNIC('123456-123456-1').isValid).toBe(false); // Wrong position
+    });
   });
 
   describe('validateEmail', () => {
@@ -143,6 +151,37 @@ describe('Validators Utility', () => {
 
     it('should fail for non-numeric values', () => {
       expect(validatePositiveNumber('abc').isValid).toBe(false);
+    });
+  });
+
+  describe('validatePhone', () => {
+    it('should pass for valid Pakistani mobile', () => {
+      expect(validatePhone('03001234567').isValid).toBe(true);
+    });
+
+    it('should pass for +92 format', () => {
+      expect(validatePhone('923001234567').isValid).toBe(true);
+    });
+
+    it('should pass for 10-digit format', () => {
+      expect(validatePhone('3001234567').isValid).toBe(true);
+    });
+
+    it('should pass for empty when not required', () => {
+      expect(validatePhone('').isValid).toBe(true);
+      expect(validatePhone(null).isValid).toBe(true);
+    });
+
+    it('should fail for empty when required', () => {
+      expect(validatePhone('', true).isValid).toBe(false);
+    });
+
+    it('should fail for invalid format', () => {
+      expect(validatePhone('12345').isValid).toBe(false);
+    });
+
+    it('should fail for letter input', () => {
+      expect(validatePhone('abcdefghijk').isValid).toBe(false);
     });
   });
 });

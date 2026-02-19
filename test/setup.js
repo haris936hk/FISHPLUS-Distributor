@@ -1,4 +1,8 @@
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
+
+// Mock electron globally using __mocks__/electron.js
+vi.mock('electron');
 
 // JSDOM is handled by Vitest environment config, no manual setup needed here
 // but we can add global mocks if necessary

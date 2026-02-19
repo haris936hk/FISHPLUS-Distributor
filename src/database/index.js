@@ -1,7 +1,11 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
-const { app } = require('electron');
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { app } from 'electron';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let db = null;
 
@@ -9,15 +13,20 @@ let db = null;
  * Initialize the database
  * Database is stored in the user's app data directory
  */
-function initialize() {
+export function initialize(customPath = null) {
   if (db) {
     return db;
   }
 
   try {
-    // Get user data path
-    const userDataPath = app.getPath('userData');
-    const dbPath = path.join(userDataPath, 'database.sqlite');
+    let dbPath;
+    if (customPath) {
+      dbPath = customPath;
+    } else {
+      // Get user data path
+      const userDataPath = app.getPath('userData');
+      dbPath = path.join(userDataPath, 'database.sqlite');
+    }
 
     console.log('Initializing database at:', dbPath);
 
@@ -197,7 +206,7 @@ function createEssentialTables() {
  * @param {Array} params - Query parameters
  * @returns {Array} Query results
  */
-function query(sql, params = []) {
+export function query(sql, params = []) {
   if (!db) initialize();
   const stmt = db.prepare(sql);
   return stmt.all(...params);
@@ -209,7 +218,7 @@ function query(sql, params = []) {
  * @param {Array} params - Query parameters
  * @returns {Object} Result with changes and lastInsertRowid
  */
-function execute(sql, params = []) {
+export function execute(sql, params = []) {
   if (!db) initialize();
   const stmt = db.prepare(sql);
   return stmt.run(...params);
@@ -220,7 +229,7 @@ function execute(sql, params = []) {
  * @param {Array} operations - Array of {sql, params} objects
  * @returns {Array} Results of all operations
  */
-function transaction(operations) {
+export function transaction(operations) {
   if (!db) initialize();
 
   const txn = db.transaction(() => {
@@ -238,14 +247,14 @@ function transaction(operations) {
 /**
  * Close the database connection
  */
-function close() {
+export function close() {
   if (db) {
     db.close();
     db = null;
   }
 }
 
-module.exports = {
+export default {
   initialize,
   query,
   execute,

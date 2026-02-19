@@ -5,9 +5,11 @@
  * Implements FR-PRINT-001 through FR-PRINT-012
  */
 
-const { BrowserWindow, dialog, app } = require('electron');
-const path = require('path');
-const fs = require('fs');
+import electron from 'electron';
+const { BrowserWindow, dialog, app } = electron;
+import path from 'path';
+import fs from 'fs';
+import ExcelJS from 'exceljs';
 
 /**
  * Print HTML content using a hidden browser window
@@ -131,7 +133,6 @@ async function exportToPDF(mainWindow, htmlContent, options = {}) {
  * @returns {Promise<string>} Path to saved file
  */
 async function exportToExcel(mainWindow, data, options = {}) {
-  const ExcelJS = require('exceljs');
   const {
     filename = 'export.xlsx',
     columns = null,
@@ -452,7 +453,7 @@ async function printPreview(mainWindow, htmlContent, options = {}) {
   }
 }
 
-module.exports = {
+export default {
   printReport,
   printPreview,
   exportToPDF,

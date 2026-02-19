@@ -1,4 +1,6 @@
-module.exports = {
+import rules from './webpack.rules.mjs';
+
+export default {
   /**
    * This is the main entry point for your application, it's the first file
    * that runs in the main process.
@@ -6,7 +8,7 @@ module.exports = {
   entry: './src/main.js',
   // Put your normal webpack config below here
   module: {
-    rules: require('./webpack.rules'),
+    rules,
   },
   externals: {
     'better-sqlite3': 'commonjs better-sqlite3',

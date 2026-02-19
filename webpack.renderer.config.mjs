@@ -1,4 +1,4 @@
-const rules = require('./webpack.rules');
+import rules from './webpack.rules.mjs';
 
 // Add Babel loader for React/JSX
 rules.push({
@@ -15,7 +15,7 @@ rules.push({
   use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
 });
 
-module.exports = {
+export default {
   // Put your normal webpack config below here
   module: {
     rules,

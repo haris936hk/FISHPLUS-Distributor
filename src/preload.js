@@ -1,8 +1,8 @@
 // Preload script - secure bridge between main and renderer
 // See: https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-const { contextBridge, ipcRenderer } = require('electron');
-const channels = require('./ipc/channels');
+import { contextBridge, ipcRenderer } from 'electron';
+import channels from './ipc/channels.js';
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object

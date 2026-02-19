@@ -1,7 +1,7 @@
-const { FusesPlugin } = require('@electron-forge/plugin-fuses');
-const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+import { FusesPlugin } from '@electron-forge/plugin-fuses';
+import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
-module.exports = {
+export default {
   packagerConfig: {
     asar: true,
   },
@@ -32,9 +32,9 @@ module.exports = {
     {
       name: '@electron-forge/plugin-webpack',
       config: {
-        mainConfig: './webpack.main.config.js',
+        mainConfig: './webpack.main.config.mjs',
         renderer: {
-          config: './webpack.renderer.config.js',
+          config: './webpack.renderer.config.mjs',
           entryPoints: [
             {
               html: './src/index.html',

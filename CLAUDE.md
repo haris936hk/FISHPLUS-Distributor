@@ -8,7 +8,7 @@
 
 **FISHPLUS-Distributor** is a desktop (Desktop Optimized Layout mouse focused) application built with Electron Forge, React 19, and Zustand for state management. It uses SQLite for local data persistence, Mantine as the UI component library, and communicates between main/renderer processes via a secure IPC bridge.
 
-**Tech Stack:** Electron 40 · React 19 · Zustand · Mantine 8 · SQLite · Tailwind CSS 4 · Webpack
+**Tech Stack:** Electron 40 · React 19 · Zustand · Mantine 8 · SQLite · Tailwind CSS 4 · Webpack · Vitest · Playwright
 
 ---
 
@@ -29,15 +29,15 @@
 
 ## Testing Instructions
 
-| Task                | Command              |
-| ------------------- | -------------------- |
-| Run full test suite | `npm test`           |
+| Unit & Component Tests| `npm test`           |
+| End-to-End Tests    | `npm run test:e2e`   |
 | Watch mode          | `npm run test:watch` |
 
-- **Framework:** Mocha + Chai
-- **Config:** `.mocharc.json`
-- **Test files:** `test/**/*.test.js`
-- **Setup file:** `test/setup.js` (runs before all tests)
+- **Frameworks:** Vitest, React Testing Library, Playwright
+- **Configs:** `vitest.config.mjs`, `playwright.config.js`
+- **Unit/Component:** `test/**/*.test.{js,jsx}`
+- **E2E:** `test/e2e/**/*.spec.js`
+- **Setup:** `test/setup.js` (for Vitest/JSDOM)
 
 ---
 
@@ -101,6 +101,8 @@ FISHPLUS-Distributor/
 │   ├── ipc/
 │   │   ├── channels.js      # IPC channel name constants
 │   │   └── handlers.js      # Main process IPC handlers
+│   ├── services/            # Business Logic / Services
+│   │   └── index.js
 │   └── renderer/
 │       ├── App.jsx          # Root React component
 │       ├── index.jsx        # React entry point
@@ -114,17 +116,22 @@ FISHPLUS-Distributor/
 │       └── store/           # Zustand state management
 │           └── index.js
 ├── test/
-│   ├── setup.js             # Test environment setup
-│   └── *.test.js            # Test files
+│   ├── components/          # React component tests (Vitest + RTL)
+│   ├── e2e/                 # End-to-End tests (Playwright)
+│   │   └── app.spec.js
+│   ├── setup.js             # Vitest/JSDOM setup
+│   ├── validators.test.js   # Unit tests
+│   └── formatters.test.js   # Unit tests
 ├── .webpack/                # Webpack output (generated)
 ├── out/                     # Packaged app output
 └── Config files:
     ├── forge.config.js      # Electron Forge config
     ├── webpack.*.js         # Webpack configs
     ├── tailwind.config.js   # Tailwind CSS config
+    ├── vitest.config.mjs    # Vitest config
+    ├── playwright.config.js # Playwright config
     ├── eslint.config.js     # ESLint flat config
-    ├── .prettierrc          # Prettier config
-    └── .mocharc.json        # Mocha test config
+    └── .prettierrc          # Prettier config
 ```
 
 ---

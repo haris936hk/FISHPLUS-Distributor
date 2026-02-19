@@ -1,9 +1,17 @@
-const { app, BrowserWindow } = require('electron');
-const db = require('./database');
-const { registerHandlers } = require('./ipc/handlers');
+import { app, BrowserWindow } from 'electron';
+import db from './database/index.js';
+import { registerHandlers } from './ipc/handlers.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 // Detect if running in development mode
 const isDev = !app.isPackaged;
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {

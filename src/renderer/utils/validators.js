@@ -84,22 +84,12 @@ export function validateNIC(nic, required = false) {
     return { isValid: true };
   }
 
-  // Remove all non-digit characters
-  const cleaned = nic.replace(/\D/g, '');
-
-  // Pakistani NIC should be exactly 13 digits
-  if (cleaned.length !== 13) {
+  // Check for strict format: 13 digits OR 5-7-1 format
+  const nicPattern = /^(\d{13}|\d{5}-\d{7}-\d{1})$/;
+  if (!nicPattern.test(nic)) {
     return {
       isValid: false,
-      error: 'NIC must be 13 digits (XXXXX-XXXXXXX-X)',
-    };
-  }
-
-  // All characters should be digits
-  if (!/^\d{13}$/.test(cleaned)) {
-    return {
-      isValid: false,
-      error: 'NIC must contain only numbers',
+      error: 'Invalid NIC format. Use 13 digits or XXXXX-XXXXXXX-X format',
     };
   }
 
