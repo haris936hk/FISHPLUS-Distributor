@@ -13,9 +13,6 @@ import {
   LoadingOverlay,
   Divider,
   Grid,
-  Table,
-  ActionIcon,
-  ScrollArea,
   Badge,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
@@ -26,7 +23,7 @@ import { validateRequired } from '../utils/validators';
 
 /**
  * PurchaseForm Component
- * Form for creating/editing purchase transactions with dynamic line items.
+ * Single-transaction purchase form: one item per purchase.
  * Implements FR-PURCH-001 through FR-PURCH-046.
  *
  * @param {Object} editPurchase - Purchase object to edit (null for new)
@@ -34,7 +31,6 @@ import { validateRequired } from '../utils/validators';
  * @param {function} onCancel - Callback to cancel/close form
  */
 function PurchaseForm({ editPurchase, onSaved, onCancel }) {
-  // Form state
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [itemsList, setItemsList] = useState([]);
@@ -46,25 +42,17 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [details, setDetails] = useState('');
 
-  // Footer fields
+  // Single purchase row fields
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [rate, setRate] = useState(0);
+  const [weight, setWeight] = useState(0);
+
+  // Payment fields
   const [concessionAmount, setConcessionAmount] = useState(0);
   const [cashPaid, setCashPaid] = useState(0);
 
-  // Supplier balance
+  // Supplier previous balance
   const [previousBalance, setPreviousBalance] = useState(0);
-
-  // Line items
-  const [lineItems, setLineItems] = useState([createEmptyLineItem()]);
-
-  function createEmptyLineItem() {
-    return {
-      id: Date.now() + Math.random(),
-      item_id: null,
-      weight: 0,
-      rate: 0,
-      notes: '',
-    };
-  }
 
   // Load data on mount
   useEffect(() => {
@@ -116,21 +104,18 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
       setConcessionAmount(editPurchase.concession_amount || 0);
       setCashPaid(editPurchase.cash_paid || 0);
       setPreviousBalance(editPurchase.previous_balance || 0);
-      if (editPurchase.items && editPurchase.items.length > 0) {
-        setLineItems(
-          editPurchase.items.map((item) => ({
-            id: item.id,
-            item_id: String(item.item_id),
-            weight: Number(item.weight) || 0,
-            rate: Number(item.rate) || 0,
-            notes: item.notes || '',
-          }))
-        );
+
+      // Load the first (and only) line item
+      const item = editPurchase.items?.[0];
+      if (item) {
+        setSelectedItem(String(item.item_id));
+        setRate(Number(item.rate) || 0);
+        setWeight(Number(item.weight) || 0);
       }
     }
   }, [editPurchase]);
 
-  // Update previous balance when supplier changes
+  // Update previous balance when supplier changes (new purchase only)
   useEffect(() => {
     if (selectedSupplier && !editPurchase) {
       const supplier = suppliers.find((s) => s.value === selectedSupplier);
@@ -148,63 +133,22 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
     [itemsList]
   );
 
-
-  // Update line item
-  const updateLineItem = useCallback((id, field, value) => {
-    setLineItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  }, []);
-
-  // Add new line item
-  const addLineItem = useCallback(() => {
-    setLineItems((prev) => [...prev, createEmptyLineItem()]);
-  }, []);
-
-  // Remove line item
-  const removeLineItem = useCallback((id) => {
-    setLineItems((prev) => {
-      if (prev.length === 1) return prev;
-      return prev.filter((item) => item.id !== id);
-    });
-  }, []);
-
-  // Calculate line item amount
-  const calculateLineAmount = useCallback((item) => {
-    return (Number(item.weight) || 0) * (Number(item.rate) || 0);
-  }, []);
-
-  // Calculate totals
+  // Calculated totals
   const totals = useMemo(() => {
-    let totalWeight = 0;
-    let grossAmount = 0;
-
-    for (const item of lineItems) {
-      totalWeight += Number(item.weight) || 0;
-      grossAmount += calculateLineAmount(item);
-    }
-
-    const netAmount = grossAmount - (Number(concessionAmount) || 0);
-    const balanceAmount = netAmount - (Number(cashPaid) || 0) + (Number(previousBalance) || 0);
-
-    return {
-      totalWeight,
-      grossAmount,
-      netAmount,
-      balanceAmount,
-    };
-  }, [lineItems, concessionAmount, cashPaid, previousBalance, calculateLineAmount]);
+    const grossAmount = weight * rate;
+    const netAmount = grossAmount - (concessionAmount || 0);
+    const balanceAmount = netAmount - (cashPaid || 0) + (previousBalance || 0);
+    return { grossAmount, netAmount, balanceAmount };
+  }, [weight, rate, concessionAmount, cashPaid, previousBalance]);
 
   // Format date for API
   const formatDate = (date) => {
     if (!date) return null;
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
+    return new Date(date).toISOString().split('T')[0];
   };
 
   // Save purchase
   const handleSave = useCallback(async () => {
-    // Validate supplier
     const supplierResult = validateRequired(selectedSupplier, 'بیوپاری / Supplier');
     if (!supplierResult.isValid) {
       notifications.show({
@@ -215,11 +159,10 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
       return;
     }
 
-    const validItems = lineItems.filter((item) => item.item_id);
-    if (validItems.length === 0) {
+    if (!selectedItem) {
       notifications.show({
         title: 'توثیق کی خرابی / Validation Error',
-        message: 'براہ کرم کم از کم ایک آئٹم شامل کریں / Please add at least one item',
+        message: 'براہ کرم آئٹم منتخب کریں / Please select an item (قسم)',
         color: 'red',
       });
       return;
@@ -234,13 +177,15 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
         details: details || null,
         concession_amount: concessionAmount || 0,
         cash_paid: cashPaid || 0,
-        items: validItems.map((item) => ({
-          item_id: parseInt(item.item_id),
-          weight: item.weight || 0,
-          rate: item.rate || 0,
-          amount: calculateLineAmount(item),
-          notes: item.notes || null,
-        })),
+        items: [
+          {
+            item_id: parseInt(selectedItem),
+            weight: weight || 0,
+            rate: rate || 0,
+            amount: weight * rate,
+            notes: null,
+          },
+        ],
       };
 
       let response;
@@ -278,34 +223,24 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
     }
   }, [
     selectedSupplier,
+    selectedItem,
     vehicleNumber,
     purchaseDate,
     details,
     concessionAmount,
     cashPaid,
-    lineItems,
+    weight,
+    rate,
     editPurchase,
     onSaved,
-    calculateLineAmount,
   ]);
 
-  // Print receipt for saved purchase
+  // Print receipt
   const handlePrint = useCallback(() => {
     const supplierName = suppliers.find((s) => s.value === selectedSupplier)?.label || '';
     const dateStr = purchaseDate ? new Date(purchaseDate).toLocaleDateString('en-PK') : '';
-    const validItems = lineItems.filter((item) => item.item_id);
-
-    const itemRows = validItems
-      .map((item) => {
-        const itemInfo = itemsList.find((i) => String(i.id) === String(item.item_id));
-        return `<tr>
-                <td>${itemInfo?.name || ''}</td>
-                <td style="text-align:right">${(item.weight || 0).toFixed(2)}</td>
-                <td style="text-align:right">${(item.rate || 0).toFixed(2)}</td>
-                <td style="text-align:right">${calculateLineAmount(item).toFixed(2)}</td>
-            </tr>`;
-      })
-      .join('');
+    const itemInfo = itemsList.find((i) => String(i.id) === String(selectedItem));
+    const lineAmount = weight * rate;
 
     const html = `<!DOCTYPE html><html dir="rtl"><head><title>Purchase Receipt - ${purchaseNumber}</title>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet" />
@@ -333,47 +268,50 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
         <div class="info">
             <div><strong>Receipt #:</strong> ${purchaseNumber}</div>
             <div><strong>Date:</strong> ${dateStr}</div>
-            <div><strong>Supplier:</strong> ${supplierName}</div>
+            <div><strong>Supplier / بیوپاری:</strong> ${supplierName}</div>
         </div>
         <table>
-            <thead><tr><th>Item</th><th style="text-align:right">Weight (kg)</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
-            <tbody>${itemRows}</tbody>
+            <thead><tr><th>قسم / Item</th><th style="text-align:right">وزن / Weight (kg)</th><th style="text-align:right">ریٹ / Rate</th><th style="text-align:right">رقم / Amount</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>${itemInfo?.name || ''}</td>
+                <td style="text-align:right">${weight.toFixed(2)}</td>
+                <td style="text-align:right">${rate.toFixed(2)}</td>
+                <td style="text-align:right">${lineAmount.toFixed(2)}</td>
+              </tr>
+            </tbody>
         </table>
         <table class="totals">
-            <tr><td>Gross Amount:</td><td>Rs. ${totals.grossAmount.toFixed(2)}</td></tr>
-            <tr><td>Concession:</td><td>Rs. ${concessionAmount.toFixed(2)}</td></tr>
-            <tr><td>Net Amount:</td><td><strong>Rs. ${totals.netAmount.toFixed(2)}</strong></td></tr>
-            <tr><td>Cash Paid:</td><td>Rs. ${cashPaid.toFixed(2)}</td></tr>
-            <tr class="grand-total"><td>Balance:</td><td>Rs. ${totals.balanceAmount.toFixed(2)}</td></tr>
+            <tr><td>Gross Amount / مجموعی رقم:</td><td>Rs. ${totals.grossAmount.toFixed(2)}</td></tr>
+            <tr><td>Concession / رعایت:</td><td>Rs. ${(concessionAmount || 0).toFixed(2)}</td></tr>
+            <tr><td>Net Amount / خالص رقم:</td><td><strong>Rs. ${totals.netAmount.toFixed(2)}</strong></td></tr>
+            <tr><td>Cash Paid / نقد ادا:</td><td>Rs. ${(cashPaid || 0).toFixed(2)}</td></tr>
+            <tr class="grand-total"><td>Balance Due / اداینگی رقم:</td><td>Rs. ${totals.balanceAmount.toFixed(2)}</td></tr>
         </table>
         </body></html>`;
 
-    // Use print preview instead of direct print
     try {
       window.api.print.preview(html, {
-        title: `Purchase Receipt - ${purchaseNumber} `,
+        title: `Purchase Receipt - ${purchaseNumber}`,
         width: 1000,
         height: 800,
       });
     } catch (error) {
       console.error('Print error:', error);
-      notifications.show({
-        title: 'Print Error',
-        message: 'Failed to open print preview',
-        color: 'red',
-      });
+      notifications.show({ title: 'Print Error', message: 'Failed to open print preview', color: 'red' });
     }
   }, [
     suppliers,
     selectedSupplier,
     purchaseDate,
     purchaseNumber,
-    lineItems,
+    selectedItem,
     itemsList,
-    totals,
+    weight,
+    rate,
     concessionAmount,
     cashPaid,
-    calculateLineAmount,
+    totals,
   ]);
 
   // Clear form
@@ -381,10 +319,12 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
     setSelectedSupplier(null);
     setVehicleNumber('');
     setDetails('');
+    setSelectedItem(null);
+    setRate(0);
+    setWeight(0);
     setConcessionAmount(0);
     setCashPaid(0);
     setPreviousBalance(0);
-    setLineItems([createEmptyLineItem()]);
   }, []);
 
   return (
@@ -452,174 +392,139 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
           </Grid.Col>
         </Grid>
 
-        <Divider label="Line Items / اشیاء" labelPosition="center" />
+        <Divider label="خریداری تفصیل / Purchase Details" labelPosition="center" />
 
-        {/* Line Items Table */}
-        <ScrollArea>
-          <Table striped withTableBorder withColumnBorders>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th style={{ minWidth: 200 }}>
-                  <div style={{ fontWeight: 700 }}>قسم</div>
-                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Item</div>
-                </Table.Th>
-                <Table.Th style={{ width: 120 }}>
-                  <div style={{ fontWeight: 700 }}>ریٹ</div>
-                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Rate</div>
-                </Table.Th>
-                <Table.Th style={{ width: 120 }}>
-                  <div style={{ fontWeight: 700 }}>وزن</div>
-                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Weight (kg)</div>
-                </Table.Th>
-                <Table.Th style={{ width: 140 }}>
-                  <div style={{ fontWeight: 700 }}>رقم</div>
-                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Amount</div>
-                </Table.Th>
-                <Table.Th style={{ width: 40 }} />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {lineItems.map((item) => {
-                const amount = calculateLineAmount(item);
-                return (
-                  <Table.Tr key={item.id}>
-                    <Table.Td>
-                      <Select
-                        placeholder="Select item"
-                        data={itemOptions}
-                        value={item.item_id}
-                        onChange={(val) => updateLineItem(item.id, 'item_id', val)}
-                        searchable
-                        size="xs"
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        value={item.rate}
-                        onChange={(val) => updateLineItem(item.id, 'rate', val || 0)}
-                        min={0}
-                        decimalScale={2}
-                        size="xs"
-                        hideControls
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        value={item.weight}
-                        onChange={(val) => updateLineItem(item.id, 'weight', val || 0)}
-                        min={0}
-                        decimalScale={2}
-                        size="xs"
-                        hideControls
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" fw={600} c="green">
-                        Rs. {amount.toFixed(2)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        onClick={() => removeLineItem(item.id)}
-                        disabled={lineItems.length === 1}
-                        size="sm"
-                      >
-                        ✕
-                      </ActionIcon>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
+        {/* Single Purchase Row — flat fields */}
+        <Grid gutter="md">
+          {/* Row 1: Item + Rate + Weight + Amount */}
+          <Grid.Col span={4}>
+            <Select
+              label="قسم (Item)"
+              placeholder="Select item"
+              data={itemOptions}
+              value={selectedItem}
+              onChange={setSelectedItem}
+              searchable
+              required
+            />
+          </Grid.Col>
+          <Grid.Col span={2}>
+            <NumberInput
+              label="ریٹ (Rate/kg)"
+              value={rate}
+              onChange={(val) => setRate(val || 0)}
+              min={0}
+              decimalScale={2}
+              hideControls
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <NumberInput
+              label="وزن کلوگرام (Weight kg)"
+              value={weight}
+              onChange={(val) => setWeight(val || 0)}
+              min={0}
+              decimalScale={2}
+              hideControls
+            />
+          </Grid.Col>
+          <Grid.Col span={3}>
+            <Paper p="xs" radius="sm" withBorder style={{ background: '#f0fdf4' }}>
+              <Text size="xs" c="dimmed" mb={2}>
+                رقم / Amount
+              </Text>
+              <Text fw={700} size="md" c="green">
+                Rs. {(weight * rate).toFixed(2)}
+              </Text>
+            </Paper>
+          </Grid.Col>
 
-        <Button
-          variant="light"
-          color="teal"
-          onClick={addLineItem}
-          size="xs"
-          leftSection={<span>+</span>}
-        >
-          Add Line Item
-        </Button>
+          {/* Row 2: Concession + Cash Paid */}
+          <Grid.Col span={4}>
+            <NumberInput
+              label="رعایت (Concession)"
+              value={concessionAmount}
+              onChange={(val) => setConcessionAmount(val || 0)}
+              min={0}
+              decimalScale={2}
+              hideControls
+              dir="ltr"
+              styles={{ input: { textAlign: 'left' } }}
+            />
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <NumberInput
+              label="نقد ادا (Cash Paid)"
+              value={cashPaid}
+              onChange={(val) => setCashPaid(val || 0)}
+              min={0}
+              decimalScale={2}
+              hideControls
+              dir="ltr"
+              styles={{ input: { textAlign: 'left' } }}
+            />
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
+              <Text size="xs" c="dimmed" mb={2}>
+                سابقہ بقایا / Previous Balance
+              </Text>
+              <Text fw={600} size="sm">
+                Rs. {previousBalance.toFixed(2)}
+              </Text>
+            </Paper>
+          </Grid.Col>
+        </Grid>
 
-        <Divider label="Summary / خلاصہ" labelPosition="center" />
+        <Divider label="خلاصہ / Summary" labelPosition="center" />
 
         {/* Summary */}
-        <Paper p="md" bg="gray.0" radius="sm">
-          <Grid>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Total Weight:
+        <Paper
+          p="md"
+          radius="sm"
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+            border: '1px solid #86efac',
+          }}
+        >
+          <Grid gutter="sm">
+            <Grid.Col span={4}>
+              <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
+                <Text size="xs" c="dimmed" mb={2}>
+                  مجموعی رقم / Gross Amount
                 </Text>
-                <Text fw={500}>{totals.totalWeight.toFixed(2)} kg</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Gross Amount:
+                <Text fw={600} size="sm">
+                  Rs. {totals.grossAmount.toFixed(2)}
                 </Text>
-                <Text fw={500}>Rs. {totals.grossAmount.toFixed(2)}</Text>
-              </Group>
+              </Paper>
             </Grid.Col>
-            <Grid.Col span={3}>
-              <NumberInput
-                label="رعایت (امرکم) - Concession"
-                value={concessionAmount}
-                onChange={(val) => setConcessionAmount(val || 0)}
-                min={0}
-                decimalScale={2}
-                size="xs"
-                className="ltr-field"
-                dir="ltr"
-                styles={{ input: { textAlign: 'left' } }}
-              />
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Net Amount:
+            <Grid.Col span={4}>
+              <Paper p="xs" radius="sm" withBorder style={{ background: '#eff6ff' }}>
+                <Text size="xs" c="dimmed" mb={2}>
+                  خالص رقم / Net Amount
                 </Text>
-                <Text fw={600} c="green">
+                <Text fw={700} size="md" c="green">
                   Rs. {totals.netAmount.toFixed(2)}
                 </Text>
-              </Group>
+              </Paper>
             </Grid.Col>
-            <Grid.Col span={3}>
-              <NumberInput
-                label="نقد (ادای کی) - Cash Paid"
-                value={cashPaid}
-                onChange={(val) => setCashPaid(val || 0)}
-                min={0}
-                decimalScale={2}
-                size="xs"
-                className="ltr-field"
-                dir="ltr"
-                styles={{ input: { textAlign: 'left' } }}
-              />
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  سابقہ (Previous):
+            <Grid.Col span={4}>
+              <Paper
+                p="xs"
+                radius="sm"
+                withBorder
+                style={{
+                  background: totals.balanceAmount > 0 ? '#fef2f2' : '#f0fdf4',
+                  borderColor: totals.balanceAmount > 0 ? '#fca5a5' : '#86efac',
+                }}
+              >
+                <Text size="xs" c="dimmed" mb={2}>
+                  اداینگی رقم / Balance Due
                 </Text>
-                <Text fw={500}>Rs. {previousBalance.toFixed(2)}</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Group justify="space-between">
-                <Text size="lg" fw={600}>
-                  اداینگی رقم (Balance):
-                </Text>
-                <Text size="lg" fw={700} c={totals.balanceAmount > 0 ? 'red' : 'green'}>
+                <Text fw={700} size="md" c={totals.balanceAmount > 0 ? 'red' : 'green'}>
                   Rs. {totals.balanceAmount.toFixed(2)}
                 </Text>
-              </Group>
+              </Paper>
             </Grid.Col>
           </Grid>
         </Paper>

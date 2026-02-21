@@ -141,7 +141,67 @@ CREATE TABLE IF NOT EXISTS items (
 );
 
 -- ============================================================================
--- SECTION 3: SALES TRANSACTIONS
+-- SECTION 3: BILLING & FINANCIAL
+-- (Moved before Sales so that sale_items can reference supplier_bills)
+-- ============================================================================
+
+-- Supplier Bills
+CREATE TABLE IF NOT EXISTS supplier_bills (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bill_number TEXT NOT NULL UNIQUE,
+    supplier_id INTEGER NOT NULL,
+    vehicle_number TEXT,
+    date_from DATE NOT NULL,
+    date_to DATE NOT NULL,
+    total_weight REAL DEFAULT 0,
+    gross_amount REAL DEFAULT 0,
+    commission_pct REAL DEFAULT 5.0,
+    commission_amount REAL DEFAULT 0,
+    drugs_charges REAL DEFAULT 0,
+    fare_charges REAL DEFAULT 0,
+    labor_charges REAL DEFAULT 0,
+    ice_charges REAL DEFAULT 0,
+    other_charges REAL DEFAULT 0,
+    total_charges REAL DEFAULT 0,
+    total_payable REAL DEFAULT 0,
+    concession_amount REAL DEFAULT 0,
+    cash_paid REAL DEFAULT 0,
+    collection_amount REAL DEFAULT 0,
+    balance_amount REAL DEFAULT 0,
+    status TEXT DEFAULT 'draft',
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_by INTEGER,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- Payments (Receipts and Payments)
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payment_number TEXT NOT NULL UNIQUE,
+    payment_date DATE NOT NULL,
+    payment_type TEXT NOT NULL,
+    account_type TEXT NOT NULL,
+    customer_id INTEGER,
+    supplier_id INTEGER,
+    amount REAL NOT NULL,
+    payment_method TEXT DEFAULT 'cash',
+    reference TEXT,
+    description TEXT,
+    balance_after REAL DEFAULT 0,
+    status TEXT DEFAULT 'posted',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_by INTEGER,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- ============================================================================
+-- SECTION 4: SALES TRANSACTIONS
 -- ============================================================================
 
 -- Sales Table (Header)
@@ -204,7 +264,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
 );
 
 -- ============================================================================
--- SECTION 4: PURCHASE TRANSACTIONS
+-- SECTION 5: PURCHASE TRANSACTIONS
 -- ============================================================================
 
 -- Purchases Table (Header)
@@ -247,66 +307,6 @@ CREATE TABLE IF NOT EXISTS purchase_items (
     FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES items(id)
 );
-
--- ============================================================================
--- SECTION 5: BILLING & FINANCIAL
--- ============================================================================
-
--- Supplier Bills
-CREATE TABLE IF NOT EXISTS supplier_bills (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bill_number TEXT NOT NULL UNIQUE,
-    supplier_id INTEGER NOT NULL,
-    vehicle_number TEXT,
-    date_from DATE NOT NULL,
-    date_to DATE NOT NULL,
-    total_weight REAL DEFAULT 0,
-    gross_amount REAL DEFAULT 0,
-    commission_pct REAL DEFAULT 5.0,
-    commission_amount REAL DEFAULT 0,
-    drugs_charges REAL DEFAULT 0,
-    fare_charges REAL DEFAULT 0,
-    labor_charges REAL DEFAULT 0,
-    ice_charges REAL DEFAULT 0,
-    other_charges REAL DEFAULT 0,
-    total_charges REAL DEFAULT 0,
-    total_payable REAL DEFAULT 0,
-    concession_amount REAL DEFAULT 0,
-    cash_paid REAL DEFAULT 0,
-    collection_amount REAL DEFAULT 0,
-    balance_amount REAL DEFAULT 0,
-    status TEXT DEFAULT 'draft',
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by INTEGER,
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
--- Payments (Receipts and Payments)
-CREATE TABLE IF NOT EXISTS payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    payment_number TEXT NOT NULL UNIQUE,
-    payment_date DATE NOT NULL,
-    payment_type TEXT NOT NULL,
-    account_type TEXT NOT NULL,
-    customer_id INTEGER,
-    supplier_id INTEGER,
-    amount REAL NOT NULL,
-    payment_method TEXT DEFAULT 'cash',
-    reference TEXT,
-    description TEXT,
-    balance_after REAL DEFAULT 0,
-    status TEXT DEFAULT 'posted',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by INTEGER,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
 
 -- ============================================================================
 -- SECTION 7: SYSTEM CONFIGURATION

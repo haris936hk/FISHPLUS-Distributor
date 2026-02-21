@@ -13,6 +13,7 @@ import {
   IconFileInvoice,
   IconChartBar,
   IconWorld,
+  IconFish,
 } from '@tabler/icons-react';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -183,7 +184,10 @@ function App() {
                     }}
                     onClick={() => navigateTo('dashboard')}
                   >
-                    🐟 FISHPLUS
+                    <Group gap={4} align="center" wrap="nowrap">
+                      <IconFish size={14} />
+                      FISHPLUS
+                    </Group>
                   </Text>
                   {menuItems.map((item) => {
                     const Icon = item.icon;

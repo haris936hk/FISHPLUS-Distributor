@@ -39,7 +39,7 @@ function CustomerSearch({ onEdit, onRefresh }) {
 
   // Column resizing (FR-GRID-008)
   const { getResizeProps } = useResizableColumns({
-    name: 200, city: 120, country: 120, contact: 150, balance: 100, actions: 100,
+    name_urdu: 120, name_english: 130, city: 110, country: 110, contact: 140, balance: 90, actions: 90,
   });
 
   // Load all customers initially
@@ -183,14 +183,14 @@ function CustomerSearch({ onEdit, onRefresh }) {
         />
       </Table.Td>
       <Table.Td>
-        <Text fw={500} dir="rtl">
-          {customer.name}
+        <Text fw={600} dir="rtl" style={{ textAlign: 'right' }}>
+          {customer.name || '-'}
         </Text>
-        {customer.name_english && (
-          <Text size="xs" c="dimmed">
-            {customer.name_english}
-          </Text>
-        )}
+      </Table.Td>
+      <Table.Td>
+        <Text size="sm" c="dimmed">
+          {customer.name_english || '-'}
+        </Text>
       </Table.Td>
       <Table.Td>{customer.city_name || '-'}</Table.Td>
       <Table.Td>{customer.country_name || '-'}</Table.Td>
@@ -311,11 +311,20 @@ function CustomerSearch({ onEdit, onRefresh }) {
                       }}
                     />
                   </Table.Th>
-                  {[['name', 'Name'], ['city', 'City'], ['country', 'Country'], ['contact', 'Contact'], ['balance', 'Balance'], ['actions', 'Actions']].map(([key, label]) => {
+                  {[
+                    ['name_urdu', 'نام', 'Urdu Name'],
+                    ['name_english', 'نام (انگریزی)', 'English Name'],
+                    ['city', 'شہر', 'City'],
+                    ['country', 'ملک', 'Country'],
+                    ['contact', 'رابطہ', 'Contact'],
+                    ['balance', 'بقایا', 'Balance'],
+                    ['actions', 'عمل', 'Actions'],
+                  ].map(([key, urdu, english]) => {
                     const rp = getResizeProps(key);
                     return (
                       <Table.Th key={key} style={rp.style}>
-                        {label}
+                        <div style={{ fontWeight: 700 }}>{urdu}</div>
+                        <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>{english}</div>
                         <div {...rp.resizeHandle} />
                       </Table.Th>
                     );

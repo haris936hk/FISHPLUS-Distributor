@@ -361,7 +361,7 @@ describe('reports.getVendorSales', () => {
         mockDb.query.mockReturnValue([]);
         queries.reports.getVendorSales(4, '2026-01-01', '2026-01-31', true);
         const firstCall = mockDb.query.mock.calls[0];
-        expect(firstCall[0]).not.toContain('AND si.supplier_id = ?');
+        expect(firstCall[0]).not.toContain('AND s.supplier_id = ?');
     });
 
     it('reduces summary rows into grandTotals correctly', () => {

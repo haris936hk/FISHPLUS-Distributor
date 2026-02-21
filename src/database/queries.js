@@ -561,13 +561,13 @@ const supplierBills = {
          s.vehicle_number,
          i.name as item_name,
          i.name_english as item_name_english,
-         si.net_weight,
+         si.weight,
          si.rate,
          si.amount
        FROM sale_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN items i ON si.item_id = i.id
-       WHERE si.supplier_id = ?
+       WHERE s.supplier_id = ?
          AND DATE(s.sale_date) >= DATE(?)
          AND DATE(s.sale_date) <= DATE(?)
          AND s.status = 'posted'
@@ -577,7 +577,7 @@ const supplierBills = {
     );
 
     // Calculate totals
-    const totalWeight = items.reduce((sum, item) => sum + (item.net_weight || 0), 0);
+    const totalWeight = items.reduce((sum, item) => sum + (item.weight || 0), 0);
     const grossAmount = items.reduce((sum, item) => sum + (item.amount || 0), 0);
 
     // Get supplier's default commission
@@ -701,11 +701,11 @@ const supplierBills = {
     const billId = result.lastInsertRowid;
     db.execute(
       `UPDATE sale_items SET supplier_bill_id = ?
-       WHERE supplier_id = ?
-         AND supplier_bill_id IS NULL
+       WHERE supplier_bill_id IS NULL
          AND sale_id IN (
            SELECT id FROM sales
-           WHERE status = 'posted'
+           WHERE supplier_id = ?
+             AND status = 'posted'
              AND DATE(sale_date) >= DATE(?)
              AND DATE(sale_date) <= DATE(?)
          )`,
@@ -1770,10 +1770,10 @@ const reports = {
         c.name_english as customer_name_english,
         si.item_id,
         i.name as item_name,
-        si.net_weight as weight,
+        si.weight,
         si.rate,
         si.amount,
-        s.grocery_charges,
+        s.fare_charges,
         s.ice_charges,
         s.cash_received,
         s.receipt_amount,
@@ -1806,7 +1806,7 @@ const reports = {
         c.name as customer_name,
         c.name_english as customer_name_english,
         SUM(s.net_amount) as total_amount,
-        SUM(s.grocery_charges + s.ice_charges) as total_charges,
+        SUM(s.fare_charges + s.ice_charges) as total_charges,
         SUM(s.cash_received + s.receipt_amount) as total_collection,
         SUM(s.discount_amount) as total_discount,
         SUM(s.balance_amount) as total_balance
@@ -1844,7 +1844,7 @@ const reports = {
         c.name_english as customer_name_english,
         i.name as item_name,
         i.name_english as item_name_english,
-        si.net_weight as weight,
+        si.weight,
         si.rate,
         si.amount
       FROM sale_items si
@@ -1861,7 +1861,7 @@ const reports = {
 
     const summary = db.query(
       `SELECT 
-        SUM(si.net_weight) as total_weight,
+        SUM(si.weight) as total_weight,
         SUM(si.amount) as total_amount,
         AVG(si.rate) as avg_rate
       FROM sale_items si
@@ -1890,7 +1890,7 @@ const reports = {
         i.id as item_id,
         i.name as item_name,
         i.name_english as item_name_english,
-        SUM(si.net_weight) as total_weight,
+        SUM(si.weight) as total_weight,
         SUM(si.amount) as total_amount
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
@@ -1908,7 +1908,7 @@ const reports = {
       `SELECT 
         SUM(s.net_weight) as total_weight,
         SUM(s.gross_amount) as gross_amount,
-        SUM(s.grocery_charges + s.ice_charges) as total_charges,
+        SUM(s.fare_charges + s.ice_charges) as total_charges,
         SUM(s.net_amount) as net_amount,
         SUM(s.cash_received) as cash_received,
         SUM(s.receipt_amount) as total_collection,
@@ -2098,7 +2098,7 @@ const reports = {
             AND DATE(p.purchase_date) < DATE(?)
         ), 0) as purchases_before,
         COALESCE((
-          SELECT SUM(si.net_weight)
+          SELECT SUM(si.weight)
           FROM sale_items si
           JOIN sales s ON si.sale_id = s.id
           WHERE si.item_id = i.id 
@@ -2114,7 +2114,7 @@ const reports = {
             AND DATE(p.purchase_date) = DATE(?)
         ), 0) as today_purchases,
         COALESCE((
-          SELECT SUM(si.net_weight)
+          SELECT SUM(si.weight)
           FROM sale_items si
           JOIN sales s ON si.sale_id = s.id
           WHERE si.item_id = i.id 
@@ -2280,13 +2280,13 @@ const reports = {
         sup.name_english as supplier_name_english,
         i.name as item_name,
         i.name_english as item_name_english,
-        si.net_weight as weight,
+        si.weight,
         si.rate,
         si.amount
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
       JOIN customers c ON s.customer_id = c.id
-      LEFT JOIN suppliers sup ON si.supplier_id = sup.id
+      LEFT JOIN suppliers sup ON s.supplier_id = sup.id
       JOIN items i ON si.item_id = i.id
       WHERE s.status != 'deleted'
         AND DATE(s.sale_date) = DATE(?)
@@ -2297,7 +2297,7 @@ const reports = {
     // Totals
     const totals = db.query(
       `SELECT 
-        SUM(si.net_weight) as total_weight,
+        SUM(si.weight) as total_weight,
         SUM(si.amount) as total_amount
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
@@ -2332,7 +2332,7 @@ const reports = {
         c.name_english as customer_name_english,
         i.name as item_name,
         i.name_english as item_name_english,
-        si.net_weight as weight,
+        si.weight,
         si.rate,
         si.amount,
         (
@@ -2340,14 +2340,14 @@ const reports = {
           FROM purchase_items pi2
           JOIN purchases p2 ON pi2.purchase_id = p2.id
           WHERE pi2.item_id = si.item_id
-            AND pi2.supplier_id = si.supplier_id
+            AND p2.supplier_id = s.supplier_id
             AND p2.status != 'deleted'
             AND DATE(p2.purchase_date) >= DATE(?)
             AND DATE(p2.purchase_date) <= DATE(?)
         ) as purchase_rate
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
-      LEFT JOIN suppliers sup ON si.supplier_id = sup.id
+      LEFT JOIN suppliers sup ON s.supplier_id = sup.id
       JOIN customers c ON s.customer_id = c.id
       JOIN items i ON si.item_id = i.id
       WHERE s.status != 'deleted'
@@ -2357,7 +2357,7 @@ const reports = {
     const params = [dateFrom, dateTo, dateFrom, dateTo];
 
     if (!allVendors && supplierId) {
-      query += ' AND si.supplier_id = ?';
+      query += ' AND s.supplier_id = ?';
       params.push(supplierId);
     }
 
@@ -2372,15 +2372,15 @@ const reports = {
         COALESCE(sup.name, 'Unknown') as supplier_name,
         COALESCE(sup.name_english, '') as supplier_name_english,
         COUNT(DISTINCT s.vehicle_number) as vehicle_count,
-        SUM(si.net_weight) as total_weight,
+        SUM(si.weight) as total_weight,
         SUM(si.amount) as total_amount
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
-      LEFT JOIN suppliers sup ON si.supplier_id = sup.id
+      LEFT JOIN suppliers sup ON s.supplier_id = sup.id
       WHERE s.status != 'deleted'
         AND DATE(s.sale_date) >= DATE(?)
         AND DATE(s.sale_date) <= DATE(?)
-        ${!allVendors && supplierId ? 'AND si.supplier_id = ?' : ''}
+        ${!allVendors && supplierId ? 'AND s.supplier_id = ?' : ''}
       GROUP BY sup.id
       ORDER BY sup.name
     `;
@@ -2425,7 +2425,7 @@ const reports = {
       JOIN customers c ON s.customer_id = c.id
       JOIN items i ON si.item_id = i.id
       WHERE si.is_stock = 1
-        AND si.supplier_id = ?
+        AND s.supplier_id = ?
         AND DATE(s.sale_date) = DATE(?)
         AND s.status != 'deleted'
       ORDER BY si.line_number ASC`,
@@ -2463,7 +2463,7 @@ const reports = {
     const todaySalesResult = db.query(
       `SELECT 
         COALESCE(SUM(net_amount), 0) as today_sales,
-        COALESCE(SUM(grocery_charges + ice_charges), 0) as today_charges,
+        COALESCE(SUM(fare_charges + ice_charges), 0) as today_charges,
         COALESCE(SUM(discount_amount), 0) as today_discount
       FROM sales 
       WHERE status != 'deleted' AND DATE(sale_date) = DATE(?)`,

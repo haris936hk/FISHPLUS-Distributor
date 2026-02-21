@@ -1,4 +1,5 @@
-import { Card, Table, Text, Stack, ScrollArea, Loader, Center } from '@mantine/core';
+import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Group, ThemeIcon } from '@mantine/core';
+import { IconListDetails } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
@@ -35,9 +36,14 @@ function SupplierAdvancesList({ data = [], loading = false, onRefresh }) {
   return (
     <Card shadow="sm" padding="md" radius="md" withBorder>
       <Stack gap="xs">
-        <Text fw={600} size="lg" className="text-gray-700 dark:text-gray-200">
-          📋 {t('dashboard.supplierAdvances')}
-        </Text>
+        <Group gap="xs">
+          <ThemeIcon variant="light" color="blue" size="sm" radius="md">
+            <IconListDetails size={14} />
+          </ThemeIcon>
+          <Text fw={600} size="lg">
+            {t('dashboard.supplierAdvances')}
+          </Text>
+        </Group>
         <Text size="sm" c="dimmed">
           {t('supplier.advanceAmount')}
         </Text>

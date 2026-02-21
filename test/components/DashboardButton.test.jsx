@@ -29,6 +29,9 @@ vi.stubGlobal(
     }))
 );
 
+// Mock icon component for tests
+const MockIcon = () => <svg data-testid="mock-icon" />;
+
 // ──────────────────────────────────────────────
 // Render helper
 // ──────────────────────────────────────────────
@@ -37,13 +40,13 @@ const renderWithMantine = (component) =>
 
 describe('DashboardButton Component', () => {
     it('renders the button with the given label', () => {
-        renderWithMantine(<DashboardButton label="Suppliers" icon="🏪" onClick={vi.fn()} />);
+        renderWithMantine(<DashboardButton label="Suppliers" icon={<MockIcon />} onClick={vi.fn()} />);
         expect(screen.getByText('Suppliers')).toBeInTheDocument();
     });
 
     it('calls onClick handler when clicked', () => {
         const handleClick = vi.fn();
-        renderWithMantine(<DashboardButton label="Sales" icon="💰" onClick={handleClick} />);
+        renderWithMantine(<DashboardButton label="Sales" icon={<MockIcon />} onClick={handleClick} />);
         const button = screen.getByRole('button');
         fireEvent.click(button);
         expect(handleClick).toHaveBeenCalledTimes(1);
@@ -52,8 +55,8 @@ describe('DashboardButton Component', () => {
     it('renders multiple buttons without label interference', () => {
         renderWithMantine(
             <div>
-                <DashboardButton label="Sales" icon="💰" onClick={vi.fn()} />
-                <DashboardButton label="Purchases" icon="🛒" onClick={vi.fn()} />
+                <DashboardButton label="Sales" icon={<MockIcon />} onClick={vi.fn()} />
+                <DashboardButton label="Purchases" icon={<MockIcon />} onClick={vi.fn()} />
             </div>
         );
         expect(screen.getByText('Sales')).toBeInTheDocument();
@@ -63,7 +66,7 @@ describe('DashboardButton Component', () => {
     it('does not call onClick when disabled', () => {
         const handleClick = vi.fn();
         renderWithMantine(
-            <DashboardButton label="Reports" icon="📊" onClick={handleClick} disabled={true} />
+            <DashboardButton label="Reports" icon={<MockIcon />} onClick={handleClick} disabled={true} />
         );
         const button = screen.getByRole('button');
         fireEvent.click(button);
@@ -73,14 +76,14 @@ describe('DashboardButton Component', () => {
 
     it('renders with transaction variant without crashing', () => {
         renderWithMantine(
-            <DashboardButton label="Sales" icon="💰" onClick={vi.fn()} variant="transaction" />
+            <DashboardButton label="Sales" icon={<MockIcon />} onClick={vi.fn()} variant="transaction" />
         );
         expect(screen.getByText('Sales')).toBeInTheDocument();
     });
 
     it('renders with report variant without crashing', () => {
         renderWithMantine(
-            <DashboardButton label="Reports" icon="📊" onClick={vi.fn()} variant="report" />
+            <DashboardButton label="Reports" icon={<MockIcon />} onClick={vi.fn()} variant="report" />
         );
         expect(screen.getByText('Reports')).toBeInTheDocument();
     });

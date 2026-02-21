@@ -35,103 +35,257 @@ export function ReportViewer({
 
   const generatePrintHTML = () => {
     const content = printRef.current;
+
+    // Format date for display
+    const formatPrintDate = (d) => {
+      if (!d) return '';
+      const dt = new Date(d);
+      return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
+
+    // Build date section HTML
+    let dateHTML = '';
+    if (dateRange) {
+      dateHTML = `
+        <div class="date-box">
+          <span class="date-label">تاریخ :</span>
+          <span>${formatPrintDate(dateRange.from)}</span>
+          <span class="date-separator">سے</span>
+          <span>${formatPrintDate(dateRange.to)}</span>
+          <span class="date-separator">تک</span>
+        </div>`;
+    } else if (singleDate) {
+      dateHTML = `
+        <div class="date-box">
+          <span class="date-label">تاریخ :</span>
+          <span>${formatPrintDate(singleDate)}</span>
+        </div>`;
+    }
+
     return `
       <!DOCTYPE html>
-      <html>
+      <html dir="rtl">
         <head>
+          <meta charset="UTF-8">
           <title>${title}</title>
           <style>
             @page {
-              margin: 1cm 1cm 1.5cm 1cm;
-              @bottom-center {
-                content: "Page " counter(page) " of " counter(pages);
-                font-size: 10px;
-                color: #666;
-              }
+              size: A4;
+              margin: 15mm 15mm 20mm 15mm;
             }
+            * { box-sizing: border-box; }
             body { 
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               margin: 0;
-              padding: 20px;
-              color: #333;
+              padding: 20px 30px;
+              color: #000;
+              direction: rtl;
+              font-size: 13px;
+              line-height: 1.5;
             }
-            .print-header {
-              text-align: center;
-              margin-bottom: 20px;
-              border-bottom: 2px solid #333;
-              padding-bottom: 15px;
+
+            /* ——— Company Header (Crystal Reports style) ——— */
+            .report-header {
+              text-align: left;
+              margin-bottom: 8px;
+              direction: ltr;
             }
             .company-name { 
-              font-size: 24px; 
-              font-weight: bold; 
-              margin: 0;
-            }
-            .company-name-urdu { 
               font-size: 22px; 
               font-weight: bold; 
-              margin: 5px 0;
-              direction: rtl;
+              font-style: italic;
+              margin: 0;
+              letter-spacing: 0.5px;
             }
             .company-address { 
               font-size: 12px; 
-              margin: 5px 0;
+              font-style: italic;
+              margin: 2px 0;
+              color: #222;
             }
-            .report-title { 
-              font-size: 18px; 
-              font-weight: bold; 
-              margin: 15px 0 5px;
+            .company-phone {
+              font-size: 12px;
+              font-style: italic;
+              margin: 2px 0 0;
+              color: #222;
             }
-            .report-title-urdu { 
-              font-size: 16px; 
+
+            /* ——— Report Title (Urdu, right-aligned) ——— */
+            .title-section {
+              text-align: right;
+              margin: 12px 0 4px;
               direction: rtl;
             }
-            .date-range { 
-              font-size: 12px; 
-              margin: 10px 0;
+            .report-title-urdu {
+              font-size: 26px;
+              font-weight: bold;
+              margin: 0;
+              line-height: 1.3;
             }
+            .report-title-en {
+              font-size: 11px;
+              color: #555;
+              margin: 2px 0 0;
+              direction: ltr;
+              text-align: right;
+            }
+            .report-date-small {
+              font-size: 11px;
+              color: #444;
+              text-align: right;
+              margin: 2px 0 8px;
+              direction: ltr;
+            }
+
+            /* ——— Date Box ——— */
+            .date-box {
+              border: 1px solid #000;
+              padding: 6px 16px;
+              margin: 10px 0 16px;
+              display: inline-block;
+              font-size: 13px;
+              direction: rtl;
+              text-align: center;
+              width: 100%;
+            }
+            .date-label {
+              font-weight: bold;
+              margin-left: 8px;
+            }
+            .date-separator {
+              margin: 0 10px;
+              font-weight: bold;
+            }
+
+            /* ——— Tables ——— */
             table { 
               width: 100%; 
               border-collapse: collapse; 
-              margin-top: 15px;
+              margin: 12px 0;
             }
             th, td { 
-              border: 1px solid #333; 
-              padding: 8px; 
-              text-align: left;
+              border: 1px solid #000; 
+              padding: 6px 10px; 
+              text-align: right;
               font-size: 12px;
+              vertical-align: middle;
             }
             th { 
-              background-color: #f5f5f5; 
+              background-color: #e8e8e8; 
               font-weight: bold;
+              font-size: 12px;
             }
             .text-right { text-align: right; }
+            .text-left { text-align: left; }
             .text-center { text-align: center; }
             .rtl { direction: rtl; text-align: right; }
-            .total-row { 
+
+            /* Total rows */
+            .total-row, tfoot td, tfoot th { 
               font-weight: bold; 
-              background-color: #f5f5f5;
+              background-color: #f0f0f0;
             }
+
+            /* ——— Summary Sections ——— */
             .summary-section {
-              margin-top: 20px;
-              padding: 15px;
-              border: 1px solid #333;
+              margin: 16px 0;
+              border: 1px solid #000;
+              padding: 12px 16px;
             }
+            .summary-title {
+              font-weight: bold;
+              font-size: 16px;
+              margin-bottom: 10px;
+              text-align: right;
+            }
+            .summary-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 4px 0;
+              font-size: 13px;
+              direction: rtl;
+            }
+            .summary-row.subtotal {
+              border-top: 1px solid #000;
+              padding-top: 6px;
+              margin-top: 4px;
+            }
+            .summary-row.grand-total {
+              border-top: 2px solid #000;
+              padding-top: 8px;
+              margin-top: 6px;
+              font-weight: bold;
+              font-size: 15px;
+            }
+            .summary-label { font-weight: bold; }
+            .summary-value { direction: ltr; text-align: left; }
+
+            /* ——— Mantine component overrides for print ——— */
+            [class*="mantine-Paper"] {
+              box-shadow: none !important;
+              border: 1px solid #000 !important;
+              border-radius: 0 !important;
+              padding: 12px 16px !important;
+              margin: 10px 0 !important;
+            }
+            [class*="mantine-Table"] {
+              border-collapse: collapse !important;
+            }
+            [class*="mantine-Table"] th,
+            [class*="mantine-Table"] td {
+              border: 1px solid #000 !important;
+              padding: 6px 10px !important;
+            }
+            [class*="mantine-Table"] th {
+              background-color: #e8e8e8 !important;
+            }
+            [class*="mantine-SimpleGrid"] {
+              display: block !important;
+            }
+            [class*="mantine-Text"] {
+              font-size: inherit !important;
+            }
+
+            /* Tailwind-style utility classes used by report components */
+            .flex { display: flex !important; }
+            .justify-between { justify-content: space-between !important; }
+            .items-center { align-items: center !important; }
+            .border-t { border-top: 1px solid #000; }
+            .pt-2 { padding-top: 8px; }
+            .mt-2 { margin-top: 8px; }
+            .gap-xs > * + * { margin-top: 4px; }
+
+            /* Hide Mantine visual-only elements */
+            svg, [class*="tabler-icon"] { display: none !important; }
+
             @media print {
-              .no-print { display: none; }
+              .no-print { display: none !important; }
               body { padding: 0; }
+              table { page-break-inside: auto; }
+              tr { page-break-inside: avoid; }
+              thead { display: table-header-group; }
+              .report-header { page-break-inside: avoid; }
             }
           </style>
         </head>
         <body>
-          <div class="print-header">
-            <p class="company-name">AL-SHEIKH FISH TRADER</p>
-            <p class="company-name-urdu">الشیخ فش ٹریڈر</p>
-            <p class="company-address">Fish Market, Karachi | Ph: 0300-1234567</p>
-            <p class="report-title">${title}</p>
-            ${titleUrdu ? `<p class="report-title-urdu">${titleUrdu}</p>` : ''}
-            ${dateRange ? `<p class="date-range">From: ${dateRange.from} To: ${dateRange.to}</p>` : ''}
-            ${singleDate ? `<p class="date-range">Date: ${singleDate}</p>` : ''}
+          <!-- Company Header -->
+          <div class="report-header">
+            <p class="company-name">AL - SHEIKH FISH TRADER AND DISTRIBUTER</p>
+            <p class="company-address">Shop No. W-644 Gunj Mandi Rawalpindi</p>
+            <p class="company-phone">+92-3008501724, 051-5534607</p>
           </div>
+
+          <!-- Report Title -->
+          <div class="title-section">
+            ${titleUrdu ? `<p class="report-title-urdu">${titleUrdu}</p>` : ''}
+            ${title ? `<p class="report-title-en">${title}</p>` : ''}
+          </div>
+
+          <!-- Date -->
+          ${dateHTML}
+
+          <!-- Report Content -->
           ${content.innerHTML}
         </body>
       </html>
@@ -275,13 +429,13 @@ export function ReportViewer({
           <Stack gap="xs">
             <div className="text-center">
               <Title order={3} c="dark">
-                AL-SHEIKH FISH TRADER
+                AL - SHEIKH FISH TRADER AND DISTRIBUTER
               </Title>
               <Text size="lg" fw={600} className="font-urdu" style={{ direction: 'rtl' }}>
-                الشیخ فش ٹریڈر
+                اے ایل شیخ فش ٹریڈر اینڈ ڈسٹری بیوٹر
               </Text>
               <Text size="sm" c="dimmed">
-                Fish Market, Karachi | Ph: 0300-1234567
+                Shop No. W-644 Gunj Mandi Rawalpindi | +92-3008501724, 051-5534607
               </Text>
             </div>
             <Divider my="xs" />

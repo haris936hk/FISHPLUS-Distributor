@@ -1,4 +1,5 @@
-import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Badge } from '@mantine/core';
+import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Badge, Group, ThemeIcon } from '@mantine/core';
+import { IconPackage } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
@@ -40,9 +41,14 @@ function ItemStockDisplay({ data = [], loading = false }) {
   return (
     <Card shadow="sm" padding="md" radius="md" withBorder>
       <Stack gap="xs">
-        <Text fw={600} size="lg" className="text-gray-700 dark:text-gray-200">
-          📦 {t('dashboard.stockLevels')}
-        </Text>
+        <Group gap="xs">
+          <ThemeIcon variant="light" color="teal" size="sm" radius="md">
+            <IconPackage size={14} />
+          </ThemeIcon>
+          <Text fw={600} size="lg">
+            {t('dashboard.stockLevels')}
+          </Text>
+        </Group>
         <Text size="sm" c="dimmed">
           {t('item.currentStock')}
         </Text>

@@ -10,6 +10,7 @@ const { BrowserWindow, dialog, app } = electron;
 import path from 'path';
 import fs from 'fs';
 import ExcelJS from 'exceljs';
+import pdfGenerator from './pdfGeneratorService.js';
 
 /**
  * Print HTML content using a hidden browser window
@@ -73,7 +74,7 @@ async function exportToPDF(mainWindow, htmlContent, options = {}) {
     filename = 'report.pdf',
     landscape = false,
     pageSize = 'A4',
-    margins = { top: 10, bottom: 10, left: 10, right: 10 },
+    margins = { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 },
   } = options;
 
   // Show save dialog
@@ -323,12 +324,10 @@ function escapeCSVValue(value) {
  */
 function getCompanyHeaderHTML() {
   return `
-    <div style="text-align: center; margin-bottom: 20px; font-family: 'Jameel Noori Nastaleeq', Arial, sans-serif;">
-      <h1 style="margin: 0; font-size: 24px;">AL - SHEIKH FISH TRADER AND DISTRIBUTER</h1>
-      <p style="margin: 5px 0; font-size: 14px; direction: rtl;">اے ایل شیخ فش ٹریڈر اینڈ ڈسٹری بیوٹر</p>
-      <p style="margin: 5px 0; font-size: 12px;">Shop No. W-644 Gunj Mandi Rawalpindi</p>
-      <p style="margin: 5px 0; font-size: 12px;">+92-3008501724, 051-5534607</p>
-      <hr style="margin-top: 15px; border: none; border-top: 1px solid #333;">
+    <div style="text-align: left; margin-bottom: 8px; direction: ltr;">
+      <p style="margin: 0; font-size: 22px; font-weight: bold; font-style: italic; letter-spacing: 0.5px;">AL - SHEIKH FISH TRADER AND DISTRIBUTER</p>
+      <p style="margin: 2px 0; font-size: 12px; font-style: italic; color: #222;">Shop No. W-644 Gunj Mandi Rawalpindi</p>
+      <p style="margin: 2px 0 0; font-size: 12px; font-style: italic; color: #222;">+92-3008501724, 051-5534607</p>
     </div>
   `;
 }
@@ -354,46 +353,44 @@ function wrapInPrintHTML(bodyContent, options = {}) {
         @page {
           size: A4;
           margin: 15mm 15mm 20mm 15mm;
-          @bottom-center {
-            content: "Page " counter(page) " of " counter(pages);
-            font-size: 10px;
-            color: #666;
-          }
         }
+        * { box-sizing: border-box; }
         body {
-          font-family: 'Jameel Noori Nastaleeq', 'Segoe UI', Arial, sans-serif;
-          font-size: 12px;
-          line-height: 1.4;
-          color: #333;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-size: 13px;
+          line-height: 1.5;
+          color: #000;
           direction: ${direction};
+          margin: 0;
+          padding: 20px 30px;
         }
         table {
           width: 100%;
           border-collapse: collapse;
-          margin: 10px 0;
+          margin: 12px 0;
         }
         th, td {
-          border: 1px solid #ddd;
-          padding: 8px;
+          border: 1px solid #000;
+          padding: 6px 10px;
           text-align: ${direction === 'rtl' ? 'right' : 'left'};
+          font-size: 12px;
+          vertical-align: middle;
         }
         th {
-          background-color: #f5f5f5;
+          background-color: #e8e8e8;
           font-weight: bold;
-        }
-        tr:nth-child(even) {
-          background-color: #fafafa;
         }
         .total-row {
           font-weight: bold;
-          background-color: #e8e8e8 !important;
+          background-color: #f0f0f0 !important;
         }
         .text-right { text-align: right; }
         .text-left { text-align: left; }
         .text-center { text-align: center; }
 
         @media print {
-          .no-print { display: none; }
+          .no-print { display: none !important; }
+          body { padding: 0; }
         }
       </style>
     </head>
@@ -453,10 +450,108 @@ async function printPreview(mainWindow, htmlContent, options = {}) {
   }
 }
 
+/**
+ * Export content to PDF using pdfmake (professional report generator)
+ * @param {BrowserWindow} mainWindow - Main application window
+ * @param {Object} docDefinition - pdfmake document definition
+ * @param {Object} options - Export options
+ * @returns {Promise<string>} Path to saved PDF file
+ */
+async function exportToPdfmake(mainWindow, docDefinition, options = {}) {
+  const { filename = 'report.pdf' } = options;
+
+  // Show save dialog
+  const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export to PDF',
+    defaultPath: path.join(app.getPath('documents'), filename),
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+  });
+
+  if (canceled || !filePath) {
+    return null;
+  }
+
+  try {
+    // Hydrate the document definition — replace string markers with actual functions
+    // (Functions can't be serialized over IPC, so the renderer sends string identifiers)
+    const hydratedDoc = hydrateDocDefinition(docDefinition);
+
+    const pdfBuffer = await pdfGenerator.generatePDF(hydratedDoc);
+    fs.writeFileSync(filePath, pdfBuffer);
+    return filePath;
+  } catch (error) {
+    console.error('pdfmake export error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Hydrate a pdfmake document definition by replacing string markers with functions.
+ * This is needed because functions can't cross the IPC boundary (JSON serialization).
+ */
+function hydrateDocDefinition(doc) {
+  // Named table layouts
+  const tableLayouts = {
+    standardTable: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => '#000',
+      vLineColor: () => '#000',
+      paddingLeft: () => 6,
+      paddingRight: () => 6,
+      paddingTop: () => 4,
+      paddingBottom: () => 4,
+    },
+    summaryTable: {
+      hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 1 : 0.3,
+      vLineWidth: (i, node) => (i === 0 || i === node.table.widths.length) ? 1 : 0,
+      hLineColor: () => '#000',
+      vLineColor: () => '#000',
+      paddingLeft: () => 8,
+      paddingRight: () => 8,
+      paddingTop: () => 4,
+      paddingBottom: () => 4,
+    },
+  };
+
+  // Add footer if flagged
+  if (doc._addFooter) {
+    doc.footer = (currentPage, pageCount) => ({
+      text: `Page ${currentPage} of ${pageCount}`,
+      alignment: 'center',
+      fontSize: 9,
+      color: '#888',
+      margin: [0, 10, 0, 0],
+    });
+    delete doc._addFooter;
+  }
+
+  // Add default style if flagged
+  if (doc._addDefaultStyle) {
+    doc.defaultStyle = {
+      font: 'Roboto',
+      fontSize: 10,
+    };
+    delete doc._addDefaultStyle;
+  }
+
+  // Walk content array and replace layout string markers
+  if (Array.isArray(doc.content)) {
+    doc.content.forEach((item) => {
+      if (item && item.table && typeof item.layout === 'string' && tableLayouts[item.layout]) {
+        item.layout = tableLayouts[item.layout];
+      }
+    });
+  }
+
+  return doc;
+}
+
 export default {
   printReport,
   printPreview,
   exportToPDF,
+  exportToPdfmake,
   exportToExcel,
   generateCSV,
   escapeCSVValue,

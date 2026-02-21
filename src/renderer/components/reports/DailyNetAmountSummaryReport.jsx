@@ -217,7 +217,7 @@ export function DailyNetAmountSummaryReport() {
                   </div>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Today&apos;s Charges (Grocery + Ice):
+                      Today&apos;s Charges (Fare + Ice):
                     </Text>
                     <Text size="sm">Rs. {formatNumber(reportData.todayCharges)}</Text>
                   </div>

@@ -469,9 +469,6 @@ export function registerHandlers() {
 
   ipcMain.handle(channels.SALE_CREATE, async (event, data) => {
     try {
-      if (!data.customer_id) {
-        return { success: false, error: 'Customer is required' };
-      }
       if (!data.items || data.items.length === 0) {
         return { success: false, error: 'At least one line item is required' };
       }
@@ -485,9 +482,6 @@ export function registerHandlers() {
 
   ipcMain.handle(channels.SALE_UPDATE, async (event, { id, data }) => {
     try {
-      if (!data.customer_id) {
-        return { success: false, error: 'Customer is required' };
-      }
       if (!data.items || data.items.length === 0) {
         return { success: false, error: 'At least one line item is required' };
       }
@@ -796,6 +790,20 @@ export function registerHandlers() {
       return { success: true, data: { filePath } };
     } catch (error) {
       console.error('Export PDF error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle(channels.EXPORT_PDF_PDFMAKE, async (event, { docDefinition, options }) => {
+    try {
+      const mainWindow = electron.BrowserWindow.getFocusedWindow();
+      const filePath = await printService.exportToPdfmake(mainWindow, docDefinition, options);
+      if (!filePath) {
+        return { success: false, error: 'Export cancelled' };
+      }
+      return { success: true, data: { filePath } };
+    } catch (error) {
+      console.error('Export PDF (pdfmake) error:', error);
       return { success: false, error: error.message };
     }
   });

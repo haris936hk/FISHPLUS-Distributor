@@ -55,41 +55,40 @@ function DashboardButton({ label, icon, onClick, disabled = false, variant = 'de
       disabled={disabled}
       style={{
         background: scheme.bg,
-        borderRadius: '16px',
-        padding: '16px 20px',
+        borderRadius: '8px',
+        padding: '10px 16px',
         width: '100%',
-        minHeight: '80px',
+        minHeight: '44px',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
+        gap: '10px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        transition: 'all 0.2s ease',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        transition: 'all 0.15s ease',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
       }}
-      className="hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
+      className="hover:shadow-md active:scale-[0.98]"
     >
-      {/* Icon Container */}
+      {/* Icon */}
       {icon && (
         <Box
           style={{
-            background: scheme.iconBg,
-            borderRadius: '12px',
-            padding: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            color: scheme.text,
+            opacity: 0.9,
           }}
         >
-          <span style={{ fontSize: '28px', lineHeight: 1 }}>{icon}</span>
+          {icon}
         </Box>
       )}
 
       {/* Label */}
       <Text
-        fw={600}
-        size="md"
+        fw={500}
+        size="sm"
         style={{
           color: scheme.text,
           lineHeight: 1.3,

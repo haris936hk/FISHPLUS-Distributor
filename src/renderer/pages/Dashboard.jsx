@@ -16,36 +16,73 @@ import {
   ActionIcon,
   Tooltip,
   Button,
+  Divider,
+  ThemeIcon,
 } from '@mantine/core';
-import { IconWorld } from '@tabler/icons-react';
+import {
+  IconWorld,
+  IconRefresh,
+  IconClock,
+  IconFish,
+  IconFileInvoice,
+  IconPackage,
+  IconCash,
+  IconShoppingCart,
+  IconUsers,
+  IconTruck,
+  IconNotebook,
+  IconTrendingUp,
+  IconClipboardList,
+  IconReceipt,
+  IconCalendar,
+  IconCalendarStats,
+  IconDiscount2,
+  IconChartBar,
+  IconFolder,
+  IconArrowsExchange,
+  IconAddressBook,
+  IconReportAnalytics,
+  IconBuildingStore,
+  IconCoins,
+  IconCurrencyDollar,
+  IconChevronRight,
+} from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import useStore from '../store';
 import { DashboardButton, SupplierAdvancesList, ItemStockDisplay } from '../components';
 
 // Stats card component
-const StatCard = ({ value, label, color }) => (
+const StatCard = ({ value, label, icon: Icon, color }) => (
   <Paper
     p="md"
-    radius="lg"
+    radius="md"
     style={{
-      background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-      minWidth: '100px',
+      background: '#1e293b',
+      border: '1px solid rgba(255,255,255,0.06)',
+      minWidth: '120px',
+      flex: 1,
     }}
   >
-    <Stack gap={2} align="center">
-      <Text c="white" size="xl" fw={700}>
-        {value}
-      </Text>
-      <Text c="white" size="xs" opacity={0.9}>
-        {label}
-      </Text>
-    </Stack>
+    <Group gap="sm" wrap="nowrap">
+      <ThemeIcon variant="light" color={color} size="lg" radius="md">
+        <Icon size={18} />
+      </ThemeIcon>
+      <Stack gap={0}>
+        <Text c="white" size="lg" fw={700} lh={1.2}>
+          {value}
+        </Text>
+        <Text c="dimmed" size="xs" lh={1.2}>
+          {label}
+        </Text>
+      </Stack>
+    </Group>
   </Paper>
 );
 
 StatCard.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   label: PropTypes.string.isRequired,
+  icon: PropTypes.elementType.isRequired,
   color: PropTypes.string.isRequired,
 };
 
@@ -84,136 +121,153 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
 
   // Navigation button configuration — translated
   const adminButtons = [
-    { label: t('bill.title'), icon: '📄', key: 'supplier-bill', navigate: 'supplier-bills' },
-    { label: t('report.vendorSales'), icon: '📋', key: 'supplier-stock-bill', navigate: 'reports', tab: 'vendor-sales' },
-    { label: t('nav.items'), icon: '📦', key: 'item', navigate: 'item' },
+    { label: t('bill.title'), icon: <IconFileInvoice size={18} />, key: 'supplier-bill', navigate: 'supplier-bills' },
+    { label: t('nav.items'), icon: <IconPackage size={18} />, key: 'item', navigate: 'item' },
   ];
 
   const transactionButtons = [
-    { label: t('sale.addNew'), icon: '💵', key: 'sale', navigate: 'sales' },
-    { label: `🔍 ${t('nav.sales')}`, icon: '🔍', key: 'search-sale', navigate: 'sales' },
-    { label: t('purchase.addNew'), icon: '🛒', key: 'purchase', navigate: 'purchases' },
-    { label: `🔎 ${t('nav.purchases')}`, icon: '🔎', key: 'search-purchase', navigate: 'purchases' },
+    { label: t('nav.sales'), icon: <IconCash size={18} />, key: 'sale', navigate: 'sales' },
+    { label: t('nav.purchases'), icon: <IconShoppingCart size={18} />, key: 'purchase', navigate: 'purchases' },
   ];
 
-  const userButtons = [
-    { label: t('customer.addNew'), icon: '👤', key: 'customer', navigate: 'customers' },
-    { label: `🔍 ${t('nav.customers')}`, icon: '🔍', key: 'search-customers', navigate: 'customers' },
-    { label: t('nav.suppliers'), icon: '🏪', key: 'supplier', navigate: 'suppliers' },
+  const contactButtons = [
+    { label: t('nav.customers'), icon: <IconUsers size={18} />, key: 'customers', navigate: 'customers' },
+    { label: t('nav.suppliers'), icon: <IconTruck size={18} />, key: 'supplier', navigate: 'suppliers' },
   ];
 
   const reportButtons = [
-    { label: t('report.customerLedger'), icon: '📒', key: 'ledger', navigate: 'reports', tab: 'ledger' },
-    { label: t('report.vendorSales'), icon: '📊', key: 'item-wise-purchase', navigate: 'reports', tab: 'item-purchase' },
-    { label: t('report.stockReport'), icon: '📈', key: 'stock-report', navigate: 'reports', tab: 'stock' },
-    { label: isUrdu ? 'گاہک رجسٹر' : 'Customer Register', icon: '📝', key: 'customer-register', navigate: 'reports', tab: 'customer-register' },
-    { label: isUrdu ? 'گاہک بکری' : 'Customer Recovery', icon: '📉', key: 'client-sales', navigate: 'reports', tab: 'client-recovery' },
-    { label: isUrdu ? 'روزانہ تفصیل' : 'Daily Details', icon: '📅', key: 'daily-sales-details', navigate: 'reports', tab: 'daily-details' },
-    { label: isUrdu ? 'روزانہ بکری' : 'Daily Sales', icon: '🗓️', key: 'daily-sales', navigate: 'reports', tab: 'daily-sales' },
-    { label: isUrdu ? 'مال بکری' : 'Item Sales', icon: '🐟', key: 'item-sale', navigate: 'reports', tab: 'item-sale' },
-    { label: isUrdu ? 'رعایت' : 'Concessions', icon: '💸', key: 'concession', navigate: 'reports', tab: 'concession' },
-    { label: t('report.netSummary'), icon: '📊', key: 'net-summary', navigate: 'reports', tab: 'net-summary' },
+    { label: t('report.customerLedger'), icon: <IconNotebook size={18} />, key: 'ledger', navigate: 'reports', tab: 'ledger' },
+    { label: t('report.vendorSales'), icon: <IconChartBar size={18} />, key: 'vendor-sales', navigate: 'reports', tab: 'vendor-sales' },
+    { label: isUrdu ? 'مال خریداری' : 'Item Purchase', icon: <IconReportAnalytics size={18} />, key: 'item-wise-purchase', navigate: 'reports', tab: 'item-purchase' },
+    { label: t('report.stockReport'), icon: <IconTrendingUp size={18} />, key: 'stock-report', navigate: 'reports', tab: 'stock' },
+    { label: isUrdu ? 'گاہک رجسٹر' : 'Customer Register', icon: <IconClipboardList size={18} />, key: 'customer-register', navigate: 'reports', tab: 'customer-register' },
+    { label: isUrdu ? 'گاہک بکری' : 'Customer Recovery', icon: <IconReceipt size={18} />, key: 'client-sales', navigate: 'reports', tab: 'client-recovery' },
+    { label: isUrdu ? 'روزانہ تفصیل' : 'Daily Details', icon: <IconCalendar size={18} />, key: 'daily-sales-details', navigate: 'reports', tab: 'daily-details' },
+    { label: isUrdu ? 'روزانہ بکری' : 'Daily Sales', icon: <IconCalendarStats size={18} />, key: 'daily-sales', navigate: 'reports', tab: 'daily-sales' },
+    { label: isUrdu ? 'مال بکری' : 'Item Sales', icon: <IconFish size={18} />, key: 'item-sale', navigate: 'reports', tab: 'item-sale' },
+    { label: isUrdu ? 'رعایت' : 'Concessions', icon: <IconDiscount2 size={18} />, key: 'concession', navigate: 'reports', tab: 'concession' },
+    { label: t('report.netSummary'), icon: <IconCoins size={18} />, key: 'net-summary', navigate: 'reports', tab: 'net-summary' },
   ];
 
+  // Section header component
+  const SectionHeader = ({ icon: Icon, label, color }) => (
+    <Group gap="sm" mb="sm">
+      <ThemeIcon variant="light" color={color} size="md" radius="md">
+        <Icon size={16} />
+      </ThemeIcon>
+      <Title order={5} c="dark" fw={600}>
+        {label}
+      </Title>
+    </Group>
+  );
+
   return (
-    <Box className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <Box style={{ minHeight: '100vh', background: '#0f172a' }}>
       {/* Header */}
       <Paper
-        shadow="xl"
+        shadow="sm"
         style={{
-          background: 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)',
+          background: '#1e293b',
           borderRadius: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
         }}
       >
-        <div style={{ padding: '20px 32px' }}>
+        <div style={{ padding: '16px 28px' }}>
           <Group justify="space-between" align="center" wrap="nowrap">
-            <Stack gap={4}>
-              <Title order={2} c="white" style={{ letterSpacing: '-0.5px' }}>
-                🐟 AL-SHEIKH FISH TRADER
-              </Title>
-              <Text c="dimmed" size="sm">
+            <Stack gap={2}>
+              <Group gap="xs" align="center">
+                <ThemeIcon variant="filled" color="blue" size="md" radius="md">
+                  <IconFish size={16} />
+                </ThemeIcon>
+                <Title order={3} c="white" style={{ letterSpacing: '-0.3px' }}>
+                  AL-SHEIKH FISH TRADER
+                </Title>
+              </Group>
+              <Text c="dimmed" size="xs" ml={42}>
                 Shop No. W-644 Gunj Mandi Rawalpindi | +92-3008501724
               </Text>
-              <Group gap="xs" mt={4}>
-                <Tooltip label={t('dashboard.autoRefresh')}>
-                  <ActionIcon
-                    variant="subtle"
-                    color="white"
-                    size="lg"
-                    onClick={() => loadDashboardData()}
-                    loading={dashboardLoading}
-                  >
-                    🔄
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label={autoRefresh ? (isUrdu ? 'خود کار تازہ چالو (60 سیکنڈ)' : 'Auto-refresh ON (60s)') : (isUrdu ? 'خود کار تازہ بند' : 'Auto-refresh OFF')}>
-                  <ActionIcon
-                    variant={autoRefresh ? 'filled' : 'subtle'}
-                    color={autoRefresh ? 'teal' : 'gray'}
-                    size="lg"
-                    onClick={() => setAutoRefresh((prev) => !prev)}
-                  >
-                    ⏱️
-                  </ActionIcon>
-                </Tooltip>
-
-                {/* Language Toggle Button */}
-                <Tooltip label={isUrdu ? 'Switch to English' : 'اردو میں بدلیں'}>
-                  <Button
-                    variant="subtle"
-                    color="blue"
-                    size="compact-sm"
-                    leftSection={<IconWorld size={14} />}
-                    onClick={onToggleLanguage}
-                    style={{ color: 'rgba(255,255,255,0.85)' }}
-                  >
-                    {isUrdu ? 'English' : 'اردو'}
-                  </Button>
-                </Tooltip>
-              </Group>
             </Stack>
 
-            {/* Quick Stats */}
-            <Group gap="md" wrap="nowrap">
+            <Group gap="sm" wrap="nowrap">
+              {/* Quick Stats */}
               <StatCard
                 value={dashboardSummary?.suppliers?.count || 0}
                 label={t('dashboard.totalSuppliers')}
-                color="#3b82f6"
+                icon={IconTruck}
+                color="blue"
               />
               <StatCard
                 value={dashboardSummary?.customers?.count || 0}
                 label={t('dashboard.totalCustomers')}
-                color="#8b5cf6"
+                icon={IconUsers}
+                color="violet"
               />
-              <StatCard value={dashboardSummary?.items?.count || 0} label={t('nav.items')} color="#14b8a6" />
+              <StatCard
+                value={dashboardSummary?.items?.count || 0}
+                label={t('nav.items')}
+                icon={IconPackage}
+                color="teal"
+              />
               <StatCard
                 value={dashboardSummary?.todaySales?.count || 0}
                 label={isUrdu ? 'آج کی بکری' : "Today's Sales"}
-                color="#f97316"
+                icon={IconCurrencyDollar}
+                color="orange"
               />
+
+              <Divider orientation="vertical" color="rgba(255,255,255,0.1)" />
+
+              {/* Controls */}
+              <Tooltip label={t('dashboard.autoRefresh')}>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="md"
+                  onClick={() => loadDashboardData()}
+                  loading={dashboardLoading}
+                >
+                  <IconRefresh size={16} color="rgba(255,255,255,0.6)" />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={autoRefresh ? (isUrdu ? 'خود کار تازہ چالو (60 سیکنڈ)' : 'Auto-refresh ON (60s)') : (isUrdu ? 'خود کار تازہ بند' : 'Auto-refresh OFF')}>
+                <ActionIcon
+                  variant={autoRefresh ? 'filled' : 'subtle'}
+                  color={autoRefresh ? 'teal' : 'gray'}
+                  size="md"
+                  onClick={() => setAutoRefresh((prev) => !prev)}
+                >
+                  <IconClock size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={isUrdu ? 'Switch to English' : 'اردو میں بدلیں'}>
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="compact-sm"
+                  leftSection={<IconWorld size={14} />}
+                  onClick={onToggleLanguage}
+                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                >
+                  {isUrdu ? 'English' : 'اردو'}
+                </Button>
+              </Tooltip>
             </Group>
           </Group>
         </div>
       </Paper>
 
       {/* Main Content */}
-      <ScrollArea h="calc(100vh - 100px)" offsetScrollbars>
-        <div style={{ padding: '24px 32px', display: 'flex', gap: '24px' }}>
+      <ScrollArea h="calc(100vh - 90px)" offsetScrollbars>
+        <div style={{ padding: '20px 28px', display: 'flex', gap: '20px' }}>
           {/* Left Section - Navigation Buttons */}
           <div style={{ flex: '1 1 70%', minWidth: 0 }}>
-            <Stack gap="xl">
+            <Stack gap="md">
               {/* Row 1: Administration & Transactions */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {/* Administration */}
-                <Card shadow="md" padding="lg" radius="xl" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
-                  <Group gap="sm" mb="md">
-                    <Box style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', borderRadius: '10px', padding: '8px 12px' }}>
-                      <Text size="lg" style={{ lineHeight: 1 }}>📁</Text>
-                    </Box>
-                    <Title order={4} c="dark">{isUrdu ? 'انتظامیہ' : 'Administration'}</Title>
-                  </Group>
-                  <Stack gap="sm">
+                <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
+                  <SectionHeader icon={IconFolder} label={isUrdu ? 'انتظامیہ' : 'Administration'} color="blue" />
+                  <Stack gap="xs">
                     {adminButtons.map((btn) => (
                       <DashboardButton
                         key={btn.key}
@@ -227,14 +281,9 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                 </Card>
 
                 {/* Transactions */}
-                <Card shadow="md" padding="lg" radius="xl" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
-                  <Group gap="sm" mb="md">
-                    <Box style={{ background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', borderRadius: '10px', padding: '8px 12px' }}>
-                      <Text size="lg" style={{ lineHeight: 1 }}>💰</Text>
-                    </Box>
-                    <Title order={4} c="dark">{isUrdu ? 'لین دین' : 'Transactions'}</Title>
-                  </Group>
-                  <SimpleGrid cols={2} spacing="sm">
+                <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
+                  <SectionHeader icon={IconArrowsExchange} label={isUrdu ? 'لین دین' : 'Transactions'} color="teal" />
+                  <Stack gap="xs">
                     {transactionButtons.map((btn) => (
                       <DashboardButton
                         key={btn.key}
@@ -244,20 +293,15 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                         onClick={() => btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)}
                       />
                     ))}
-                  </SimpleGrid>
+                  </Stack>
                 </Card>
               </div>
 
               {/* Row 2: Contacts */}
-              <Card shadow="md" padding="lg" radius="xl" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
-                <Group gap="sm" mb="md">
-                  <Box style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', borderRadius: '10px', padding: '8px 12px' }}>
-                    <Text size="lg" style={{ lineHeight: 1 }}>👥</Text>
-                  </Box>
-                  <Title order={4} c="dark">{isUrdu ? 'رابطہ کار' : 'Contacts'}</Title>
-                </Group>
-                <SimpleGrid cols={3} spacing="sm">
-                  {userButtons.map((btn) => (
+              <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
+                <SectionHeader icon={IconAddressBook} label={isUrdu ? 'رابطہ کار' : 'Contacts'} color="violet" />
+                <SimpleGrid cols={2} spacing="xs">
+                  {contactButtons.map((btn) => (
                     <DashboardButton
                       key={btn.key}
                       label={btn.label}
@@ -270,14 +314,9 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
               </Card>
 
               {/* Row 3: Reports */}
-              <Card shadow="md" padding="lg" radius="xl" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
-                <Group gap="sm" mb="md">
-                  <Box style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', borderRadius: '10px', padding: '8px 12px' }}>
-                    <Text size="lg" style={{ lineHeight: 1 }}>📊</Text>
-                  </Box>
-                  <Title order={4} c="dark">{t('nav.reports')}</Title>
-                </Group>
-                <SimpleGrid cols={3} spacing="sm">
+              <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
+                <SectionHeader icon={IconChartBar} label={t('nav.reports')} color="orange" />
+                <SimpleGrid cols={3} spacing="xs">
                   {reportButtons.map((btn) => (
                     <DashboardButton
                       key={btn.key}
@@ -294,9 +333,9 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
 
           {/* Right Section - Information Panels */}
           <div style={{ flex: '0 0 320px', minWidth: '280px' }}>
-            <Stack gap="lg">
+            <Stack gap="md">
               {dashboardLoading ? (
-                <Card shadow="md" padding="xl" radius="xl" h={400} style={{ background: 'rgba(255,255,255,0.95)' }}>
+                <Card shadow="xs" padding="xl" radius="md" h={400} style={{ background: '#ffffff' }}>
                   <Center h="100%">
                     <Loader size="lg" />
                   </Center>

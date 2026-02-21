@@ -173,7 +173,7 @@ function SupplierBillPreview({ previewData }) {
                       {formatDisplayDate(item.sale_date)}
                     </Table.Td>
                     <Table.Td style={{ textAlign: 'right' }}>
-                      {(item.net_weight || 0).toFixed(2)}
+                      {(item.weight || 0).toFixed(2)}
                     </Table.Td>
                     <Table.Td style={{ textAlign: 'right' }}>
                       {(item.rate || 0).toFixed(2)}
