@@ -7,3 +7,14 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+
+/* Ensure Mantine number inputs stay LTR */
+[data-type='number'] input {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Thin scrollbar */
+* {
+  scrollbar-width: thin;
+}

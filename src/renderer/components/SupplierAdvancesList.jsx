@@ -1,5 +1,6 @@
 import { Card, Table, Text, Stack, ScrollArea, Loader, Center } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * SupplierAdvancesList Component
@@ -12,6 +13,7 @@ import PropTypes from 'prop-types';
  */
 // eslint-disable-next-line no-unused-vars
 function SupplierAdvancesList({ data = [], loading = false, onRefresh }) {
+  const { t } = useTranslation();
   // Format currency with 2 decimal places
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-PK', {
@@ -34,25 +36,25 @@ function SupplierAdvancesList({ data = [], loading = false, onRefresh }) {
     <Card shadow="sm" padding="md" radius="md" withBorder>
       <Stack gap="xs">
         <Text fw={600} size="lg" className="text-gray-700 dark:text-gray-200">
-          📋 Supplier Advances
+          📋 {t('dashboard.supplierAdvances')}
         </Text>
         <Text size="sm" c="dimmed">
-          Suppliers with outstanding advance amounts
+          {t('supplier.advanceAmount')}
         </Text>
 
         <ScrollArea h={220} type="auto">
           {data.length === 0 ? (
             <Center py="xl">
               <Text c="dimmed" size="sm">
-                No supplier advances found
+                {t('supplier.noResults')}
               </Text>
             </Center>
           ) : (
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ textAlign: 'right' }}>Supplier Name</Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>Advance Amount</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>{t('common.name')}</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>{t('supplier.advanceAmount')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>

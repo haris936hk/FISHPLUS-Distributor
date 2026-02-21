@@ -17,6 +17,7 @@ import {
   ActionIcon,
   ScrollArea,
   Badge,
+  Checkbox,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
@@ -28,6 +29,9 @@ import { validateRequired } from '../utils/validators';
  * SaleForm Component
  * Form for creating/editing sale transactions with dynamic line items.
  * Implements FR-SALE-001 through FR-SALE-055.
+ *
+ * Columns match original system:
+ * سٹاک | مچھلی | ریٹ فی من | ریٹ فی کلوگرام | گابک | وزن کلوگرام | برف | کرایہ | ٹوٹل رقم | نقدی | وصولی | Delete
  *
  * @param {Object} editSale - Sale object to edit (null for new)
  * @param {function} onSaved - Callback after successful save
@@ -43,7 +47,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
   // Header fields
   const [saleNumber, setSaleNumber] = useState('00000');
   const [saleDate, setSaleDate] = useState(new Date());
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [details, setDetails] = useState('');
@@ -55,11 +58,12 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     return {
       id: Date.now() + Math.random(),
       item_id: null,
-      supplier_id: null,
-      gross_weight: 0,
-      tare_weight: 0,
+      customer_id: null,
+      is_stock: false,
+      rate_per_maund: 0,
       rate: 0,
-      grocery_charges: 0,
+      weight: 0,
+      fare_charges: 0,
       ice_charges: 0,
       cash_amount: 0,
       receipt_amount: 0,
@@ -120,7 +124,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     if (editSale) {
       setSaleNumber(editSale.sale_number);
       setSaleDate(new Date(editSale.sale_date));
-      setSelectedCustomer(String(editSale.customer_id));
       setSelectedSupplier(editSale.supplier_id ? String(editSale.supplier_id) : null);
       setVehicleNumber(editSale.vehicle_number || '');
       setDetails(editSale.details || '');
@@ -129,11 +132,12 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           editSale.items.map((item) => ({
             id: item.id,
             item_id: String(item.item_id),
-            supplier_id: item.supplier_id ? String(item.supplier_id) : null,
-            gross_weight: item.gross_weight || 0,
-            tare_weight: item.tare_weight || 0,
+            customer_id: item.customer_id ? String(item.customer_id) : null,
+            is_stock: !!item.is_stock,
+            rate_per_maund: item.rate_per_maund || 0,
             rate: item.rate || 0,
-            grocery_charges: item.grocery_charges || 0,
+            weight: item.weight || 0,
+            fare_charges: item.fare_charges || 0,
             ice_charges: item.ice_charges || 0,
             cash_amount: item.cash_amount || 0,
             receipt_amount: item.receipt_amount || 0,
@@ -154,19 +158,23 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     [itemsList]
   );
 
-  // Get item stock by ID
-  const getItemStock = useCallback(
-    (itemId) => {
-      const item = itemsList.find((i) => String(i.id) === itemId);
-      return item?.current_stock || 0;
-    },
-    [itemsList]
-  );
-
-  // Update line item
+  // Update line item - with auto-calculation for dual rate
   const updateLineItem = useCallback((id, field, value) => {
     setLineItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      prev.map((item) => {
+        if (item.id !== id) return item;
+
+        const updates = { [field]: value };
+
+        // Dual rate auto-calculation: 1 Maund = 40 kg
+        if (field === 'rate_per_maund') {
+          updates.rate = (value || 0) / 40;
+        } else if (field === 'rate') {
+          updates.rate_per_maund = (value || 0) * 40;
+        }
+
+        return { ...item, ...updates };
+      })
     );
   }, []);
 
@@ -185,44 +193,38 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
   // Calculate line item values
   const calculateLineValues = useCallback((item) => {
-    const netWeight = Math.max(0, (item.gross_weight || 0) - (item.tare_weight || 0));
-    const amount = netWeight * (item.rate || 0);
-    const netAmount = amount + (item.grocery_charges || 0) + (item.ice_charges || 0);
-    return { netWeight, amount, netAmount };
+    const weight = item.weight || 0;
+    const amount = weight * (item.rate || 0);
+    const totalAmount = amount + (item.fare_charges || 0) + (item.ice_charges || 0);
+    return { weight, amount, totalAmount };
   }, []);
 
   // Calculate totals
   const totals = useMemo(() => {
     let totalWeight = 0;
-    let totalTareWeight = 0;
-    let netWeight = 0;
     let grossAmount = 0;
-    let groceryCharges = 0;
+    let fareCharges = 0;
     let iceCharges = 0;
     let cashReceived = 0;
     let receiptAmount = 0;
 
     for (const item of lineItems) {
       const calculated = calculateLineValues(item);
-      totalWeight += item.gross_weight || 0;
-      totalTareWeight += item.tare_weight || 0;
-      netWeight += calculated.netWeight;
+      totalWeight += calculated.weight;
       grossAmount += calculated.amount;
-      groceryCharges += item.grocery_charges || 0;
+      fareCharges += item.fare_charges || 0;
       iceCharges += item.ice_charges || 0;
       cashReceived += item.cash_amount || 0;
       receiptAmount += item.receipt_amount || 0;
     }
 
-    const netAmount = grossAmount + groceryCharges + iceCharges;
+    const netAmount = grossAmount + fareCharges + iceCharges;
     const balanceAmount = netAmount - cashReceived - receiptAmount;
 
     return {
       totalWeight,
-      totalTareWeight,
-      netWeight,
       grossAmount,
-      groceryCharges,
+      fareCharges,
       iceCharges,
       netAmount,
       cashReceived,
@@ -240,22 +242,23 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
   // Save sale
   const handleSave = useCallback(async () => {
-    // Validate customer
-    const customerResult = validateRequired(selectedCustomer, 'گاہک / Customer');
-    if (!customerResult.isValid) {
-      notifications.show({
-        title: 'توثیق کی خرابی / Validation Error',
-        message: 'براہ کرم گاہک منتخب کریں / Please select a customer',
-        color: 'red',
-      });
-      return;
-    }
-
+    // Validate that at least one line item has a customer
     const validItems = lineItems.filter((item) => item.item_id);
     if (validItems.length === 0) {
       notifications.show({
         title: 'توثیق کی خرابی / Validation Error',
         message: 'براہ کرم کم از کم ایک آئٹم شامل کریں / Please add at least one item',
+        color: 'red',
+      });
+      return;
+    }
+
+    // Check each line item has a customer
+    const itemsWithoutCustomer = validItems.filter((item) => !item.customer_id);
+    if (itemsWithoutCustomer.length > 0) {
+      notifications.show({
+        title: 'توثیق کی خرابی / Validation Error',
+        message: 'ہر آئٹم کے لیے گابک منتخب کریں / Please select a customer (گابک) for each item',
         color: 'red',
       });
       return;
@@ -271,22 +274,21 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         });
 
         // When editing, add back the weights already allocated to this sale
-        // so we don't get false negatives on re-saves without quantity changes
         if (editSale?.items) {
           for (const existingItem of editSale.items) {
             const key = String(existingItem.item_id);
             if (stockMap[key]) {
-              stockMap[key].stock += existingItem.net_weight || 0;
+              stockMap[key].stock += existingItem.weight || 0;
             }
           }
         }
 
         const insufficientItems = validItems
           .map((item) => {
-            const calculated = calculateLineValues(item);
+            const weight = item.weight || 0;
             const stockInfo = stockMap[String(item.item_id)];
-            if (stockInfo && calculated.netWeight > stockInfo.stock) {
-              return `${stockInfo.name}: need ${calculated.netWeight.toFixed(2)} kg, available ${stockInfo.stock.toFixed(2)} kg`;
+            if (stockInfo && weight > stockInfo.stock) {
+              return `${stockInfo.name}: need ${weight.toFixed(2)} kg, available ${stockInfo.stock.toFixed(2)} kg`;
             }
             return null;
           })
@@ -315,28 +317,24 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     setLoading(true);
     try {
       const saleData = {
-        customer_id: parseInt(selectedCustomer),
+        customer_id: null, // No header-level customer — each line has its own
         supplier_id: selectedSupplier ? parseInt(selectedSupplier) : null,
         vehicle_number: vehicleNumber || null,
         sale_date: formatDate(saleDate),
         details: details || null,
-        items: validItems.map((item) => {
-          const calculated = calculateLineValues(item);
-          return {
-            item_id: parseInt(item.item_id),
-            supplier_id: item.supplier_id ? parseInt(item.supplier_id) : null,
-            gross_weight: item.gross_weight || 0,
-            tare_weight: item.tare_weight || 0,
-            net_weight: calculated.netWeight,
-            rate: item.rate || 0,
-            amount: calculated.amount,
-            grocery_charges: item.grocery_charges || 0,
-            ice_charges: item.ice_charges || 0,
-            cash_amount: item.cash_amount || 0,
-            receipt_amount: item.receipt_amount || 0,
-            notes: item.notes || null,
-          };
-        }),
+        items: validItems.map((item) => ({
+          item_id: parseInt(item.item_id),
+          customer_id: item.customer_id ? parseInt(item.customer_id) : null,
+          is_stock: item.is_stock,
+          rate_per_maund: item.rate_per_maund || 0,
+          rate: item.rate || 0,
+          weight: item.weight || 0,
+          fare_charges: item.fare_charges || 0,
+          ice_charges: item.ice_charges || 0,
+          cash_amount: item.cash_amount || 0,
+          receipt_amount: item.receipt_amount || 0,
+          notes: item.notes || null,
+        })),
       };
 
       let response;
@@ -373,7 +371,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
       setLoading(false);
     }
   }, [
-    selectedCustomer,
     selectedSupplier,
     vehicleNumber,
     saleDate,
@@ -381,12 +378,10 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     lineItems,
     editSale,
     onSaved,
-    calculateLineValues,
   ]);
 
   // Print receipt for saved sale
   const handlePrint = useCallback(() => {
-    const customerName = customers.find((c) => c.value === selectedCustomer)?.label || '';
     const dateStr = saleDate ? new Date(saleDate).toLocaleDateString('en-PK') : '';
     const validItems = lineItems.filter((item) => item.item_id);
 
@@ -394,25 +389,28 @@ function SaleForm({ editSale, onSaved, onCancel }) {
       .map((item) => {
         const calc = calculateLineValues(item);
         const itemInfo = itemsList.find((i) => String(i.id) === String(item.item_id));
+        const custInfo = customers.find((c) => c.value === String(item.customer_id));
         return `<tr>
                 <td>${itemInfo?.name || ''}</td>
-                <td style="text-align:right">${calc.netWeight.toFixed(2)}</td>
+                <td>${custInfo?.label || ''}</td>
+                <td style="text-align:right">${calc.weight.toFixed(2)}</td>
                 <td style="text-align:right">${item.rate?.toFixed(2) || '0.00'}</td>
-                <td style="text-align:right">${calc.amount.toFixed(2)}</td>
+                <td style="text-align:right">${calc.totalAmount.toFixed(2)}</td>
             </tr>`;
       })
       .join('');
 
-    const html = `<!DOCTYPE html><html><head><title>Sale Receipt - ${saleNumber}</title>
+    const html = `<!DOCTYPE html><html dir="rtl"><head><title>Sale Receipt - ${saleNumber}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet" />
         <style>
             @page { margin: 1cm; }
-            body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; }
+            body { font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; direction: rtl; }
             .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
             .header h2 { margin: 0; } .header p { margin: 3px 0; font-size: 12px; }
             .info { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
             th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; }
-            th { background: #f5f5f5; text-align: left; }
+            th { background: #f5f5f5; text-align: right; }
             .totals { text-align: right; font-size: 13px; }
             .totals td { border: none; padding: 3px 8px; }
             .grand-total { font-size: 16px; font-weight: bold; border-top: 2px solid #333 !important; }
@@ -428,16 +426,15 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         <div class="info">
             <div><strong>Receipt #:</strong> ${saleNumber}</div>
             <div><strong>Date:</strong> ${dateStr}</div>
-            <div><strong>Customer:</strong> ${customerName}</div>
         </div>
         <table>
-            <thead><tr><th>Item</th><th style="text-align:right">Weight (kg)</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+            <thead><tr><th>مچھلی / Item</th><th>گابک / Customer</th><th style="text-align:right">وزن / Weight (kg)</th><th style="text-align:right">ریٹ / Rate</th><th style="text-align:right">ٹوٹل رقم / Amount</th></tr></thead>
             <tbody>${itemRows}</tbody>
         </table>
         <table class="totals">
             <tr><td>Gross Amount:</td><td>Rs. ${totals.grossAmount.toFixed(2)}</td></tr>
-            <tr><td>Grocery Charges:</td><td>Rs. ${totals.groceryCharges.toFixed(2)}</td></tr>
-            <tr><td>Ice Charges:</td><td>Rs. ${totals.iceCharges.toFixed(2)}</td></tr>
+            <tr><td>Fare Charges / کرایہ:</td><td>Rs. ${totals.fareCharges.toFixed(2)}</td></tr>
+            <tr><td>Ice Charges / برف:</td><td>Rs. ${totals.iceCharges.toFixed(2)}</td></tr>
             <tr><td>Net Amount:</td><td><strong>Rs. ${totals.netAmount.toFixed(2)}</strong></td></tr>
             <tr><td>Cash Received:</td><td>Rs. ${totals.cashReceived.toFixed(2)}</td></tr>
             <tr class="grand-total"><td>Balance:</td><td>Rs. ${totals.balanceAmount.toFixed(2)}</td></tr>
@@ -461,7 +458,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     }
   }, [
     customers,
-    selectedCustomer,
     saleDate,
     saleNumber,
     lineItems,
@@ -472,7 +468,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
   // Clear form
   const handleClear = useCallback(() => {
-    setSelectedCustomer(null);
     setSelectedSupplier(null);
     setVehicleNumber('');
     setDetails('');
@@ -509,17 +504,6 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={4}>
             <Select
-              label="گاہک (Customer)"
-              placeholder="Select customer"
-              data={customers}
-              value={selectedCustomer}
-              onChange={setSelectedCustomer}
-              searchable
-              required
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <Select
               label="بیوپاری (Supplier)"
               placeholder="Select supplier (optional)"
               data={suppliers}
@@ -529,18 +513,21 @@ function SaleForm({ editSale, onSaved, onCancel }) {
               clearable
             />
           </Grid.Col>
-        </Grid>
-
-        <Grid>
           <Grid.Col span={4}>
             <TextInput
               label="گڑی نمبر (Vehicle No)"
               placeholder="Enter vehicle number"
               value={vehicleNumber}
               onChange={(e) => setVehicleNumber(e.target.value)}
+              className="ltr-field"
+              dir="ltr"
+              styles={{ input: { textAlign: 'left' } }}
             />
           </Grid.Col>
-          <Grid.Col span={8}>
+        </Grid>
+
+        <Grid>
+          <Grid.Col span={12}>
             <Textarea
               label="تفصیل (Details)"
               placeholder="Additional notes..."
@@ -559,28 +546,65 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           <Table striped withTableBorder withColumnBorders>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th style={{ width: 40 }}>#</Table.Th>
-                <Table.Th style={{ minWidth: 150 }}>Item</Table.Th>
-                <Table.Th style={{ width: 80 }}>Stock</Table.Th>
-                <Table.Th style={{ width: 90 }}>Rate</Table.Th>
-                <Table.Th style={{ width: 90 }}>Gross (kg)</Table.Th>
-                <Table.Th style={{ width: 80 }}>Tare (kg)</Table.Th>
-                <Table.Th style={{ width: 80 }}>Net (kg)</Table.Th>
-                <Table.Th style={{ width: 100 }}>Amount</Table.Th>
-                <Table.Th style={{ width: 80 }}>Grocery</Table.Th>
-                <Table.Th style={{ width: 80 }}>Ice</Table.Th>
-                <Table.Th style={{ width: 100 }}>Net Amt</Table.Th>
-                <Table.Th style={{ width: 90 }}>Cash</Table.Th>
-                <Table.Th style={{ width: 90 }}>Receipt</Table.Th>
-                <Table.Th style={{ width: 40 }}></Table.Th>
+                <Table.Th style={{ width: 50, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>سٹاک</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Stock</div>
+                </Table.Th>
+                <Table.Th style={{ minWidth: 140 }}>
+                  <div style={{ fontWeight: 700 }}>مچھلی</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Item</div>
+                </Table.Th>
+                <Table.Th style={{ width: 90, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>ریٹ فی من</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Rate/Maund</div>
+                </Table.Th>
+                <Table.Th style={{ width: 90, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>ریٹ فی کلوگرام</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Rate/kg</div>
+                </Table.Th>
+                <Table.Th style={{ minWidth: 140 }}>
+                  <div style={{ fontWeight: 700 }}>گابک</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Customer</div>
+                </Table.Th>
+                <Table.Th style={{ width: 88, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>وزن کلوگرام</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Weight (kg)</div>
+                </Table.Th>
+                <Table.Th style={{ width: 72, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>برف</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Ice</div>
+                </Table.Th>
+                <Table.Th style={{ width: 80, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>کرایہ</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Fare</div>
+                </Table.Th>
+                <Table.Th style={{ width: 96, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>ٹوٹل رقم</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Total Amt</div>
+                </Table.Th>
+                <Table.Th style={{ width: 84, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>نقدی</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Cash</div>
+                </Table.Th>
+                <Table.Th style={{ width: 84, textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>وصولی</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Receipt</div>
+                </Table.Th>
+                <Table.Th style={{ width: 32 }} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {lineItems.map((item, index) => {
+              {lineItems.map((item) => {
                 const calculated = calculateLineValues(item);
                 return (
                   <Table.Tr key={item.id}>
-                    <Table.Td>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: 'center' }}>
+                      <Checkbox
+                        checked={item.is_stock}
+                        onChange={(e) => updateLineItem(item.id, 'is_stock', e.currentTarget.checked)}
+                        size="xs"
+                      />
+                    </Table.Td>
                     <Table.Td>
                       <Select
                         placeholder="Select"
@@ -592,9 +616,14 @@ function SaleForm({ editSale, onSaved, onCancel }) {
                       />
                     </Table.Td>
                     <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {item.item_id ? getItemStock(item.item_id).toFixed(2) : '-'}
-                      </Text>
+                      <NumberInput
+                        value={item.rate_per_maund}
+                        onChange={(val) => updateLineItem(item.id, 'rate_per_maund', val || 0)}
+                        min={0}
+                        decimalScale={2}
+                        size="xs"
+                        hideControls
+                      />
                     </Table.Td>
                     <Table.Td>
                       <NumberInput
@@ -607,39 +636,19 @@ function SaleForm({ editSale, onSaved, onCancel }) {
                       />
                     </Table.Td>
                     <Table.Td>
-                      <NumberInput
-                        value={item.gross_weight}
-                        onChange={(val) => updateLineItem(item.id, 'gross_weight', val || 0)}
-                        min={0}
-                        decimalScale={2}
+                      <Select
+                        placeholder="Select"
+                        data={customers}
+                        value={item.customer_id}
+                        onChange={(val) => updateLineItem(item.id, 'customer_id', val)}
+                        searchable
                         size="xs"
-                        hideControls
                       />
                     </Table.Td>
                     <Table.Td>
                       <NumberInput
-                        value={item.tare_weight}
-                        onChange={(val) => updateLineItem(item.id, 'tare_weight', val || 0)}
-                        min={0}
-                        decimalScale={2}
-                        size="xs"
-                        hideControls
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" fw={500}>
-                        {calculated.netWeight.toFixed(2)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" fw={500}>
-                        {calculated.amount.toFixed(2)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        value={item.grocery_charges}
-                        onChange={(val) => updateLineItem(item.id, 'grocery_charges', val || 0)}
+                        value={item.weight}
+                        onChange={(val) => updateLineItem(item.id, 'weight', val || 0)}
                         min={0}
                         decimalScale={2}
                         size="xs"
@@ -657,8 +666,18 @@ function SaleForm({ editSale, onSaved, onCancel }) {
                       />
                     </Table.Td>
                     <Table.Td>
+                      <NumberInput
+                        value={item.fare_charges}
+                        onChange={(val) => updateLineItem(item.id, 'fare_charges', val || 0)}
+                        min={0}
+                        decimalScale={2}
+                        size="xs"
+                        hideControls
+                      />
+                    </Table.Td>
+                    <Table.Td>
                       <Text size="xs" fw={600} c="blue">
-                        {calculated.netAmount.toFixed(2)}
+                        {calculated.totalAmount.toFixed(2)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -709,70 +728,62 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           Add Line Item
         </Button>
 
-        <Divider label="Summary / خلاصہ" labelPosition="center" />
+        <Divider label="خلاصہ / Summary" labelPosition="center" />
 
         {/* Summary */}
-        <Paper p="md" bg="gray.0" radius="sm">
-          <Grid>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Total Weight:
-                </Text>
-                <Text fw={500}>{totals.totalWeight.toFixed(2)} kg</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Net Weight:
-                </Text>
-                <Text fw={500}>{totals.netWeight.toFixed(2)} kg</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Gross Amount:
-                </Text>
-                <Text fw={500}>Rs. {totals.grossAmount.toFixed(2)}</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={3}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Charges:
-                </Text>
-                <Text fw={500}>Rs. {(totals.groceryCharges + totals.iceCharges).toFixed(2)}</Text>
-              </Group>
+        <Paper
+          p="md"
+          radius="sm"
+          style={{
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            border: '1px solid #bae6fd',
+          }}
+        >
+          {/* Row 1: weight + amount stats */}
+          <Grid mb="xs" gutter="sm">
+            {[
+              { ur: 'کُل وزن', en: 'Total Weight', val: `${totals.totalWeight.toFixed(2)} kg`, color: 'dark' },
+              { ur: 'مجموعی رقم', en: 'Gross Amount', val: `Rs. ${totals.grossAmount.toFixed(2)}`, color: 'dark' },
+              { ur: 'اخراجات', en: 'Charges', val: `Rs. ${(totals.fareCharges + totals.iceCharges).toFixed(2)}`, color: 'dark' },
+            ].map(({ ur, en, val, color }) => (
+              <Grid.Col key={en} span={4}>
+                <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
+                  <Text size="xs" c="dimmed" mb={2}>{ur} / {en}</Text>
+                  <Text fw={600} size="sm" c={color}>{val}</Text>
+                </Paper>
+              </Grid.Col>
+            ))}
+          </Grid>
+
+          {/* Row 2: payment stats */}
+          <Grid gutter="sm">
+            <Grid.Col span={4}>
+              <Paper p="xs" radius="sm" withBorder style={{ background: '#eff6ff' }}>
+                <Text size="xs" c="dimmed" mb={2}>خالص رقم / Net Amount</Text>
+                <Text fw={700} size="md" c="blue">Rs. {totals.netAmount.toFixed(2)}</Text>
+              </Paper>
             </Grid.Col>
             <Grid.Col span={4}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Net Amount:
-                </Text>
-                <Text fw={600} c="blue">
-                  Rs. {totals.netAmount.toFixed(2)}
-                </Text>
-              </Group>
+              <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
+                <Text size="xs" c="dimmed" mb={2}>نقد + وصولی / Cash + Receipt</Text>
+                <Text fw={600} size="sm">Rs. {(totals.cashReceived + totals.receiptAmount).toFixed(2)}</Text>
+              </Paper>
             </Grid.Col>
             <Grid.Col span={4}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Cash + Receipt:
-                </Text>
-                <Text fw={500}>Rs. {(totals.cashReceived + totals.receiptAmount).toFixed(2)}</Text>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <Group justify="space-between">
-                <Text size="lg" fw={600}>
-                  Balance:
-                </Text>
-                <Text size="lg" fw={700} c={totals.balanceAmount > 0 ? 'red' : 'green'}>
+              <Paper
+                p="xs"
+                radius="sm"
+                withBorder
+                style={{
+                  background: totals.balanceAmount > 0 ? '#fef2f2' : '#f0fdf4',
+                  borderColor: totals.balanceAmount > 0 ? '#fca5a5' : '#86efac',
+                }}
+              >
+                <Text size="xs" c="dimmed" mb={2}>بقایا / Balance</Text>
+                <Text fw={700} size="md" c={totals.balanceAmount > 0 ? 'red' : 'green'}>
                   Rs. {totals.balanceAmount.toFixed(2)}
                 </Text>
-              </Group>
+              </Paper>
             </Grid.Col>
           </Grid>
         </Paper>

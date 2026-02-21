@@ -236,14 +236,12 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
         <SimpleGrid cols={2}>
           {/* Name (Urdu) - Required */}
           <TextInput
-            label="Item Name (Urdu) - مال"
-            placeholder="Enter item name in Urdu"
+            label="مال (اردو) - Item Name"
+            placeholder="اردو میں نام لکھیں"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
             error={errors.name}
             required
-            dir="rtl"
-            styles={{ input: { textAlign: 'right' } }}
           />
 
           {/* Name (English) */}
@@ -258,7 +256,7 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
         <SimpleGrid cols={2}>
           {/* Unit Price */}
           <NumberInput
-            label="Unit Price (Rs.)"
+            label="یونٹ قیمت (Rs.) - Unit Price"
             placeholder="0.00"
             value={formData.unit_price}
             onChange={(value) => handleChange('unit_price', value || 0)}
@@ -267,6 +265,9 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
             decimalScale={2}
             fixedDecimalScale
             thousandSeparator=","
+            className="ltr-field"
+            dir="ltr"
+            styles={{ input: { textAlign: 'left' } }}
           />
 
           {/* Category */}

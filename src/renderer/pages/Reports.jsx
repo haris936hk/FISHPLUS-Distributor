@@ -13,8 +13,11 @@ import {
   IconArrowLeft,
   IconTruck,
   IconCalculator,
+  IconClipboardList,
 } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
+import useStore from '../store';
 
 import {
   ClientRecoveryReport,
@@ -27,12 +30,13 @@ import {
   ConcessionReport,
   DailySalesDetailsReport,
   VendorSalesReport,
+  VendorStockBillReport,
   DailyNetAmountSummaryReport,
 } from '../components/reports';
 
 // Report tab definitions
 const REPORT_TABS = [
-  { key: 'client-recovery', label: 'Client Recovery', urdu: 'کلائنٹ بکری', icon: IconReceipt },
+  { key: 'client-recovery', label: 'Customer Recovery', urdu: 'گاہک بکری', icon: IconReceipt },
   { key: 'item-sale', label: 'Item Sale', urdu: 'مجملہ بکری', icon: IconChartBar },
   { key: 'daily-sales', label: 'Daily Sales', urdu: 'امروزہ بکری', icon: IconCalendar },
   { key: 'ledger', label: 'Ledger', urdu: 'کھاتہ', icon: IconBook },
@@ -52,6 +56,12 @@ const REPORT_TABS = [
     icon: IconFileDescription,
   },
   { key: 'vendor-sales', label: 'Vendor Sales', urdu: 'بیوپاری بکری', icon: IconTruck },
+  {
+    key: 'vendor-stock-bill',
+    label: 'Vendor Stock Bill',
+    urdu: 'بیوپاری سٹاک بل',
+    icon: IconClipboardList,
+  },
   { key: 'net-summary', label: 'Net Summary', urdu: 'رجسٹر ٹوٹل رقم', icon: IconCalculator },
 ];
 
@@ -63,6 +73,9 @@ const REPORT_TABS = [
  * @param {string} initialTab - Initial tab to display (optional)
  */
 export function Reports({ onBack, initialTab = null }) {
+  const { t } = useTranslation();
+  const { language } = useStore();
+  const isUrdu = language === 'ur';
   // Use state with initialTab on first render only
   const [activeTab, setActiveTab] = useState(() => {
     if (initialTab && REPORT_TABS.some((t) => t.key === initialTab)) {
@@ -105,6 +118,8 @@ export function Reports({ onBack, initialTab = null }) {
         return <DailySalesDetailsReport />;
       case 'vendor-sales':
         return <VendorSalesReport />;
+      case 'vendor-stock-bill':
+        return <VendorStockBillReport />;
       case 'net-summary':
         return <DailyNetAmountSummaryReport />;
       default:
@@ -122,7 +137,7 @@ export function Reports({ onBack, initialTab = null }) {
               <ActionIcon variant="subtle" size="lg" onClick={handleBack}>
                 <IconArrowLeft size={20} />
               </ActionIcon>
-              <Title order={3}>Reports</Title>
+              <Title order={3}>{t('report.title')}</Title>
             </Group>
           </Group>
 
@@ -131,10 +146,7 @@ export function Reports({ onBack, initialTab = null }) {
             <Tabs.List grow>
               {REPORT_TABS.map((tab) => (
                 <Tabs.Tab key={tab.key} value={tab.key} leftSection={<tab.icon size={16} />}>
-                  <Stack gap={0}>
-                    <span>{tab.label}</span>
-                    <span style={{ fontSize: '0.75rem', direction: 'rtl' }}>{tab.urdu}</span>
-                  </Stack>
+                  {isUrdu ? tab.urdu : tab.label}
                 </Tabs.Tab>
               ))}
             </Tabs.List>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Box, Container, Group, Title, Button, Tabs } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { SaleForm, SaleSearch } from '../components';
 
 /**
@@ -10,6 +11,7 @@ import { SaleForm, SaleSearch } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function Sales({ onBack }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('new');
   const [editSale, setEditSale] = useState(null);
 
@@ -48,10 +50,10 @@ function Sales({ onBack }) {
         {/* Header */}
         <Group justify="space-between" align="center" mb="xl">
           <Title order={2} c="white">
-            💰 Sales / بکری
+            💰 {t('sale.title')}
           </Title>
           <Button variant="light" color="gray" onClick={onBack}>
-            ← Back to Dashboard
+            ← {t('nav.dashboard')}
           </Button>
         </Group>
 
@@ -59,10 +61,10 @@ function Sales({ onBack }) {
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List mb="md">
             <Tabs.Tab value="new" color="blue">
-              {editSale ? 'Edit Sale' : 'New Sale'}
+              {editSale ? t('sale.edit') : t('sale.addNew')}
             </Tabs.Tab>
             <Tabs.Tab value="search" color="teal">
-              Search Sales
+              {t('app.search')} {t('sale.title')}
             </Tabs.Tab>
           </Tabs.List>
 

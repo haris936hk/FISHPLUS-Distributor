@@ -121,8 +121,8 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
           editPurchase.items.map((item) => ({
             id: item.id,
             item_id: String(item.item_id),
-            weight: item.weight || 0,
-            rate: item.rate || 0,
+            weight: Number(item.weight) || 0,
+            rate: Number(item.rate) || 0,
             notes: item.notes || '',
           }))
         );
@@ -148,14 +148,6 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
     [itemsList]
   );
 
-  // Get item stock by ID
-  const getItemStock = useCallback(
-    (itemId) => {
-      const item = itemsList.find((i) => String(i.id) === itemId);
-      return item?.current_stock || 0;
-    },
-    [itemsList]
-  );
 
   // Update line item
   const updateLineItem = useCallback((id, field, value) => {
@@ -179,7 +171,7 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
 
   // Calculate line item amount
   const calculateLineAmount = useCallback((item) => {
-    return (item.weight || 0) * (item.rate || 0);
+    return (Number(item.weight) || 0) * (Number(item.rate) || 0);
   }, []);
 
   // Calculate totals
@@ -188,12 +180,12 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
     let grossAmount = 0;
 
     for (const item of lineItems) {
-      totalWeight += item.weight || 0;
+      totalWeight += Number(item.weight) || 0;
       grossAmount += calculateLineAmount(item);
     }
 
-    const netAmount = grossAmount - concessionAmount;
-    const balanceAmount = netAmount - cashPaid + previousBalance;
+    const netAmount = grossAmount - (Number(concessionAmount) || 0);
+    const balanceAmount = netAmount - (Number(cashPaid) || 0) + (Number(previousBalance) || 0);
 
     return {
       totalWeight,
@@ -315,16 +307,17 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
       })
       .join('');
 
-    const html = `<!DOCTYPE html><html><head><title>Purchase Receipt - ${purchaseNumber}</title>
+    const html = `<!DOCTYPE html><html dir="rtl"><head><title>Purchase Receipt - ${purchaseNumber}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet" />
         <style>
             @page { margin: 1cm; }
-            body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; }
+            body { font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; direction: rtl; }
             .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
             .header h2 { margin: 0; } .header p { margin: 3px 0; font-size: 12px; }
             .info { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
             th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; }
-            th { background: #f5f5f5; text-align: left; }
+            th { background: #f5f5f5; text-align: right; }
             .totals { text-align: right; font-size: 13px; }
             .totals td { border: none; padding: 3px 8px; }
             .grand-total { font-size: 16px; font-weight: bold; border-top: 2px solid #333 !important; }
@@ -439,6 +432,9 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
               placeholder="Enter vehicle number"
               value={vehicleNumber}
               onChange={(e) => setVehicleNumber(e.target.value)}
+              className="ltr-field"
+              dir="ltr"
+              styles={{ input: { textAlign: 'left' } }}
             />
           </Grid.Col>
         </Grid>
@@ -463,21 +459,30 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
           <Table striped withTableBorder withColumnBorders>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th style={{ width: 40 }}>#</Table.Th>
-                <Table.Th style={{ minWidth: 200 }}>قسم (Item)</Table.Th>
-                <Table.Th style={{ width: 100 }}>Stock</Table.Th>
-                <Table.Th style={{ width: 120 }}>وزن (Weight kg)</Table.Th>
-                <Table.Th style={{ width: 120 }}>ریٹ (Rate)</Table.Th>
-                <Table.Th style={{ width: 140 }}>رقم (Amount)</Table.Th>
-                <Table.Th style={{ width: 40 }}></Table.Th>
+                <Table.Th style={{ minWidth: 200 }}>
+                  <div style={{ fontWeight: 700 }}>قسم</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Item</div>
+                </Table.Th>
+                <Table.Th style={{ width: 120 }}>
+                  <div style={{ fontWeight: 700 }}>ریٹ</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Rate</div>
+                </Table.Th>
+                <Table.Th style={{ width: 120 }}>
+                  <div style={{ fontWeight: 700 }}>وزن</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Weight (kg)</div>
+                </Table.Th>
+                <Table.Th style={{ width: 140 }}>
+                  <div style={{ fontWeight: 700 }}>رقم</div>
+                  <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>Amount</div>
+                </Table.Th>
+                <Table.Th style={{ width: 40 }} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {lineItems.map((item, index) => {
+              {lineItems.map((item) => {
                 const amount = calculateLineAmount(item);
                 return (
                   <Table.Tr key={item.id}>
-                    <Table.Td>{index + 1}</Table.Td>
                     <Table.Td>
                       <Select
                         placeholder="Select item"
@@ -489,14 +494,9 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
                       />
                     </Table.Td>
                     <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {item.item_id ? getItemStock(item.item_id).toFixed(2) : '-'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
                       <NumberInput
-                        value={item.weight}
-                        onChange={(val) => updateLineItem(item.id, 'weight', val || 0)}
+                        value={item.rate}
+                        onChange={(val) => updateLineItem(item.id, 'rate', val || 0)}
                         min={0}
                         decimalScale={2}
                         size="xs"
@@ -505,8 +505,8 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
                     </Table.Td>
                     <Table.Td>
                       <NumberInput
-                        value={item.rate}
-                        onChange={(val) => updateLineItem(item.id, 'rate', val || 0)}
+                        value={item.weight}
+                        onChange={(val) => updateLineItem(item.id, 'weight', val || 0)}
                         min={0}
                         decimalScale={2}
                         size="xs"
@@ -569,12 +569,15 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
             </Grid.Col>
             <Grid.Col span={3}>
               <NumberInput
-                label="رعایت (Concession)"
+                label="رعایت (امرکم) - Concession"
                 value={concessionAmount}
                 onChange={(val) => setConcessionAmount(val || 0)}
                 min={0}
                 decimalScale={2}
                 size="xs"
+                className="ltr-field"
+                dir="ltr"
+                styles={{ input: { textAlign: 'left' } }}
               />
             </Grid.Col>
             <Grid.Col span={3}>
@@ -589,12 +592,15 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
             </Grid.Col>
             <Grid.Col span={3}>
               <NumberInput
-                label="نقد (Cash Paid)"
+                label="نقد (ادای کی) - Cash Paid"
                 value={cashPaid}
                 onChange={(val) => setCashPaid(val || 0)}
                 min={0}
                 decimalScale={2}
                 size="xs"
+                className="ltr-field"
+                dir="ltr"
+                styles={{ input: { textAlign: 'left' } }}
               />
             </Grid.Col>
             <Grid.Col span={3}>

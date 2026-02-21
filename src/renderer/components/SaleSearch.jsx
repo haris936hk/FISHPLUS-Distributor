@@ -246,7 +246,7 @@ function SaleSearch({ onEdit }) {
                 })
                 .join('');
 
-            const html = `<!DOCTYPE html><html><head><title>All Client Slips</title>
+            const html = `<!DOCTYPE html><html><head><title>All Customer Slips</title>
             <style>
                 @page { margin: 1cm; }
                 body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; color: #333; }
@@ -297,7 +297,7 @@ function SaleSearch({ onEdit }) {
                 <Grid align="end">
                     <Grid.Col span={3}>
                         <DatePickerInput
-                            label="From Date"
+                            label="شروع تاریخ / From Date"
                             placeholder="Start date"
                             value={dateFrom}
                             onChange={setDateFrom}
@@ -306,7 +306,7 @@ function SaleSearch({ onEdit }) {
                     </Grid.Col>
                     <Grid.Col span={3}>
                         <DatePickerInput
-                            label="To Date"
+                            label="اختتام تاریخ / To Date"
                             placeholder="End date"
                             value={dateTo}
                             onChange={setDateTo}
@@ -315,7 +315,7 @@ function SaleSearch({ onEdit }) {
                     </Grid.Col>
                     <Grid.Col span={3}>
                         <Select
-                            label="Customer"
+                            label="گاہک / Customer"
                             placeholder="Select customer"
                             data={customers}
                             value={selectedCustomer}
@@ -326,7 +326,7 @@ function SaleSearch({ onEdit }) {
                     </Grid.Col>
                     <Grid.Col span={3}>
                         <Checkbox
-                            label="All Customers"
+                            label="تمام گاہک / All Customers"
                             checked={allCustomers}
                             onChange={(e) => setAllCustomers(e.target.checked)}
                             mt="xl"
@@ -337,7 +337,7 @@ function SaleSearch({ onEdit }) {
                 <Grid align="end">
                     <Grid.Col span={3}>
                         <TextInput
-                            label="Sale #"
+                            label="بکری نمبر / Sale #"
                             placeholder="Enter sale number"
                             value={saleNumber}
                             onChange={(e) => setSaleNumber(e.target.value)}
@@ -346,7 +346,7 @@ function SaleSearch({ onEdit }) {
                     </Grid.Col>
                     <Grid.Col span={3}>
                         <Checkbox
-                            label="Search by Sale #"
+                            label="بکری نمبر سے تلاش / Search by Sale #"
                             checked={searchBySaleNumber}
                             onChange={(e) => setSearchBySaleNumber(e.target.checked)}
                             mt="xl"
@@ -360,10 +360,10 @@ function SaleSearch({ onEdit }) {
                                 onClick={handlePrintAllSlips}
                                 disabled={sales.length === 0}
                             >
-                                🖨️ Print All Client Slip
+                                🖨️ تمام رسیدیں پرنٹ / Print All Customer Slips
                             </Button>
                             <Button variant="filled" color="blue" onClick={handleSearch}>
-                                Search
+                                تلاش / Search
                             </Button>
                         </Group>
                     </Grid.Col>
@@ -374,16 +374,16 @@ function SaleSearch({ onEdit }) {
                 {/* Bulk Actions (FR-GRID-006) */}
                 {selectedIds.size > 0 && (
                     <Group gap="sm" p="xs" style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}>
-                        <Text size="sm" fw={500}>{selectedIds.size} selected</Text>
+                        <Text size="sm" fw={500}>{selectedIds.size} منتخب / selected</Text>
                         <Button
                             size="xs"
                             variant="light"
                             color="red"
                             onClick={() => {
                                 modals.openConfirmModal({
-                                    title: 'Delete Selected Sales',
-                                    children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected sale(s)?</Text>,
-                                    labels: { confirm: 'Delete All', cancel: 'Cancel' },
+                                    title: 'منتخب بکریاں حذف کریں / Delete Selected Sales',
+                                    children: <Text size="sm">کیا آپ {selectedIds.size} منتخب بکری(یاں) حذف کرنا چاہتے ہیں؟</Text>,
+                                    labels: { confirm: 'حذف کریں / Delete All', cancel: 'منسوخ / Cancel' },
                                     confirmProps: { color: 'red' },
                                     onConfirm: async () => {
                                         for (const id of selectedIds) {
@@ -391,15 +391,15 @@ function SaleSearch({ onEdit }) {
                                         }
                                         setSelectedIds(new Set());
                                         handleSearch();
-                                        notifications.show({ title: 'Deleted', message: `${selectedIds.size} sale(s) deleted`, color: 'green' });
+                                        notifications.show({ title: 'حذف ہو گئیں', message: `${selectedIds.size} بکری(یاں) حذف ہو گئیں`, color: 'green' });
                                     },
                                 });
                             }}
                         >
-                            🗑️ Delete Selected
+                            🗑️ منتخب حذف کریں / Delete Selected
                         </Button>
                         <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
-                            Clear Selection
+                            انتخاب صاف کریں / Clear Selection
                         </Button>
                     </Group>
                 )}
@@ -407,7 +407,7 @@ function SaleSearch({ onEdit }) {
                 {/* Results */}
                 <Group justify="space-between">
                     <Text size="sm" c="dimmed">
-                        Records Found: <strong>{sales.length}</strong>
+                        ریکارڈ ملے / Records Found: <strong>{sales.length}</strong>
                     </Text>
                 </Group>
 
@@ -429,11 +429,22 @@ function SaleSearch({ onEdit }) {
                                         }}
                                     />
                                 </Table.Th>
-                                {[['saleNum', 'Sale #'], ['date', 'Date'], ['customer', 'Customer'], ['supplier', 'Supplier'], ['vehicle', 'Vehicle No'], ['netAmt', 'Net Amount'], ['balance', 'Balance'], ['status', 'Status'], ['actions', 'Actions']].map(([key, label]) => {
+                                {[
+                                    ['saleNum', 'بکری نمبر', 'Sale #'],
+                                    ['date', 'تاریخ', 'Date'],
+                                    ['customer', 'گاہک', 'Customer'],
+                                    ['supplier', 'بیوپاری', 'Supplier'],
+                                    ['vehicle', 'گڑی نمبر', 'Vehicle No'],
+                                    ['netAmt', 'خالص رقم', 'Net Amount'],
+                                    ['balance', 'بقایا', 'Balance'],
+                                    ['status', 'حالت', 'Status'],
+                                    ['actions', 'عمل', 'Actions'],
+                                ].map(([key, ur, en]) => {
                                     const rp = getResizeProps(key);
                                     return (
                                         <Table.Th key={key} style={{ ...rp.style, textAlign: ['netAmt', 'balance'].includes(key) ? 'right' : undefined }}>
-                                            {label}
+                                            <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{ur}</div>
+                                            <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.6 }}>{en}</div>
                                             <div {...rp.resizeHandle} />
                                         </Table.Th>
                                     );
@@ -443,9 +454,11 @@ function SaleSearch({ onEdit }) {
                         <Table.Tbody>
                             {sales.length === 0 ? (
                                 <Table.Tr>
-                                    <Table.Td colSpan={9}>
+                                    <Table.Td colSpan={10}>
                                         <Text c="dimmed" ta="center" py="xl">
-                                            No sales found. Use the filters above to search.
+                                            کوئی بکری نہیں ملی — اوپر کے فلٹر استعمال کریں۔
+                                            <br />
+                                            <span style={{ fontSize: 12 }}>No sales found. Use the filters above to search.</span>
                                         </Text>
                                     </Table.Td>
                                 </Table.Tr>

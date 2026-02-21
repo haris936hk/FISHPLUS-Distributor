@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS sales (
     total_tare_weight REAL DEFAULT 0,
     net_weight REAL DEFAULT 0,
     gross_amount REAL DEFAULT 0,
-    grocery_charges REAL DEFAULT 0,
+    fare_charges REAL DEFAULT 0,
     ice_charges REAL DEFAULT 0,
     discount_amount REAL DEFAULT 0,
     net_amount REAL DEFAULT 0,
@@ -183,13 +183,13 @@ CREATE TABLE IF NOT EXISTS sale_items (
     sale_id INTEGER NOT NULL,
     line_number INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
-    supplier_id INTEGER,
-    gross_weight REAL NOT NULL,
-    tare_weight REAL DEFAULT 0,
-    net_weight REAL NOT NULL,
+    customer_id INTEGER,
+    is_stock INTEGER DEFAULT 0,
+    rate_per_maund REAL DEFAULT 0,
     rate REAL NOT NULL,
+    weight REAL NOT NULL,
     amount REAL NOT NULL,
-    grocery_charges REAL DEFAULT 0,
+    fare_charges REAL DEFAULT 0,
     ice_charges REAL DEFAULT 0,
     other_charges REAL DEFAULT 0,
     cash_amount REAL DEFAULT 0,
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES items(id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
     FOREIGN KEY (supplier_bill_id) REFERENCES supplier_bills(id)
 );
 
@@ -257,13 +257,15 @@ CREATE TABLE IF NOT EXISTS supplier_bills (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bill_number TEXT NOT NULL UNIQUE,
     supplier_id INTEGER NOT NULL,
+    vehicle_number TEXT,
     date_from DATE NOT NULL,
     date_to DATE NOT NULL,
     total_weight REAL DEFAULT 0,
     gross_amount REAL DEFAULT 0,
     commission_pct REAL DEFAULT 5.0,
     commission_amount REAL DEFAULT 0,
-    grocery_charges REAL DEFAULT 0,
+    drugs_charges REAL DEFAULT 0,
+    fare_charges REAL DEFAULT 0,
     labor_charges REAL DEFAULT 0,
     ice_charges REAL DEFAULT 0,
     other_charges REAL DEFAULT 0,
@@ -370,6 +372,7 @@ CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
 -- Sale Items
 CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id);
 CREATE INDEX IF NOT EXISTS idx_sale_items_item ON sale_items(item_id);
+CREATE INDEX IF NOT EXISTS idx_sale_items_customer ON sale_items(customer_id);
 CREATE INDEX IF NOT EXISTS idx_sale_items_supplier_bill ON sale_items(supplier_bill_id);
 
 -- Purchases

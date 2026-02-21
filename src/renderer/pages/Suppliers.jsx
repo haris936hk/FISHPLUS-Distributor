@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Title, Text, Button, Group, Stack, Paper } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { SupplierForm, SupplierSearch } from '../components';
 
 /**
@@ -11,6 +12,7 @@ import { SupplierForm, SupplierSearch } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function Suppliers({ onBack }) {
+  const { t } = useTranslation();
   // Modal state
   const [formOpened, setFormOpened] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
@@ -51,23 +53,18 @@ function Suppliers({ onBack }) {
           <Group justify="space-between" align="center">
             <Stack gap={4}>
               <Title order={1} c="white" className="text-3xl font-bold">
-                🏪 Supplier Management
+                🏪 {t('supplier.title')}
               </Title>
               <Text c="white" opacity={0.9} size="md">
-                Add, Edit, and Search Suppliers
+                {t('supplier.addNew')}
               </Text>
             </Stack>
             <Group>
-              <Button
-                variant="white"
-                color="violet"
-                onClick={handleAdd}
-                leftSection={<span>➕</span>}
-              >
-                Add New Supplier
+              <Button variant="white" color="violet" onClick={handleAdd} leftSection={<span>➕</span>}>
+                {t('supplier.addNew')}
               </Button>
               <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>
-                Back to Dashboard
+                {t('nav.dashboard')}
               </Button>
             </Group>
           </Group>

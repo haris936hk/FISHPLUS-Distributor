@@ -126,7 +126,7 @@ export function LedgerReport() {
             label="Account Type"
             data={[
               { value: 'customer', label: 'Customer' },
-              { value: 'supplier', label: 'Supplier' },
+              { value: 'supplier', label: 'Vendor' },
             ]}
             value={accountType}
             onChange={setAccountType}
@@ -235,7 +235,7 @@ export function LedgerReport() {
                     <strong>
                       {formatNumber(
                         getTransactionsWithBalance().slice(-1)[0]?.balance ||
-                          reportData.openingBalance
+                        reportData.openingBalance
                       )}
                     </strong>
                   </Table.Td>

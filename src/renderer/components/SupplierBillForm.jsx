@@ -6,6 +6,7 @@ import {
   Text,
   Title,
   Select,
+  TextInput,
   NumberInput,
   Button,
   LoadingOverlay,
@@ -34,9 +35,13 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
 
+  // Header state
+  const [vehicleNumber, setVehicleNumber] = useState('');
+
   // Charges state
   const [commissionPct, setCommissionPct] = useState(5.0);
-  const [groceryCharges, setGroceryCharges] = useState(0);
+  const [drugsCharges, setDrugsCharges] = useState(0);
+  const [fareCharges, setFareCharges] = useState(0);
   const [laborCharges, setLaborCharges] = useState(0);
   const [iceCharges, setIceCharges] = useState(0);
   const [concessionAmount, setConcessionAmount] = useState(0);
@@ -49,7 +54,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
   // Calculated values
   const commissionAmount = (grossAmount * commissionPct) / 100;
-  const totalCharges = groceryCharges + laborCharges + iceCharges;
+  const totalCharges = drugsCharges + fareCharges + laborCharges + iceCharges;
   const netAmount = grossAmount - commissionAmount - totalCharges;
   const totalPayable = netAmount - concessionAmount;
   const balanceAmount = totalPayable - cashPaid;
@@ -166,13 +171,15 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
     try {
       const billData = {
         supplier_id: parseInt(selectedSupplier),
+        vehicle_number: vehicleNumber || null,
         date_from: formatDate(dateFrom),
         date_to: formatDate(dateTo),
         total_weight: totalWeight,
         gross_amount: grossAmount,
         commission_pct: commissionPct,
         commission_amount: commissionAmount,
-        grocery_charges: groceryCharges,
+        drugs_charges: drugsCharges,
+        fare_charges: fareCharges,
         labor_charges: laborCharges,
         ice_charges: iceCharges,
         other_charges: 0,
@@ -219,13 +226,15 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
   }, [
     previewData,
     selectedSupplier,
+    vehicleNumber,
     dateFrom,
     dateTo,
     totalWeight,
     grossAmount,
     commissionPct,
     commissionAmount,
-    groceryCharges,
+    drugsCharges,
+    fareCharges,
     laborCharges,
     iceCharges,
     totalCharges,
@@ -239,10 +248,12 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
   // Clear form
   const handleClear = useCallback(() => {
     setSelectedSupplier(null);
+    setVehicleNumber('');
     setDateFrom(new Date());
     setDateTo(new Date());
     setCommissionPct(5.0);
-    setGroceryCharges(0);
+    setDrugsCharges(0);
+    setFareCharges(0);
     setLaborCharges(0);
     setIceCharges(0);
     setConcessionAmount(0);
@@ -259,7 +270,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
       <Stack gap="md">
         <Title order={4} className="text-blue-700">
-          📄 بیوپاری بل (Supplier Bill)
+          📄 بیوپاری بل (Vendor Bill)
         </Title>
 
         <Divider />
@@ -290,7 +301,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
         {/* Supplier Selection */}
         <Select
-          label="بیوپاری (Supplier)"
+          label="بیوپاری (Vendor)"
           placeholder="Select supplier"
           data={suppliers}
           value={selectedSupplier}
@@ -299,44 +310,41 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
           required
         />
 
+        {/* Vehicle Number */}
+        <TextInput
+          label="گاڑی نمبر (Vehicle Number)"
+          placeholder="Enter vehicle number"
+          value={vehicleNumber}
+          onChange={(e) => setVehicleNumber(e.target.value)}
+        />
+
         <Divider label="Charges / خرچ" labelPosition="center" />
 
         {/* Charges Grid */}
         <Grid>
           <Grid.Col span={6}>
             <NumberInput
-              label="کمیش % (Commission %)"
-              value={commissionPct}
-              onChange={setCommissionPct}
+              label="منشیانا (Drugs/Chemicals)"
+              value={drugsCharges}
+              onChange={setDrugsCharges}
               min={0}
-              max={100}
               decimalScale={2}
-              suffix="%"
+              prefix="Rs. "
             />
           </Grid.Col>
           <Grid.Col span={6}>
             <NumberInput
-              label="کمیش (Commission Amount)"
-              value={commissionAmount}
-              readOnly
+              label="کرایہ (Fare)"
+              value={fareCharges}
+              onChange={setFareCharges}
+              min={0}
               decimalScale={2}
               prefix="Rs. "
-              styles={{ input: { backgroundColor: '#f8f9fa' } }}
             />
           </Grid.Col>
         </Grid>
 
         <Grid>
-          <Grid.Col span={4}>
-            <NumberInput
-              label="کریانہ (Grocery)"
-              value={groceryCharges}
-              onChange={setGroceryCharges}
-              min={0}
-              decimalScale={2}
-              prefix="Rs. "
-            />
-          </Grid.Col>
           <Grid.Col span={4}>
             <NumberInput
               label="مزدوری (Labor)"
@@ -357,10 +365,31 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
               prefix="Rs. "
             />
           </Grid.Col>
+          <Grid.Col span={4}>
+            <NumberInput
+              label="کمیش % (Commission %)"
+              value={commissionPct}
+              onChange={setCommissionPct}
+              min={0}
+              max={100}
+              decimalScale={2}
+              suffix="%"
+            />
+          </Grid.Col>
         </Grid>
 
         <Grid>
-          <Grid.Col span={6}>
+          <Grid.Col span={4}>
+            <NumberInput
+              label="کمیش (Commission Amount)"
+              value={commissionAmount}
+              readOnly
+              decimalScale={2}
+              prefix="Rs. "
+              styles={{ input: { backgroundColor: '#f8f9fa' } }}
+            />
+          </Grid.Col>
+          <Grid.Col span={4}>
             <NumberInput
               label="رعایت (Concession)"
               value={concessionAmount}
@@ -370,7 +399,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
               prefix="Rs. "
             />
           </Grid.Col>
-          <Grid.Col span={6}>
+          <Grid.Col span={4}>
             <NumberInput
               label="نقل (Cash Paid)"
               value={cashPaid}

@@ -328,11 +328,12 @@ function PurchaseSearch({ onEdit }) {
                                         }}
                                     />
                                 </Table.Th>
-                                {[['purchNum', 'Purchase #'], ['date', 'Date'], ['supplier', 'Supplier'], ['vehicle', 'Vehicle No'], ['weight', 'Weight (kg)'], ['netAmt', 'Net Amount'], ['balance', 'Balance'], ['status', 'Status'], ['actions', 'Actions']].map(([key, label]) => {
+                                {[['purchNum', 'خریداری نمبر', 'Purchase #'], ['date', 'تاریخ', 'Date'], ['supplier', 'بیوپاری', 'Supplier'], ['vehicle', 'گڑی نمبر', 'Vehicle No'], ['weight', 'وزن', 'Weight (kg)'], ['netAmt', 'خالص رقم', 'Net Amount'], ['balance', 'بقایا', 'Balance'], ['status', 'حالت', 'Status'], ['actions', '', 'Actions']].map(([key, ur, en]) => {
                                     const rp = getResizeProps(key);
                                     return (
                                         <Table.Th key={key} style={{ ...rp.style, textAlign: ['weight', 'netAmt', 'balance'].includes(key) ? 'right' : undefined }}>
-                                            {label}
+                                            <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{ur}</div>
+                                            <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.6 }}>{en}</div>
                                             <div {...rp.resizeHandle} />
                                         </Table.Th>
                                     );

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Title, Text, Button, Group, Stack, Paper } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { ItemForm, ItemSearch } from '../components';
 
 /**
@@ -11,6 +12,7 @@ import { ItemForm, ItemSearch } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function Items({ onBack }) {
+  const { t } = useTranslation();
   // Modal state
   const [formOpened, setFormOpened] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -51,23 +53,18 @@ function Items({ onBack }) {
           <Group justify="space-between" align="center">
             <Stack gap={4}>
               <Title order={1} c="white" className="text-3xl font-bold">
-                📦 Item Management
+                📦 {t('item.title')}
               </Title>
               <Text c="white" opacity={0.9} size="md">
-                Add, Edit, and Search Fish Types
+                {t('item.addNew')}
               </Text>
             </Stack>
             <Group>
-              <Button
-                variant="white"
-                color="teal"
-                onClick={handleAdd}
-                leftSection={<span>➕</span>}
-              >
-                Add New Item
+              <Button variant="white" color="teal" onClick={handleAdd} leftSection={<span>➕</span>}>
+                {t('item.addNew')}
               </Button>
               <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>
-                Back to Dashboard
+                {t('nav.dashboard')}
               </Button>
             </Group>
           </Group>

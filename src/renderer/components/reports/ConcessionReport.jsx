@@ -63,7 +63,7 @@ export function ConcessionReport() {
     if (!allClients && !selectedCustomer) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please select a client or check "All Clients"',
+        message: 'Please select a customer or check "All Customers"',
         color: 'red',
       });
       return;
@@ -124,7 +124,7 @@ export function ConcessionReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Select
-            label="Client"
+            label="Customer"
             placeholder="Select client"
             data={customers}
             value={selectedCustomer}

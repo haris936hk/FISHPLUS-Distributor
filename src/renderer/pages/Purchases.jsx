@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Box, Container, Group, Title, Button, Tabs } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { PurchaseForm, PurchaseSearch } from '../components';
 
 /**
@@ -10,6 +11,7 @@ import { PurchaseForm, PurchaseSearch } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function Purchases({ onBack }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('new');
   const [editPurchase, setEditPurchase] = useState(null);
 
@@ -48,10 +50,10 @@ function Purchases({ onBack }) {
         {/* Header */}
         <Group justify="space-between" align="center" mb="xl">
           <Title order={2} c="white">
-            📦 Purchases / خریداری
+            📦 {t('purchase.title')}
           </Title>
           <Button variant="light" color="gray" onClick={onBack}>
-            ← Back to Dashboard
+            ← {t('nav.dashboard')}
           </Button>
         </Group>
 
@@ -59,10 +61,10 @@ function Purchases({ onBack }) {
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List mb="md">
             <Tabs.Tab value="new" color="green">
-              {editPurchase ? 'Edit Purchase' : 'New Purchase'}
+              {editPurchase ? t('purchase.edit') : t('purchase.addNew')}
             </Tabs.Tab>
             <Tabs.Tab value="search" color="teal">
-              Search Purchases
+              {t('app.search')} {t('purchase.title')}
             </Tabs.Tab>
           </Tabs.List>
 

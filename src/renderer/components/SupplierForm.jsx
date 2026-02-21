@@ -338,14 +338,12 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
         <SimpleGrid cols={2}>
           {/* Name (Urdu) - Required */}
           <TextInput
-            label="Name (Urdu) - نام"
-            placeholder="Enter supplier name in Urdu"
+            label="نام (اردو) - Name"
+            placeholder="اردو میں نام لکھیں"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
             error={errors.name}
             required
-            dir="rtl"
-            styles={{ input: { textAlign: 'right' } }}
           />
 
           {/* Name (English) */}
@@ -366,6 +364,9 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
             onChange={(e) => handleNicChange(e.target.value)}
             error={errors.nic}
             maxLength={15}
+            className="ltr-field"
+            dir="ltr"
+            styles={{ input: { textAlign: 'left' } }}
           />
 
           {/* Phone */}
@@ -375,6 +376,9 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
             value={formData.phone}
             onChange={(e) => handlePhoneChange('phone', e.target.value)}
             error={errors.phone}
+            className="ltr-field"
+            dir="ltr"
+            styles={{ input: { textAlign: 'left' } }}
           />
         </SimpleGrid>
 
@@ -386,6 +390,9 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
             value={formData.mobile}
             onChange={(e) => handlePhoneChange('mobile', e.target.value)}
             error={errors.mobile}
+            className="ltr-field"
+            dir="ltr"
+            styles={{ input: { textAlign: 'left' } }}
           />
 
           {/* Email */}
@@ -396,6 +403,9 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
             error={errors.email}
+            className="ltr-field"
+            dir="ltr"
+            styles={{ input: { textAlign: 'left' } }}
           />
         </SimpleGrid>
 

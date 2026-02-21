@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MantineProvider, Group, Button, Text, Tooltip } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
@@ -11,10 +12,12 @@ import {
   IconPackage,
   IconFileInvoice,
   IconChartBar,
+  IconWorld,
 } from '@tabler/icons-react';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import useStore from './store';
+import i18n from './i18n/index.js';
 import {
   Dashboard,
   Suppliers,
@@ -28,48 +31,61 @@ import {
 import { ErrorBoundary } from './components';
 
 /**
- * Menu items configuration for the navigation bar (FR-MENU-001)
- */
-const MENU_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: IconHome, shortcut: 'Ctrl+1' },
-  { key: 'sales', label: 'Sales', icon: IconCash, shortcut: 'Ctrl+2' },
-  { key: 'purchases', label: 'Purchases', icon: IconShoppingCart, shortcut: 'Ctrl+3' },
-  { key: 'customers', label: 'Customers', icon: IconUsers, shortcut: 'Ctrl+4' },
-  { key: 'suppliers', label: 'Suppliers', icon: IconTruck, shortcut: 'Ctrl+5' },
-  { key: 'item', label: 'Items', icon: IconPackage, shortcut: 'Ctrl+6' },
-  { key: 'supplier-bills', label: 'Bills', icon: IconFileInvoice, shortcut: 'Ctrl+7' },
-  { key: 'reports', label: 'Reports', icon: IconChartBar, shortcut: 'Ctrl+8' },
-];
-
-/**
  * Root App Component
  * Provides theme context and handles page navigation.
+ * Supports Urdu (RTL) and English (LTR) languages via react-i18next.
  */
 function App() {
-  const { theme, loadSettings } = useStore();
+  const { theme, language, setLanguage, loadSettings, saveSetting } = useStore();
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [reportTab, setReportTab] = useState(null);
 
+  // Load settings from DB on mount
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
 
-  // Dynamic window title (FR-NAV-001)
+  // Sync language changes → i18n only (layout stays LTR always)
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language]);
+
+  // Language toggle
+  const toggleLanguage = useCallback(async () => {
+    const newLang = language === 'ur' ? 'en' : 'ur';
+    setLanguage(newLang);
+    await saveSetting('app_language', newLang);
+  }, [language, setLanguage, saveSetting]);
+
+  // Menu items — translated labels built dynamically inside component
+  const menuItems = [
+    { key: 'dashboard', labelKey: 'nav.dashboard', icon: IconHome, shortcut: 'Ctrl+1' },
+    { key: 'sales', labelKey: 'nav.sales', icon: IconCash, shortcut: 'Ctrl+2' },
+    { key: 'purchases', labelKey: 'nav.purchases', icon: IconShoppingCart, shortcut: 'Ctrl+3' },
+    { key: 'customers', labelKey: 'nav.customers', icon: IconUsers, shortcut: 'Ctrl+4' },
+    { key: 'suppliers', labelKey: 'nav.suppliers', icon: IconTruck, shortcut: 'Ctrl+5' },
+    { key: 'item', labelKey: 'nav.items', icon: IconPackage, shortcut: 'Ctrl+6' },
+    { key: 'supplier-bills', labelKey: 'nav.bills', icon: IconFileInvoice, shortcut: 'Ctrl+7' },
+    { key: 'reports', labelKey: 'nav.reports', icon: IconChartBar, shortcut: 'Ctrl+8' },
+  ];
+
+  // Dynamic window title
   useEffect(() => {
     const pageTitles = {
-      dashboard: 'FISHPLUS - Dashboard',
-      suppliers: 'FISHPLUS - Suppliers',
-      customers: 'FISHPLUS - Customers',
-      'supplier-bills': 'FISHPLUS - Supplier Bills',
-      item: 'FISHPLUS - Items',
-      sales: 'FISHPLUS - Sales',
-      purchases: 'FISHPLUS - Purchases',
-      reports: 'FISHPLUS - Reports',
+      dashboard: 'FISHPLUS - ' + t('nav.dashboard'),
+      suppliers: 'FISHPLUS - ' + t('nav.suppliers'),
+      customers: 'FISHPLUS - ' + t('nav.customers'),
+      'supplier-bills': 'FISHPLUS - ' + t('nav.bills'),
+      item: 'FISHPLUS - ' + t('nav.items'),
+      sales: 'FISHPLUS - ' + t('nav.sales'),
+      purchases: 'FISHPLUS - ' + t('nav.purchases'),
+      reports: 'FISHPLUS - ' + t('nav.reports'),
     };
     document.title = pageTitles[currentPage] || 'FISHPLUS Distributor';
-  }, [currentPage]);
+  }, [currentPage, t]);
 
-  // Navigation handler - supports optional data object with tab parameter
+  // Navigation handler
   const navigateTo = useCallback((page, data = {}) => {
     setCurrentPage(page);
     if (data.tab) {
@@ -82,7 +98,6 @@ function App() {
   // Keyboard shortcuts (FR-NAV-006)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger shortcuts when typing in inputs
       const tag = e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
@@ -128,7 +143,7 @@ function App() {
       case 'reports':
         return <Reports onBack={() => navigateTo('dashboard')} initialTab={reportTab} />;
       default:
-        return <Dashboard onNavigate={navigateTo} />;
+        return <Dashboard onNavigate={navigateTo} onToggleLanguage={toggleLanguage} />;
     }
   };
 
@@ -136,14 +151,14 @@ function App() {
     <MantineProvider
       theme={{
         colorScheme: theme,
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         primaryColor: 'blue',
       }}
     >
       <ModalsProvider>
         <Notifications position="top-right" />
         <ErrorBoundary>
-          {/* Menu Bar - visible on all pages (FR-MENU-001) */}
+          {/* Menu Bar - visible on all non-dashboard pages (FR-MENU-001) */}
           {currentPage !== 'dashboard' && (
             <div
               style={{
@@ -163,20 +178,20 @@ function App() {
                     style={{
                       color: '#38bdf8',
                       letterSpacing: '0.5px',
-                      marginRight: 12,
+                      marginInlineEnd: 12,
                       cursor: 'pointer',
                     }}
                     onClick={() => navigateTo('dashboard')}
                   >
                     🐟 FISHPLUS
                   </Text>
-                  {MENU_ITEMS.map((item) => {
+                  {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = currentPage === item.key;
                     return (
                       <Tooltip
                         key={item.key}
-                        label={`${item.label} (${item.shortcut})`}
+                        label={`${t(item.labelKey)} (${item.shortcut})`}
                         position="bottom"
                         withArrow
                       >
@@ -192,15 +207,28 @@ function App() {
                             fontSize: '12px',
                           }}
                         >
-                          {item.label}
+                          {t(item.labelKey)}
                         </Button>
                       </Tooltip>
                     );
                   })}
                 </Group>
-                <Text size="xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Esc = Home
-                </Text>
+                <Group gap="xs">
+                  <Tooltip label={language === 'ur' ? 'Switch to English' : 'اردو میں بدلیں'} position="bottom">
+                    <Button
+                      size="compact-xs"
+                      variant="subtle"
+                      leftSection={<IconWorld size={14} />}
+                      onClick={toggleLanguage}
+                      style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}
+                    >
+                      {language === 'ur' ? 'English' : 'اردو'}
+                    </Button>
+                  </Tooltip>
+                  <Text size="xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Esc = {t('nav.dashboard')}
+                  </Text>
+                </Group>
               </Group>
             </div>
           )}

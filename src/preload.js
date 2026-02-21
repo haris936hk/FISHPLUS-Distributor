@@ -117,6 +117,7 @@ contextBridge.exposeInMainWorld('api', {
     getConcession: (params) => ipcRenderer.invoke(channels.REPORT_CONCESSION, params),
     getDailyDetails: (params) => ipcRenderer.invoke(channels.REPORT_DAILY_DETAILS, params),
     getVendorSales: (params) => ipcRenderer.invoke(channels.REPORT_VENDOR_SALES, params),
+    getVendorStockBill: (params) => ipcRenderer.invoke(channels.REPORT_VENDOR_STOCK_BILL, params),
     getDailyNetSummary: (params) => ipcRenderer.invoke(channels.REPORT_NET_SUMMARY, params),
   },
 

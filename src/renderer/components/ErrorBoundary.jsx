@@ -1,13 +1,14 @@
 import { Component } from 'react';
-import { Card, Title, Text, Button, Stack, Code } from '@mantine/core';
+import PropTypes from 'prop-types';
 
 /**
  * Error Boundary Component
  * Catches JavaScript errors anywhere in the child component tree,
  * logs those errors, and displays a fallback UI.
  *
- * Note: Error boundaries must be class components as there's no
- * hook equivalent for componentDidCatch/getDerivedStateFromError.
+ * NOTE: This component intentionally uses plain HTML/CSS in its fallback,
+ * not Mantine components, because it wraps MantineProvider and therefore
+ * the Mantine context is unavailable when the fallback renders.
  */
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -20,80 +21,118 @@ class ErrorBoundary extends Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render shows the fallback UI
     return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error details for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({ errorInfo });
-
-    // Here you could also send to an error reporting service
-    // Example: errorReportingService.log({ error, errorInfo });
   }
 
   handleReset = () => {
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    });
+    this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   render() {
     if (this.state.hasError) {
-      // Fallback UI when an error is caught
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center">
-          <Card shadow="md" padding="xl" radius="md" className="max-w-lg w-full">
-            <Stack gap="md">
-              <Title order={2} c="red">
-                ⚠️ Something went wrong
-              </Title>
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '12px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+            padding: '2.5rem',
+            maxWidth: '520px',
+            width: '100%',
+          }}>
+            <h2 style={{ color: '#dc2626', marginTop: 0, fontSize: '1.4rem' }}>
+              ⚠️ Something went wrong
+            </h2>
+            <p style={{ color: '#6b7280', marginBottom: '1.25rem' }}>
+              An unexpected error occurred. Please try again or restart the application.
+            </p>
 
-              <Text c="dimmed">
-                An unexpected error occurred. Please try again or restart the application.
-              </Text>
+            {this.state.error && (
+              <div style={{
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '0.75rem 1rem',
+                marginBottom: '0.75rem',
+              }}>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', margin: '0 0 0.4rem' }}>Error:</p>
+                <pre style={{
+                  fontSize: '0.78rem',
+                  overflow: 'auto',
+                  maxHeight: '8rem',
+                  margin: 0,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  color: '#b91c1c',
+                }}>
+                  {this.state.error.toString()}
+                </pre>
+              </div>
+            )}
 
-              {this.state.error && (
-                <Card withBorder bg="gray.0" p="sm">
-                  <Text size="sm" fw={600} mb="xs">
-                    Error Details:
-                  </Text>
-                  <Code block className="text-xs overflow-auto max-h-32">
-                    {this.state.error.toString()}
-                  </Code>
-                </Card>
-              )}
+            {this.state.errorInfo && (
+              <div style={{
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '0.75rem 1rem',
+                marginBottom: '1.25rem',
+              }}>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', margin: '0 0 0.4rem' }}>Component Stack:</p>
+                <pre style={{
+                  fontSize: '0.72rem',
+                  overflow: 'auto',
+                  maxHeight: '8rem',
+                  margin: 0,
+                  whiteSpace: 'pre-wrap',
+                  color: '#374151',
+                }}>
+                  {this.state.errorInfo.componentStack}
+                </pre>
+              </div>
+            )}
 
-              {this.state.errorInfo && (
-                <Card withBorder bg="gray.0" p="sm">
-                  <Text size="sm" fw={600} mb="xs">
-                    Component Stack:
-                  </Text>
-                  <Code block className="text-xs overflow-auto max-h-32">
-                    {this.state.errorInfo.componentStack}
-                  </Code>
-                </Card>
-              )}
-
-              <Button onClick={this.handleReset} color="blue" fullWidth>
-                Try Again
-              </Button>
-            </Stack>
-          </Card>
+            <button
+              onClick={this.handleReset}
+              style={{
+                width: '100%',
+                padding: '0.65rem',
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       );
     }
 
-    // When there's no error, render children normally
     return this.props.children;
   }
 }
 
 ErrorBoundary.propTypes = {
-  children: require('prop-types').node,
+  children: PropTypes.node,
 };
 
 export default ErrorBoundary;
+

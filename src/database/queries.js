@@ -622,13 +622,15 @@ const supplierBills = {
   create: (data) => {
     const {
       supplier_id,
+      vehicle_number,
       date_from,
       date_to,
       total_weight,
       gross_amount,
       commission_pct,
       commission_amount,
-      grocery_charges,
+      drugs_charges,
+      fare_charges,
       labor_charges,
       ice_charges,
       other_charges,
@@ -648,22 +650,24 @@ const supplierBills = {
     // Insert the bill
     const result = db.execute(
       `INSERT INTO supplier_bills (
-        bill_number, supplier_id, date_from, date_to, total_weight, gross_amount,
-        commission_pct, commission_amount, grocery_charges, labor_charges,
+        bill_number, supplier_id, vehicle_number, date_from, date_to, total_weight, gross_amount,
+        commission_pct, commission_amount, drugs_charges, fare_charges, labor_charges,
         ice_charges, other_charges, total_charges, total_payable,
         concession_amount, cash_paid, collection_amount, balance_amount,
         status, notes, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?, ?)`,
       [
         billNumber,
         supplier_id,
+        vehicle_number || null,
         date_from,
         date_to,
         total_weight || 0,
         gross_amount || 0,
         commission_pct || 5.0,
         commission_amount || 0,
-        grocery_charges || 0,
+        drugs_charges || 0,
+        fare_charges || 0,
         labor_charges || 0,
         ice_charges || 0,
         other_charges || 0,
@@ -719,9 +723,11 @@ const supplierBills = {
    */
   update: (id, data) => {
     const {
+      vehicle_number,
       commission_pct,
       commission_amount,
-      grocery_charges,
+      drugs_charges,
+      fare_charges,
       labor_charges,
       ice_charges,
       other_charges,
@@ -736,15 +742,18 @@ const supplierBills = {
 
     return db.execute(
       `UPDATE supplier_bills SET
-        commission_pct = ?, commission_amount = ?, grocery_charges = ?, labor_charges = ?,
+        vehicle_number = ?, commission_pct = ?, commission_amount = ?,
+        drugs_charges = ?, fare_charges = ?, labor_charges = ?,
         ice_charges = ?, other_charges = ?, total_charges = ?, total_payable = ?,
         concession_amount = ?, cash_paid = ?, collection_amount = ?, balance_amount = ?,
         notes = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ? AND status = 'draft'`,
       [
+        vehicle_number || null,
         commission_pct || 5.0,
         commission_amount || 0,
-        grocery_charges || 0,
+        drugs_charges || 0,
+        fare_charges || 0,
         labor_charges || 0,
         ice_charges || 0,
         other_charges || 0,
@@ -951,15 +960,15 @@ const sales = {
 
     if (!sale[0]) return null;
 
-    // Get line items
+    // Get line items with customer names (per-line customer = گابک)
     const items = db.query(
       `SELECT si.*,
               i.name as item_name, i.name_english as item_name_english,
               i.current_stock as item_stock,
-              sup.name as supplier_name, sup.name_english as supplier_name_english
+              c2.name as line_customer_name, c2.name_english as line_customer_name_english
        FROM sale_items si
        LEFT JOIN items i ON si.item_id = i.id
-       LEFT JOIN suppliers sup ON si.supplier_id = sup.id
+       LEFT JOIN customers c2 ON si.customer_id = c2.id
        WHERE si.sale_id = ?
        ORDER BY si.line_number ASC`,
       [id]
@@ -1050,95 +1059,92 @@ const sales = {
     // Get next sale number
     const saleNumber = sales.getNextSaleNumber();
 
-    // Get customer's previous balance
-    const customerResult = db.query('SELECT current_balance FROM customers WHERE id = ?', [
-      customer_id,
-    ]);
-    const previousBalance = customerResult[0]?.current_balance || 0;
-
     // Calculate totals from items
     let totalWeight = 0;
-    let totalTareWeight = 0;
-    let netWeight = 0;
     let grossAmount = 0;
-    let groceryCharges = 0;
+    let fareCharges = 0;
     let iceCharges = 0;
     let cashReceived = 0;
     let receiptAmount = 0;
 
     for (const item of saleItems) {
-      totalWeight += item.gross_weight || 0;
-      totalTareWeight += item.tare_weight || 0;
-      netWeight += item.net_weight || 0;
-      grossAmount += item.amount || 0;
-      groceryCharges += item.grocery_charges || 0;
+      const lineWeight = item.weight || 0;
+      const lineAmount = lineWeight * (item.rate || 0);
+      totalWeight += lineWeight;
+      grossAmount += lineAmount;
+      fareCharges += item.fare_charges || 0;
       iceCharges += item.ice_charges || 0;
       cashReceived += item.cash_amount || 0;
       receiptAmount += item.receipt_amount || 0;
     }
 
-    const netAmount = grossAmount + groceryCharges + iceCharges;
+    const netAmount = grossAmount + fareCharges + iceCharges;
     const balanceAmount = netAmount - cashReceived - receiptAmount;
 
     // Insert sale header
     const saleResult = db.execute(
       `INSERT INTO sales (
         sale_number, sale_date, customer_id, supplier_id, vehicle_number, details,
-        total_weight, total_tare_weight, net_weight, gross_amount,
-        grocery_charges, ice_charges, discount_amount, net_amount,
+        total_weight, net_weight, gross_amount,
+        fare_charges, ice_charges, discount_amount, net_amount,
         cash_received, receipt_amount, balance_amount, previous_balance,
         status, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'posted', ?)`,
       [
         saleNumber,
         sale_date,
-        customer_id,
+        customer_id || null,
         supplier_id || null,
         vehicle_number || null,
         details || null,
         totalWeight,
-        totalTareWeight,
-        netWeight,
+        totalWeight, // net_weight = total_weight (no tare)
         grossAmount,
-        groceryCharges,
+        fareCharges,
         iceCharges,
         0,
         netAmount,
         cashReceived,
         receiptAmount,
         balanceAmount,
-        previousBalance,
+        0, // previousBalance calculated per-customer in line items
         created_by || null,
       ]
     );
 
     const saleId = saleResult.lastInsertRowid;
 
-    // Insert line items and update stock
+    // Insert line items, update stock, and track per-customer balances
+    const customerBalances = {}; // { customerId: balanceAmount }
+
     for (let i = 0; i < saleItems.length; i++) {
       const item = saleItems[i];
-      const lineNetWeight = (item.gross_weight || 0) - (item.tare_weight || 0);
-      const lineAmount = lineNetWeight * (item.rate || 0);
+      const lineWeight = item.weight || 0;
+      const lineAmount = lineWeight * (item.rate || 0);
+      const lineFare = item.fare_charges || 0;
+      const lineIce = item.ice_charges || 0;
+      const lineNetAmount = lineAmount + lineFare + lineIce;
+      const lineBalance = lineNetAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
 
       db.execute(
         `INSERT INTO sale_items (
-          sale_id, line_number, item_id, supplier_id,
-          gross_weight, tare_weight, net_weight, rate, amount,
-          grocery_charges, ice_charges, other_charges,
+          sale_id, line_number, item_id, customer_id, is_stock,
+          rate_per_maund, rate, weight, amount,
+          fare_charges, ice_charges, other_charges,
           cash_amount, receipt_amount, notes
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           saleId,
           i + 1,
           item.item_id,
-          item.supplier_id || null,
-          item.gross_weight || 0,
-          item.tare_weight || 0,
-          lineNetWeight,
+          item.customer_id || null,
+          item.is_stock ? 1 : 0,
+          item.rate_per_maund || 0,
           item.rate || 0,
+          lineWeight,
           lineAmount,
-          item.grocery_charges || 0,
-          item.ice_charges || 0,
+          lineFare,
+          lineIce,
           item.other_charges || 0,
           item.cash_amount || 0,
           item.receipt_amount || 0,
@@ -1146,14 +1152,19 @@ const sales = {
         ]
       );
 
-      // Update item stock (reduce by net weight)
+      // Update item stock (reduce by weight)
       db.execute(
         `UPDATE items SET 
           current_stock = current_stock - ?,
           updated_at = CURRENT_TIMESTAMP
          WHERE id = ?`,
-        [lineNetWeight, item.item_id]
+        [lineWeight, item.item_id]
       );
+
+      // Track balance per customer
+      if (item.customer_id) {
+        customerBalances[item.customer_id] = (customerBalances[item.customer_id] || 0) + lineBalance;
+      }
     }
 
     // Update number sequence
@@ -1162,14 +1173,16 @@ const sales = {
       ['sale']
     );
 
-    // Update customer balance
-    db.execute(
-      `UPDATE customers SET 
-        current_balance = current_balance + ?,
-        updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [balanceAmount, customer_id]
-    );
+    // Update each customer's balance
+    for (const [custId, balance] of Object.entries(customerBalances)) {
+      db.execute(
+        `UPDATE customers SET 
+          current_balance = current_balance + ?,
+          updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [balance, custId]
+      );
+    }
 
     return { lastInsertRowid: saleId, saleNumber };
   },
@@ -1191,104 +1204,110 @@ const sales = {
     for (const item of existingSale.items) {
       db.execute(
         'UPDATE items SET current_stock = current_stock + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [item.net_weight || 0, item.item_id]
+        [item.weight || 0, item.item_id]
       );
     }
 
-    // Restore customer balance
-    db.execute(
-      'UPDATE customers SET current_balance = current_balance - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [existingSale.balance_amount || 0, existingSale.customer_id]
-    );
+    // Restore per-line-item customer balances
+    const oldCustomerBalances = {};
+    for (const item of existingSale.items) {
+      if (item.customer_id) {
+        const lineAmount = (item.amount || 0) + (item.fare_charges || 0) + (item.ice_charges || 0);
+        const lineBalance = lineAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
+        oldCustomerBalances[item.customer_id] = (oldCustomerBalances[item.customer_id] || 0) + lineBalance;
+      }
+    }
+    for (const [custId, balance] of Object.entries(oldCustomerBalances)) {
+      db.execute(
+        'UPDATE customers SET current_balance = current_balance - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [balance, custId]
+      );
+    }
 
     // Delete old line items
     db.execute('DELETE FROM sale_items WHERE sale_id = ?', [id]);
 
     // Calculate new totals
     let totalWeight = 0;
-    let totalTareWeight = 0;
-    let netWeight = 0;
     let grossAmount = 0;
-    let groceryCharges = 0;
+    let fareCharges = 0;
     let iceCharges = 0;
     let cashReceived = 0;
     let receiptAmount = 0;
 
     for (const item of saleItems) {
-      totalWeight += item.gross_weight || 0;
-      totalTareWeight += item.tare_weight || 0;
-      netWeight += item.net_weight || 0;
-      grossAmount += item.amount || 0;
-      groceryCharges += item.grocery_charges || 0;
+      const lineWeight = item.weight || 0;
+      const lineAmount = lineWeight * (item.rate || 0);
+      totalWeight += lineWeight;
+      grossAmount += lineAmount;
+      fareCharges += item.fare_charges || 0;
       iceCharges += item.ice_charges || 0;
       cashReceived += item.cash_amount || 0;
       receiptAmount += item.receipt_amount || 0;
     }
 
-    const netAmount = grossAmount + groceryCharges + iceCharges;
+    const netAmount = grossAmount + fareCharges + iceCharges;
     const balanceAmount = netAmount - cashReceived - receiptAmount;
-
-    // Get new customer's previous balance
-    const customerResult = db.query('SELECT current_balance FROM customers WHERE id = ?', [
-      customer_id,
-    ]);
-    const previousBalance = customerResult[0]?.current_balance || 0;
 
     // Update sale header
     db.execute(
       `UPDATE sales SET
         customer_id = ?, supplier_id = ?, vehicle_number = ?, sale_date = ?, details = ?,
-        total_weight = ?, total_tare_weight = ?, net_weight = ?, gross_amount = ?,
-        grocery_charges = ?, ice_charges = ?, net_amount = ?,
-        cash_received = ?, receipt_amount = ?, balance_amount = ?, previous_balance = ?,
+        total_weight = ?, net_weight = ?, gross_amount = ?,
+        fare_charges = ?, ice_charges = ?, net_amount = ?,
+        cash_received = ?, receipt_amount = ?, balance_amount = ?,
         updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [
-        customer_id,
+        customer_id || null,
         supplier_id || null,
         vehicle_number || null,
         sale_date,
         details || null,
         totalWeight,
-        totalTareWeight,
-        netWeight,
+        totalWeight,
         grossAmount,
-        groceryCharges,
+        fareCharges,
         iceCharges,
         netAmount,
         cashReceived,
         receiptAmount,
         balanceAmount,
-        previousBalance,
         id,
       ]
     );
 
-    // Insert new line items
+    // Insert new line items and track per-customer balances
+    const newCustomerBalances = {};
+
     for (let i = 0; i < saleItems.length; i++) {
       const item = saleItems[i];
-      const lineNetWeight = (item.gross_weight || 0) - (item.tare_weight || 0);
-      const lineAmount = lineNetWeight * (item.rate || 0);
+      const lineWeight = item.weight || 0;
+      const lineAmount = lineWeight * (item.rate || 0);
+      const lineFare = item.fare_charges || 0;
+      const lineIce = item.ice_charges || 0;
+      const lineNetAmount = lineAmount + lineFare + lineIce;
+      const lineBalance = lineNetAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
 
       db.execute(
         `INSERT INTO sale_items (
-          sale_id, line_number, item_id, supplier_id,
-          gross_weight, tare_weight, net_weight, rate, amount,
-          grocery_charges, ice_charges, other_charges,
+          sale_id, line_number, item_id, customer_id, is_stock,
+          rate_per_maund, rate, weight, amount,
+          fare_charges, ice_charges, other_charges,
           cash_amount, receipt_amount, notes
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           i + 1,
           item.item_id,
-          item.supplier_id || null,
-          item.gross_weight || 0,
-          item.tare_weight || 0,
-          lineNetWeight,
+          item.customer_id || null,
+          item.is_stock ? 1 : 0,
+          item.rate_per_maund || 0,
           item.rate || 0,
+          lineWeight,
           lineAmount,
-          item.grocery_charges || 0,
-          item.ice_charges || 0,
+          lineFare,
+          lineIce,
           item.other_charges || 0,
           item.cash_amount || 0,
           item.receipt_amount || 0,
@@ -1299,15 +1318,22 @@ const sales = {
       // Update item stock
       db.execute(
         'UPDATE items SET current_stock = current_stock - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [lineNetWeight, item.item_id]
+        [lineWeight, item.item_id]
       );
+
+      // Track balance per customer
+      if (item.customer_id) {
+        newCustomerBalances[item.customer_id] = (newCustomerBalances[item.customer_id] || 0) + lineBalance;
+      }
     }
 
-    // Update customer balance
-    db.execute(
-      'UPDATE customers SET current_balance = current_balance + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [balanceAmount, customer_id]
-    );
+    // Update each customer's balance
+    for (const [custId, balance] of Object.entries(newCustomerBalances)) {
+      db.execute(
+        'UPDATE customers SET current_balance = current_balance + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [balance, custId]
+      );
+    }
 
     return { changes: 1 };
   },
@@ -1325,15 +1351,25 @@ const sales = {
     for (const item of sale.items) {
       db.execute(
         'UPDATE items SET current_stock = current_stock + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [item.net_weight || 0, item.item_id]
+        [item.weight || 0, item.item_id]
       );
     }
 
-    // Restore customer balance
-    db.execute(
-      'UPDATE customers SET current_balance = current_balance - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [sale.balance_amount || 0, sale.customer_id]
-    );
+    // Restore per-line-item customer balances
+    const customerBalances = {};
+    for (const item of sale.items) {
+      if (item.customer_id) {
+        const lineAmount = (item.amount || 0) + (item.fare_charges || 0) + (item.ice_charges || 0);
+        const lineBalance = lineAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
+        customerBalances[item.customer_id] = (customerBalances[item.customer_id] || 0) + lineBalance;
+      }
+    }
+    for (const [custId, balance] of Object.entries(customerBalances)) {
+      db.execute(
+        'UPDATE customers SET current_balance = current_balance - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [balance, custId]
+      );
+    }
 
     // Soft delete
     return db.execute(
@@ -2364,6 +2400,42 @@ const reports = {
     );
 
     return { transactions, summary, grandTotals };
+  },
+
+  /**
+   * Vendor Stock Bill (بیوپاری سٹاک بل)
+   * Get stock-sourced items for a supplier on a given date
+   * @param {number} supplierId - Supplier ID
+   * @param {string} date - Date (YYYY-MM-DD)
+   * @returns {Object} Report data with items and totals
+   */
+  getVendorStockBill: (supplierId, date) => {
+    const items = db.query(
+      `SELECT 
+        si.id,
+        c.name as customer_name,
+        c.name_english as customer_name_english,
+        i.name as item_name,
+        i.name_english as item_name_english,
+        si.rate,
+        si.weight,
+        si.amount
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      JOIN customers c ON s.customer_id = c.id
+      JOIN items i ON si.item_id = i.id
+      WHERE si.is_stock = 1
+        AND si.supplier_id = ?
+        AND DATE(s.sale_date) = DATE(?)
+        AND s.status != 'deleted'
+      ORDER BY si.line_number ASC`,
+      [supplierId, date]
+    );
+
+    const totalWeight = items.reduce((sum, item) => sum + (item.weight || 0), 0);
+    const totalAmount = items.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+    return { items, totalWeight, totalAmount };
   },
 
   /**

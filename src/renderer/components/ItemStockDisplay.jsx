@@ -1,5 +1,6 @@
 import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Badge } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * ItemStockDisplay Component
@@ -10,6 +11,7 @@ import PropTypes from 'prop-types';
  * @param {boolean} loading - Loading state
  */
 function ItemStockDisplay({ data = [], loading = false }) {
+  const { t } = useTranslation();
   // Format quantity with 2 decimal places
   const formatQuantity = (qty) => {
     return new Intl.NumberFormat('en-PK', {
@@ -39,25 +41,25 @@ function ItemStockDisplay({ data = [], loading = false }) {
     <Card shadow="sm" padding="md" radius="md" withBorder>
       <Stack gap="xs">
         <Text fw={600} size="lg" className="text-gray-700 dark:text-gray-200">
-          📦 Item Stock
+          📦 {t('dashboard.stockLevels')}
         </Text>
         <Text size="sm" c="dimmed">
-          Current inventory levels
+          {t('item.currentStock')}
         </Text>
 
         <ScrollArea h={180} type="auto">
           {data.length === 0 ? (
             <Center py="xl">
               <Text c="dimmed" size="sm">
-                No items in inventory
+                {t('item.noResults')}
               </Text>
             </Center>
           ) : (
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ textAlign: 'right' }}>Item Name</Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>Quantity (kg)</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>{t('common.name')}</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>{t('item.currentStock')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>

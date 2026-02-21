@@ -63,7 +63,7 @@ export function ClientRecoveryReport() {
     if (!allClients && !selectedCustomer) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please select a client or check "All Clients"',
+        message: 'Please select a customer or check "All Customers"',
         color: 'red',
       });
       return;
@@ -124,7 +124,7 @@ export function ClientRecoveryReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Select
-            label="Client"
+            label="Customer"
             placeholder="Select client"
             data={customers}
             value={selectedCustomer}
@@ -155,7 +155,7 @@ export function ClientRecoveryReport() {
       {/* Report Display */}
       {reportData && (
         <ReportViewer
-          title="Client Recovery Report"
+          title="Customer Recovery Report"
           titleUrdu="کلائنٹ بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
         >
@@ -165,7 +165,7 @@ export function ClientRecoveryReport() {
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>#</Table.Th>
-                  <Table.Th>Client Name</Table.Th>
+                  <Table.Th>Customer Name</Table.Th>
                   <Table.Th className="text-right">Total Amount</Table.Th>
                   <Table.Th className="text-right">Charges</Table.Th>
                   <Table.Th className="text-right">Collection</Table.Th>

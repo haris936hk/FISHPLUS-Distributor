@@ -88,7 +88,7 @@ export function DailySalesDetailsReport() {
                   <Table.Th>#</Table.Th>
                   <Table.Th>Sale #</Table.Th>
                   <Table.Th>Customer</Table.Th>
-                  <Table.Th>Supplier</Table.Th>
+                  <Table.Th>Vendor</Table.Th>
                   <Table.Th>Item</Table.Th>
                   <Table.Th className="text-right">Weight</Table.Th>
                   <Table.Th className="text-right">Rate</Table.Th>

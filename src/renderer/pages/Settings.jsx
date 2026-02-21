@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import useStore from '../store';
+import { useTranslation } from 'react-i18next';
 import {
   Container,
   Title,
@@ -36,6 +38,9 @@ import {
 import { DatePickerInput } from '@mantine/dates';
 
 function Settings() {
+  const { t } = useTranslation();
+  const { language } = useStore();
+  const isUrdu = language === 'ur';
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('company');
@@ -213,50 +218,50 @@ function Settings() {
         <Title order={2}>
           <Group gap="xs">
             <IconSettings size={28} />
-            Settings / ترتیبات
+            {t('settings.title')}
           </Group>
         </Title>
         <Button leftSection={<IconDeviceFloppy size={16} />} onClick={handleSave} loading={saving}>
-          Save Settings
+          {t('settings.save')}
         </Button>
       </Group>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List>
           <Tabs.Tab value="company" leftSection={<IconBuilding size={16} />}>
-            Company Info
+            {t('settings.company')}
           </Tabs.Tab>
           <Tabs.Tab value="business" leftSection={<IconSettings size={16} />}>
-            Business Settings
+            {t('settings.language')}
           </Tabs.Tab>
           <Tabs.Tab value="backup" leftSection={<IconDatabase size={16} />}>
-            Backup & Restore
+            {isUrdu ? 'بیک اپ' : 'Backup & Restore'}
           </Tabs.Tab>
           <Tabs.Tab value="sms" leftSection={<IconMessage size={16} />}>
-            SMS Settings
+            {t('settings.sms')}
           </Tabs.Tab>
           <Tabs.Tab value="yearend" leftSection={<IconCalendarTime size={16} />}>
-            Year-End
+            {isUrdu ? 'سال کا اختتام' : 'Year-End'}
           </Tabs.Tab>
         </Tabs.List>
 
         <Paper p="md" mt="md" withBorder>
           <Tabs.Panel value="company">
             <Stack>
-              <Title order={4}>Company Information / کمپنی کی معلومات</Title>
+              <Title order={4}>{t('settings.company')}</Title>
               <Divider />
 
               <Grid>
                 <Grid.Col span={6}>
                   <TextInput
-                    label="Company Name (English)"
+                    label={t('settings.companyName')}
                     value={settings.company_name}
                     onChange={(e) => handleChange('company_name', e.target.value)}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <TextInput
-                    label="Company Name (Urdu) / کمپنی کا نام"
+                    label={t('settings.companyNameUrdu')}
                     value={settings.company_name_urdu}
                     onChange={(e) => handleChange('company_name_urdu', e.target.value)}
                     dir="rtl"
@@ -264,7 +269,7 @@ function Settings() {
                 </Grid.Col>
                 <Grid.Col span={12}>
                   <Textarea
-                    label="Address / پتہ"
+                    label={t('settings.address')}
                     value={settings.company_address}
                     onChange={(e) => handleChange('company_address', e.target.value)}
                     minRows={2}
@@ -272,26 +277,35 @@ function Settings() {
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <TextInput
-                    label="Phone / فون"
+                    label={t('settings.phone')}
                     value={settings.company_phone}
                     onChange={(e) => handleChange('company_phone', e.target.value)}
                     placeholder="051-1234567"
+                    className="ltr-field"
+                    dir="ltr"
+                    styles={{ input: { textAlign: 'left' } }}
                   />
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <TextInput
-                    label="Mobile / موبائل"
+                    label={t('settings.mobile')}
                     value={settings.company_mobile}
                     onChange={(e) => handleChange('company_mobile', e.target.value)}
                     placeholder="03001234567"
+                    className="ltr-field"
+                    dir="ltr"
+                    styles={{ input: { textAlign: 'left' } }}
                   />
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <TextInput
-                    label="Email / ای میل"
+                    label={t('settings.email')}
                     value={settings.company_email}
                     onChange={(e) => handleChange('company_email', e.target.value)}
                     placeholder="info@company.com"
+                    className="ltr-field"
+                    dir="ltr"
+                    styles={{ input: { textAlign: 'left' } }}
                   />
                 </Grid.Col>
               </Grid>
@@ -431,6 +445,9 @@ function Settings() {
                       value={settings.sms_gateway_url}
                       onChange={(e) => handleChange('sms_gateway_url', e.target.value)}
                       placeholder="https://api.smsgateway.com/send"
+                      className="ltr-field"
+                      dir="ltr"
+                      styles={{ input: { textAlign: 'left' } }}
                     />
                   </Grid.Col>
                   <Grid.Col span={6}>
@@ -440,6 +457,9 @@ function Settings() {
                       onChange={(e) => handleChange('sms_api_key', e.target.value)}
                       placeholder="Your API key"
                       type="password"
+                      className="ltr-field"
+                      dir="ltr"
+                      styles={{ input: { textAlign: 'left' } }}
                     />
                   </Grid.Col>
                   <Grid.Col span={12}>
@@ -539,9 +559,9 @@ function Settings() {
                     </Grid.Col>
                     <Grid.Col span={6}>
                       <Paper p="md" withBorder>
-                        <Text fw={500}>Supplier Advance Balances</Text>
+                        <Text fw={500}>Vendor Advance Balances</Text>
                         <Text size="sm" c="dimmed">
-                          {yearEndPreview.summary.supplierCount} suppliers
+                          {yearEndPreview.summary.supplierCount} vendors
                         </Text>
                         <Text size="lg" fw={700} c="green">
                           Rs.{' '}
@@ -559,7 +579,7 @@ function Settings() {
                       if (
                         !window.confirm(
                           'Are you sure you want to process year-end closing? ' +
-                          'This will update opening balances for all customers and suppliers. ' +
+                          'This will update opening balances for all customers and vendors. ' +
                           'This action cannot be undone easily.'
                         )
                       ) {
@@ -573,7 +593,7 @@ function Settings() {
                         if (result.success) {
                           notifications.show({
                             title: 'Year-End Processed',
-                            message: `Updated ${result.data.customersUpdated} customers and ${result.data.suppliersUpdated} suppliers`,
+                            message: `Updated ${result.data.customersUpdated} customers and ${result.data.suppliersUpdated} vendors`,
                             color: 'green',
                             icon: <IconCheck size={16} />,
                           });

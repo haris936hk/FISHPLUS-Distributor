@@ -728,6 +728,17 @@ export function registerHandlers() {
     }
   });
 
+  ipcMain.handle(channels.REPORT_VENDOR_STOCK_BILL, async (event, params) => {
+    try {
+      const { supplierId, date } = params;
+      const result = queries.reports.getVendorStockBill(supplierId, date);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Report vendorStockBill error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle(channels.REPORT_NET_SUMMARY, async (event, params) => {
     try {
       const { asOfDate } = params;

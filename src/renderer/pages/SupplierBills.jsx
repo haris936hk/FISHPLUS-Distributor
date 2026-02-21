@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Title, Text, Button, Group, Stack, Paper } from '@mantine/core';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { SupplierBillForm, SupplierBillPreview } from '../components';
 
 /**
@@ -11,6 +12,7 @@ import { SupplierBillForm, SupplierBillPreview } from '../components';
  * @param {function} onBack - Callback to navigate back to dashboard
  */
 function SupplierBills({ onBack }) {
+  const { t } = useTranslation();
   const [previewData, setPreviewData] = useState(null);
 
   // Handle preview generation
@@ -36,14 +38,14 @@ function SupplierBills({ onBack }) {
           <Group justify="space-between" align="center">
             <Stack gap={4}>
               <Title order={1} c="white" className="text-3xl font-bold">
-                📄 Supplier Bill (بیوپاری بل)
+                📄 {t('bill.title')}
               </Title>
               <Text c="white" opacity={0.9} size="md">
-                Generate and print supplier bills
+                {t('bill.addNew')}
               </Text>
             </Stack>
             <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>
-              Back to Dashboard
+              {t('nav.dashboard')}
             </Button>
           </Group>
         </div>

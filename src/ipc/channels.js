@@ -86,6 +86,7 @@ export default {
   REPORT_CONCESSION: 'report:concession',
   REPORT_DAILY_DETAILS: 'report:dailyDetails',
   REPORT_VENDOR_SALES: 'report:vendorSales',
+  REPORT_VENDOR_STOCK_BILL: 'report:vendorStockBill',
   REPORT_NET_SUMMARY: 'report:netSummary',
 
   // Print/Export channels (FR-PRINT-001 through FR-PRINT-012)

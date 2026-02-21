@@ -55,7 +55,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
             } else {
                 notifications.show({
                     title: 'Error',
-                    message: result.error || 'Failed to load suppliers',
+                    message: result.error || 'Failed to load vendors',
                     color: 'red',
                 });
             }
@@ -63,7 +63,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
             console.error('Load suppliers error:', error);
             notifications.show({
                 title: 'Error',
-                message: 'Failed to load suppliers',
+                message: 'Failed to load vendors',
                 color: 'red',
             });
         } finally {
@@ -91,7 +91,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
                 if (result.data.length === 0) {
                     notifications.show({
                         title: 'No Results',
-                        message: 'No suppliers found matching your search',
+                        message: 'No vendors found matching your search',
                         color: 'blue',
                     });
                 }
@@ -112,11 +112,11 @@ function SupplierSearch({ onEdit, onRefresh }) {
     const handleDelete = useCallback(
         (supplier) => {
             modals.openConfirmModal({
-                title: 'Delete Supplier',
+                title: 'Delete Vendor',
                 centered: true,
                 children: (
                     <Text size="sm">
-                        Are you sure you want to delete supplier <strong>{supplier.name}</strong>? This action
+                        Are you sure you want to delete vendor <strong>{supplier.name}</strong>? This action
                         cannot be undone.
                     </Text>
                 ),
@@ -128,7 +128,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
                         if (result.success) {
                             notifications.show({
                                 title: 'Deleted',
-                                message: `Supplier "${supplier.name}" has been deleted`,
+                                message: `Vendor "${supplier.name}" has been deleted`,
                                 color: 'green',
                             });
                             loadSuppliers();
@@ -143,7 +143,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
                     } catch {
                         notifications.show({
                             title: 'Error',
-                            message: 'Failed to delete supplier',
+                            message: 'Failed to delete vendor',
                             color: 'red',
                         });
                     }
@@ -252,7 +252,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
                         </Button>
                     </Group>
                     <Text size="sm" c="dimmed">
-                        {suppliers.length} supplier{suppliers.length !== 1 ? 's' : ''} found
+                        {suppliers.length} vendor{suppliers.length !== 1 ? 's' : ''} found
                     </Text>
                 </Group>
 
@@ -266,8 +266,8 @@ function SupplierSearch({ onEdit, onRefresh }) {
                             color="red"
                             onClick={() => {
                                 modals.openConfirmModal({
-                                    title: 'Delete Selected Suppliers',
-                                    children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected supplier(s)?</Text>,
+                                    title: 'Delete Selected Vendors',
+                                    children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected vendor(s)?</Text>,
                                     labels: { confirm: 'Delete All', cancel: 'Cancel' },
                                     confirmProps: { color: 'red' },
                                     onConfirm: async () => {
@@ -276,7 +276,7 @@ function SupplierSearch({ onEdit, onRefresh }) {
                                         }
                                         setSelectedIds(new Set());
                                         loadSuppliers();
-                                        notifications.show({ title: 'Deleted', message: `${selectedIds.size} supplier(s) deleted`, color: 'green' });
+                                        notifications.show({ title: 'Deleted', message: `${selectedIds.size} vendor(s) deleted`, color: 'green' });
                                     },
                                 });
                             }}
