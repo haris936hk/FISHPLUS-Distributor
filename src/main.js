@@ -75,8 +75,15 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Clean up database connection on quit
-app.on('before-quit', () => {
+// Clean up database connection and jsreport on quit
+app.on('before-quit', async () => {
+  // Close jsreport (shuts down Puppeteer/Chromium)
+  try {
+    const jsreportService = (await import('./services/jsreportService.js')).default;
+    await jsreportService.close();
+  } catch {
+    // jsreport may not have been initialized
+  }
   db.close();
   console.log('Database connection closed');
 });

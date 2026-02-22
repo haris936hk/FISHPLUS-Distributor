@@ -10,7 +10,7 @@ const { BrowserWindow, dialog, app } = electron;
 import path from 'path';
 import fs from 'fs';
 import ExcelJS from 'exceljs';
-import pdfGenerator from './pdfGeneratorService.js';
+import jsreportService from './jsreportService.js';
 
 /**
  * Print HTML content using a hidden browser window
@@ -73,8 +73,6 @@ async function exportToPDF(mainWindow, htmlContent, options = {}) {
   const {
     filename = 'report.pdf',
     landscape = false,
-    pageSize = 'A4',
-    margins = { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 },
   } = options;
 
   // Show save dialog
@@ -88,41 +86,25 @@ async function exportToPDF(mainWindow, htmlContent, options = {}) {
     return null;
   }
 
-  // Create a hidden window for PDF generation
-  const pdfWindow = new BrowserWindow({
-    show: false,
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  });
-
   try {
-    // Load the HTML content
-    await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
-
-    // Wait for content to render
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Generate PDF
-    const pdfData = await pdfWindow.webContents.printToPDF({
+    // Render PDF using jsreport (chrome-pdf recipe)
+    const pdfBuffer = await jsreportService.renderReport(htmlContent, {
       landscape,
-      pageSize,
-      margins,
-      printBackground: true,
+      format: 'A4',
+      displayHeaderFooter: true,
+      marginTop: '15mm',
+      marginBottom: '20mm',
+      marginLeft: '15mm',
+      marginRight: '15mm',
     });
 
     // Save to file
-    fs.writeFileSync(filePath, pdfData);
+    fs.writeFileSync(filePath, pdfBuffer);
 
     return filePath;
   } catch (error) {
     console.error('PDF export error:', error);
     throw error;
-  } finally {
-    pdfWindow.destroy();
   }
 }
 
@@ -450,108 +432,12 @@ async function printPreview(mainWindow, htmlContent, options = {}) {
   }
 }
 
-/**
- * Export content to PDF using pdfmake (professional report generator)
- * @param {BrowserWindow} mainWindow - Main application window
- * @param {Object} docDefinition - pdfmake document definition
- * @param {Object} options - Export options
- * @returns {Promise<string>} Path to saved PDF file
- */
-async function exportToPdfmake(mainWindow, docDefinition, options = {}) {
-  const { filename = 'report.pdf' } = options;
 
-  // Show save dialog
-  const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
-    title: 'Export to PDF',
-    defaultPath: path.join(app.getPath('documents'), filename),
-    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
-  });
-
-  if (canceled || !filePath) {
-    return null;
-  }
-
-  try {
-    // Hydrate the document definition — replace string markers with actual functions
-    // (Functions can't be serialized over IPC, so the renderer sends string identifiers)
-    const hydratedDoc = hydrateDocDefinition(docDefinition);
-
-    const pdfBuffer = await pdfGenerator.generatePDF(hydratedDoc);
-    fs.writeFileSync(filePath, pdfBuffer);
-    return filePath;
-  } catch (error) {
-    console.error('pdfmake export error:', error);
-    throw error;
-  }
-}
-
-/**
- * Hydrate a pdfmake document definition by replacing string markers with functions.
- * This is needed because functions can't cross the IPC boundary (JSON serialization).
- */
-function hydrateDocDefinition(doc) {
-  // Named table layouts
-  const tableLayouts = {
-    standardTable: {
-      hLineWidth: () => 0.5,
-      vLineWidth: () => 0.5,
-      hLineColor: () => '#000',
-      vLineColor: () => '#000',
-      paddingLeft: () => 6,
-      paddingRight: () => 6,
-      paddingTop: () => 4,
-      paddingBottom: () => 4,
-    },
-    summaryTable: {
-      hLineWidth: (i, node) => (i === 0 || i === node.table.body.length) ? 1 : 0.3,
-      vLineWidth: (i, node) => (i === 0 || i === node.table.widths.length) ? 1 : 0,
-      hLineColor: () => '#000',
-      vLineColor: () => '#000',
-      paddingLeft: () => 8,
-      paddingRight: () => 8,
-      paddingTop: () => 4,
-      paddingBottom: () => 4,
-    },
-  };
-
-  // Add footer if flagged
-  if (doc._addFooter) {
-    doc.footer = (currentPage, pageCount) => ({
-      text: `Page ${currentPage} of ${pageCount}`,
-      alignment: 'center',
-      fontSize: 9,
-      color: '#888',
-      margin: [0, 10, 0, 0],
-    });
-    delete doc._addFooter;
-  }
-
-  // Add default style if flagged
-  if (doc._addDefaultStyle) {
-    doc.defaultStyle = {
-      font: 'Roboto',
-      fontSize: 10,
-    };
-    delete doc._addDefaultStyle;
-  }
-
-  // Walk content array and replace layout string markers
-  if (Array.isArray(doc.content)) {
-    doc.content.forEach((item) => {
-      if (item && item.table && typeof item.layout === 'string' && tableLayouts[item.layout]) {
-        item.layout = tableLayouts[item.layout];
-      }
-    });
-  }
-
-  return doc;
-}
 
 export default {
   printReport,
   printPreview,
   exportToPDF,
-  exportToPdfmake,
   exportToExcel,
   generateCSV,
   escapeCSVValue,

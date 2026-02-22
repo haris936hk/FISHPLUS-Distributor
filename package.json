@@ -64,6 +64,8 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "@jsreport/jsreport-chrome-pdf": "^4.4.0",
+    "@jsreport/jsreport-handlebars": "^4.1.0",
     "@mantine/core": "^8.3.14",
     "@mantine/dates": "^8.3.14",
     "@mantine/hooks": "^8.3.14",
@@ -77,6 +79,7 @@
     "i18next": "^25.8.11",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
+    "jsreport-core": "^2.10.1",
     "pdfmake": "^0.3.4",
     "prop-types": "^15.8.1",
     "react": "^19.2.4",

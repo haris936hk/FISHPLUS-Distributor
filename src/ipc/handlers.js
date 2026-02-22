@@ -794,20 +794,6 @@ export function registerHandlers() {
     }
   });
 
-  ipcMain.handle(channels.EXPORT_PDF_PDFMAKE, async (event, { docDefinition, options }) => {
-    try {
-      const mainWindow = electron.BrowserWindow.getFocusedWindow();
-      const filePath = await printService.exportToPdfmake(mainWindow, docDefinition, options);
-      if (!filePath) {
-        return { success: false, error: 'Export cancelled' };
-      }
-      return { success: true, data: { filePath } };
-    } catch (error) {
-      console.error('Export PDF (pdfmake) error:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
   ipcMain.handle(channels.EXPORT_EXCEL, async (event, { data, options }) => {
     try {
       const mainWindow = electron.BrowserWindow.getFocusedWindow();
