@@ -32,7 +32,6 @@ import {
   IconUpload,
   IconMessage,
   IconCheck,
-
   IconCalendarTime,
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
@@ -579,8 +578,8 @@ function Settings() {
                       if (
                         !window.confirm(
                           'Are you sure you want to process year-end closing? ' +
-                          'This will update opening balances for all customers and vendors. ' +
-                          'This action cannot be undone easily.'
+                            'This will update opening balances for all customers and vendors. ' +
+                            'This action cannot be undone easily.'
                         )
                       ) {
                         return;

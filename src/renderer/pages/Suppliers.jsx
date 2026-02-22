@@ -60,7 +60,12 @@ function Suppliers({ onBack }) {
               </Text>
             </Stack>
             <Group>
-              <Button variant="white" color="violet" onClick={handleAdd} leftSection={<span>➕</span>}>
+              <Button
+                variant="white"
+                color="violet"
+                onClick={handleAdd}
+                leftSection={<span>➕</span>}
+              >
                 {t('supplier.addNew')}
               </Button>
               <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>

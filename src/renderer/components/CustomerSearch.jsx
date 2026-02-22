@@ -39,7 +39,13 @@ function CustomerSearch({ onEdit, onRefresh }) {
 
   // Column resizing (FR-GRID-008)
   const { getResizeProps } = useResizableColumns({
-    name_urdu: 120, name_english: 130, city: 110, country: 110, contact: 140, balance: 90, actions: 90,
+    name_urdu: 120,
+    name_english: 130,
+    city: 110,
+    country: 110,
+    contact: 140,
+    balance: 90,
+    actions: 90,
   });
 
   // Load all customers initially
@@ -250,8 +256,14 @@ function CustomerSearch({ onEdit, onRefresh }) {
 
         {/* Bulk Actions (FR-GRID-006) */}
         {selectedIds.size > 0 && (
-          <Group gap="sm" p="xs" style={{ background: 'var(--mantine-color-green-0)', borderRadius: 8 }}>
-            <Text size="sm" fw={500}>{selectedIds.size} selected</Text>
+          <Group
+            gap="sm"
+            p="xs"
+            style={{ background: 'var(--mantine-color-green-0)', borderRadius: 8 }}
+          >
+            <Text size="sm" fw={500}>
+              {selectedIds.size} selected
+            </Text>
             <Button
               size="xs"
               variant="light"
@@ -259,7 +271,11 @@ function CustomerSearch({ onEdit, onRefresh }) {
               onClick={() => {
                 modals.openConfirmModal({
                   title: 'Delete Selected Customers',
-                  children: <Text size="sm">Are you sure you want to delete {selectedIds.size} selected customer(s)?</Text>,
+                  children: (
+                    <Text size="sm">
+                      Are you sure you want to delete {selectedIds.size} selected customer(s)?
+                    </Text>
+                  ),
                   labels: { confirm: 'Delete All', cancel: 'Cancel' },
                   confirmProps: { color: 'red' },
                   onConfirm: async () => {
@@ -268,7 +284,11 @@ function CustomerSearch({ onEdit, onRefresh }) {
                     }
                     setSelectedIds(new Set());
                     loadCustomers();
-                    notifications.show({ title: 'Deleted', message: `${selectedIds.size} customer(s) deleted`, color: 'green' });
+                    notifications.show({
+                      title: 'Deleted',
+                      message: `${selectedIds.size} customer(s) deleted`,
+                      color: 'green',
+                    });
                   },
                 });
               }}
@@ -300,12 +320,19 @@ function CustomerSearch({ onEdit, onRefresh }) {
                 <Table.Tr>
                   <Table.Th style={{ width: 40 }}>
                     <Checkbox
-                      checked={customers.length > 0 && customers.every((c) => selectedIds.has(c.id))}
-                      indeterminate={customers.some((c) => selectedIds.has(c.id)) && !customers.every((c) => selectedIds.has(c.id))}
+                      checked={
+                        customers.length > 0 && customers.every((c) => selectedIds.has(c.id))
+                      }
+                      indeterminate={
+                        customers.some((c) => selectedIds.has(c.id)) &&
+                        !customers.every((c) => selectedIds.has(c.id))
+                      }
                       onChange={(e) => {
                         setSelectedIds((prev) => {
                           const next = new Set(prev);
-                          customers.forEach((c) => e.target.checked ? next.add(c.id) : next.delete(c.id));
+                          customers.forEach((c) =>
+                            e.target.checked ? next.add(c.id) : next.delete(c.id)
+                          );
                           return next;
                         });
                       }}
@@ -324,7 +351,9 @@ function CustomerSearch({ onEdit, onRefresh }) {
                     return (
                       <Table.Th key={key} style={rp.style}>
                         <div style={{ fontWeight: 700 }}>{urdu}</div>
-                        <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>{english}</div>
+                        <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.65 }}>
+                          {english}
+                        </div>
                         <div {...rp.resizeHandle} />
                       </Table.Th>
                     );

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -110,6 +110,167 @@ export function DailyNetAmountSummaryReport() {
     color: PropTypes.string,
   };
 
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    return `
+      <style>
+        .print-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 14px 0;
+          direction: rtl;
+        }
+        .print-table th,
+        .print-table td {
+          border: 1px solid #000;
+          padding: 8px 14px;
+          font-size: 14px;
+          text-align: right;
+        }
+        .print-table th {
+          background-color: #e8e8e8;
+          font-weight: bold;
+          font-size: 13px;
+        }
+        .print-table .section-header {
+          background-color: #f5f5f5;
+          font-weight: bold;
+          font-size: 14px;
+          text-align: center;
+        }
+        .print-table .amount-cell {
+          text-align: left;
+          direction: ltr;
+          font-family: 'Segoe UI', Tahoma, sans-serif;
+          white-space: nowrap;
+        }
+        .print-table .total-row {
+          background-color: #f0f0f0;
+          font-weight: bold;
+          font-size: 15px;
+        }
+        .print-table .grand-total-row {
+          background-color: #ddd;
+          font-weight: bold;
+          font-size: 16px;
+          border-top: 2px solid #000;
+        }
+        .print-table .operator {
+          text-align: center;
+          width: 40px;
+          font-weight: bold;
+          font-size: 16px;
+        }
+      </style>
+
+      <!-- Main Summary Table -->
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="3" class="section-header">تفصیلات</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;"></th>
+            <th>مد</th>
+            <th style="width: 180px;">رقم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="operator"></td>
+            <td>سابقہ بقایا</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.previousBalance)}</td>
+          </tr>
+          <tr>
+            <td class="operator">+</td>
+            <td>آج کی بکری</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.todaySales)}</td>
+          </tr>
+          <tr>
+            <td class="operator">+</td>
+            <td>آج کے اخراجات (کرایہ + برف)</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.todayCharges)}</td>
+          </tr>
+          <tr>
+            <td class="operator">−</td>
+            <td>آج کی رعایت</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.todayDiscount)}</td>
+          </tr>
+          <tr class="total-row">
+            <td class="operator">=</td>
+            <td>کل رقم</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.totalAmount)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Collection Details -->
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="3" class="section-header">وصولی کی تفصیلات</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;"></th>
+            <th>مد</th>
+            <th style="width: 180px;">رقم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="operator"></td>
+            <td>نقد وصولی (بکری سے)</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.todayCollection)}</td>
+          </tr>
+          <tr>
+            <td class="operator">+</td>
+            <td>ادائیگیاں</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.todayPayments)}</td>
+          </tr>
+          <tr class="total-row">
+            <td class="operator">=</td>
+            <td>کل وصولی</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.totalCollection)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Closing Balance -->
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="3" class="section-header">حتمی حساب</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="operator"></td>
+            <td>کل رقم</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.totalAmount)}</td>
+          </tr>
+          <tr>
+            <td class="operator">−</td>
+            <td>کل وصولی</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.totalCollection)}</td>
+          </tr>
+          <tr class="grand-total-row">
+            <td class="operator">=</td>
+            <td>بقایا رقم</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.closingBalance)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData]);
+
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -158,6 +319,7 @@ export function DailyNetAmountSummaryReport() {
           title="Daily Net Amount Summary"
           titleUrdu="رجسٹر ٹوٹل رقم"
           singleDate={formatDate(asOfDate)}
+          printContentHTML={printContentHTML}
         >
           <Stack gap="lg">
             {/* Summary Cards */}

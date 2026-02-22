@@ -104,15 +104,40 @@ function App() {
 
       if (e.ctrlKey && !e.shiftKey && !e.altKey) {
         switch (e.key) {
-          case '1': e.preventDefault(); navigateTo('dashboard'); break;
-          case '2': e.preventDefault(); navigateTo('sales'); break;
-          case '3': e.preventDefault(); navigateTo('purchases'); break;
-          case '4': e.preventDefault(); navigateTo('customers'); break;
-          case '5': e.preventDefault(); navigateTo('suppliers'); break;
-          case '6': e.preventDefault(); navigateTo('item'); break;
-          case '7': e.preventDefault(); navigateTo('supplier-bills'); break;
-          case '8': e.preventDefault(); navigateTo('reports'); break;
-          default: break;
+          case '1':
+            e.preventDefault();
+            navigateTo('dashboard');
+            break;
+          case '2':
+            e.preventDefault();
+            navigateTo('sales');
+            break;
+          case '3':
+            e.preventDefault();
+            navigateTo('purchases');
+            break;
+          case '4':
+            e.preventDefault();
+            navigateTo('customers');
+            break;
+          case '5':
+            e.preventDefault();
+            navigateTo('suppliers');
+            break;
+          case '6':
+            e.preventDefault();
+            navigateTo('item');
+            break;
+          case '7':
+            e.preventDefault();
+            navigateTo('supplier-bills');
+            break;
+          case '8':
+            e.preventDefault();
+            navigateTo('reports');
+            break;
+          default:
+            break;
         }
       }
 
@@ -152,7 +177,8 @@ function App() {
     <MantineProvider
       theme={{
         colorScheme: theme,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         primaryColor: 'blue',
       }}
     >
@@ -218,7 +244,10 @@ function App() {
                   })}
                 </Group>
                 <Group gap="xs">
-                  <Tooltip label={language === 'ur' ? 'Switch to English' : 'اردو میں بدلیں'} position="bottom">
+                  <Tooltip
+                    label={language === 'ur' ? 'Switch to English' : 'اردو میں بدلیں'}
+                    position="bottom"
+                  >
                     <Button
                       size="compact-xs"
                       variant="subtle"

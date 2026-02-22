@@ -1,13 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Paper, Stack, Group, Title, Text, Button, Divider, Menu } from '@mantine/core';
 import {
   IconPrinter,
   IconFileTypePdf,
   IconFileSpreadsheet,
   IconChevronDown,
-  IconZoomIn,
-  IconZoomOut,
-  IconZoomReset,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
@@ -25,13 +22,9 @@ export function ReportViewer({
   children,
   exportData = null, // Optional: Array of objects for CSV export
   exportColumns = null, // Optional: Column definitions for CSV export
+  printContentHTML = null, // Optional: Custom print body HTML (overrides DOM capture)
 }) {
   const printRef = useRef();
-  const [zoom, setZoom] = useState(100);
-
-  const handleZoomIn = () => setZoom((z) => Math.min(z + 10, 200));
-  const handleZoomOut = () => setZoom((z) => Math.max(z - 10, 50));
-  const handleZoomReset = () => setZoom(100);
 
   const generatePrintHTML = () => {
     const content = printRef.current;
@@ -286,22 +279,35 @@ export function ReportViewer({
           ${dateHTML}
 
           <!-- Report Content -->
-          ${content.innerHTML}
+          ${printContentHTML || content.innerHTML}
         </body>
       </html>
     `;
   };
 
-  const handlePrint = () => {
-    const htmlContent = generatePrintHTML();
-    const printWindow = window.open('', '_blank');
+  const handlePrint = async () => {
+    try {
+      const htmlContent = generatePrintHTML();
+      const response = await window.api.print.preview(htmlContent, {
+        title: `${title} - Print Preview`,
+        landscape: false,
+      });
 
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-      printWindow.close();
-    };
+      if (!response?.success && response?.error) {
+        notifications.show({
+          title: 'Print Failed',
+          message: response.error,
+          color: 'red',
+        });
+      }
+    } catch (error) {
+      console.error('Print preview error:', error);
+      notifications.show({
+        title: 'Print Failed',
+        message: 'Failed to open print preview',
+        color: 'red',
+      });
+    }
   };
 
   const handleExportPDF = async () => {
@@ -427,18 +433,6 @@ export function ReportViewer({
         {/* Screen Header */}
         <Group justify="space-between" align="flex-start">
           <Stack gap="xs">
-            <div className="text-center">
-              <Title order={3} c="dark">
-                AL - SHEIKH FISH TRADER AND DISTRIBUTER
-              </Title>
-              <Text size="lg" fw={600} className="font-urdu" style={{ direction: 'rtl' }}>
-                اے ایل شیخ فش ٹریڈر اینڈ ڈسٹری بیوٹر
-              </Text>
-              <Text size="sm" c="dimmed">
-                Shop No. W-644 Gunj Mandi Rawalpindi | +92-3008501724, 051-5534607
-              </Text>
-            </div>
-            <Divider my="xs" />
             <Group gap="xs" justify="center">
               <Title order={4}>{title}</Title>
               {titleUrdu && (
@@ -459,20 +453,6 @@ export function ReportViewer({
             )}
           </Stack>
           <Group gap="xs">
-            <Button.Group>
-              <Button variant="default" size="xs" onClick={handleZoomOut} title="Zoom Out">
-                <IconZoomOut size={16} />
-              </Button>
-              <Button variant="default" size="xs" style={{ pointerEvents: 'none', minWidth: 50 }}>
-                {zoom}%
-              </Button>
-              <Button variant="default" size="xs" onClick={handleZoomIn} title="Zoom In">
-                <IconZoomIn size={16} />
-              </Button>
-              <Button variant="default" size="xs" onClick={handleZoomReset} title="Reset Zoom">
-                <IconZoomReset size={16} />
-              </Button>
-            </Button.Group>
             <Button leftSection={<IconPrinter size={16} />} onClick={handlePrint} variant="light">
               Print
             </Button>
@@ -499,17 +479,8 @@ export function ReportViewer({
 
         <Divider />
 
-        {/* Report Content (printable area) */}
         <div style={{ overflow: 'auto' }}>
-          <div
-            ref={printRef}
-            style={{
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: 'top left',
-              width: zoom !== 100 ? `${10000 / zoom}%` : '100%',
-              transition: 'transform 0.15s ease',
-            }}
-          >
+          <div ref={printRef} style={{ width: '100%' }}>
             {children}
           </div>
         </div>
@@ -517,7 +488,6 @@ export function ReportViewer({
     </Paper>
   );
 }
-
 
 ReportViewer.propTypes = {
   title: PropTypes.string.isRequired,
@@ -530,6 +500,7 @@ ReportViewer.propTypes = {
   children: PropTypes.node,
   exportData: PropTypes.array,
   exportColumns: PropTypes.array,
+  printContentHTML: PropTypes.string,
 };
 
 export default ReportViewer;

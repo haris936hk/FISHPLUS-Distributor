@@ -1163,7 +1163,8 @@ const sales = {
 
       // Track balance per customer
       if (item.customer_id) {
-        customerBalances[item.customer_id] = (customerBalances[item.customer_id] || 0) + lineBalance;
+        customerBalances[item.customer_id] =
+          (customerBalances[item.customer_id] || 0) + lineBalance;
       }
     }
 
@@ -1214,7 +1215,8 @@ const sales = {
       if (item.customer_id) {
         const lineAmount = (item.amount || 0) + (item.fare_charges || 0) + (item.ice_charges || 0);
         const lineBalance = lineAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
-        oldCustomerBalances[item.customer_id] = (oldCustomerBalances[item.customer_id] || 0) + lineBalance;
+        oldCustomerBalances[item.customer_id] =
+          (oldCustomerBalances[item.customer_id] || 0) + lineBalance;
       }
     }
     for (const [custId, balance] of Object.entries(oldCustomerBalances)) {
@@ -1323,7 +1325,8 @@ const sales = {
 
       // Track balance per customer
       if (item.customer_id) {
-        newCustomerBalances[item.customer_id] = (newCustomerBalances[item.customer_id] || 0) + lineBalance;
+        newCustomerBalances[item.customer_id] =
+          (newCustomerBalances[item.customer_id] || 0) + lineBalance;
       }
     }
 
@@ -1361,7 +1364,8 @@ const sales = {
       if (item.customer_id) {
         const lineAmount = (item.amount || 0) + (item.fare_charges || 0) + (item.ice_charges || 0);
         const lineBalance = lineAmount - (item.cash_amount || 0) - (item.receipt_amount || 0);
-        customerBalances[item.customer_id] = (customerBalances[item.customer_id] || 0) + lineBalance;
+        customerBalances[item.customer_id] =
+          (customerBalances[item.customer_id] || 0) + lineBalance;
       }
     }
     for (const [custId, balance] of Object.entries(customerBalances)) {

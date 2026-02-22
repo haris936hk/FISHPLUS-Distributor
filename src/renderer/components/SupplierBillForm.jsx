@@ -101,7 +101,8 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
     if (dateFrom > dateTo) {
       notifications.show({
         title: 'توثیق کی خرابی / Validation Error',
-        message: 'شروع کی تاریخ ختم ہونے کی تاریخ سے بعد نہیں ہو سکتی / Start date cannot be after end date',
+        message:
+          'شروع کی تاریخ ختم ہونے کی تاریخ سے بعد نہیں ہو سکتی / Start date cannot be after end date',
         color: 'red',
       });
       return;
@@ -133,7 +134,8 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
         if (data.items.length === 0) {
           notifications.show({
             title: 'کوئی ڈیٹا نہیں / No Data',
-            message: 'منتخب تاریخوں میں اس بیوپاری کا کوئی ڈیٹا نہیں ملا / No sales found for this supplier in the selected date range',
+            message:
+              'منتخب تاریخوں میں اس بیوپاری کا کوئی ڈیٹا نہیں ملا / No sales found for this supplier in the selected date range',
             color: 'yellow',
           });
         }

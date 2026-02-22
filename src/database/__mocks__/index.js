@@ -7,9 +7,9 @@ export const initialize = vi.fn();
 export const close = vi.fn();
 
 export default {
-    query,
-    execute,
-    transaction,
-    initialize,
-    close,
+  query,
+  execute,
+  transaction,
+  initialize,
+  close,
 };

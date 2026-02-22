@@ -12,8 +12,5 @@ export default {
   },
   externals: {
     'better-sqlite3': 'commonjs better-sqlite3',
-    'jsreport-core': 'commonjs jsreport-core',
-    '@jsreport/jsreport-chrome-pdf': 'commonjs @jsreport/jsreport-chrome-pdf',
-    '@jsreport/jsreport-handlebars': 'commonjs @jsreport/jsreport-handlebars',
   },
 };

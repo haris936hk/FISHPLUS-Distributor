@@ -60,7 +60,12 @@ function Customers({ onBack }) {
               </Text>
             </Stack>
             <Group>
-              <Button variant="white" color="teal" onClick={handleAdd} leftSection={<span>➕</span>}>
+              <Button
+                variant="white"
+                color="teal"
+                onClick={handleAdd}
+                leftSection={<span>➕</span>}
+              >
                 {t('customer.addNew')}
               </Button>
               <Button variant="light" color="gray" onClick={onBack} leftSection={<span>🏠</span>}>

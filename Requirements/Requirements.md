@@ -236,8 +236,7 @@ This document details the functional requirements for a comprehensive fish tradi
 
 #### E. Business Rules
 
-**FR-SUP-029:** The system shall store all supplier data in a centralized supplier master table.
----
+## **FR-SUP-029:** The system shall store all supplier data in a centralized supplier master table.
 
 ### 2.2 Supplier Search Screen (Screenshot 3)
 
@@ -780,6 +779,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-SALE-045:** [Inferred] The system shall remove deleted line items from the transaction when save is executed.
 
 **FR-SALE-046:** [Inferred] The system shall display a success message after successfully saving a sale.
+
 #### F. Business Rules
 
 **FR-SALE-050:** The system shall default sale date to the current system date.
@@ -892,6 +892,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-SALESEARCH-026:** [Inferred] The system shall limit search results to a maximum number of records per page.
 
 #### E. Business Rules
+
 **FR-SALESEARCH-028:** The system shall support batch printing of client transaction slips.
 
 ---
@@ -1024,6 +1025,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-PURCH-037:** The system shall clear all fields when "New" is clicked.
 
 **FR-PURCH-038:** [Inferred] The system shall generate a printable purchase receipt when "Print" is clicked.
+
 #### F. Business Rules
 
 **FR-PURCH-041:** The system shall default purchase date to current system date.
@@ -1131,7 +1133,9 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-PURCHSEARCH-022:** The system shall refresh the grid after a purchase is deleted.
 
 **FR-PURCHSEARCH-023:** [Inferred] The system shall apply active filters in combination (AND logic).
+
 #### F. Business Rules
+
 **FR-PURCHSEARCH-027:** [Inferred] The system shall reverse inventory and account updates when a purchase is deleted.
 
 ---
@@ -1239,6 +1243,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CLIENTRPT-022:** The system shall group transactions by client when reporting for all clients.
 
 **FR-CLIENTRPT-023:** [Inferred] The system shall display subtotals for each client in multi-client reports.
+
 #### F. Business Rules
 
 **FR-CLIENTRPT-025:** The system shall use the same calculation logic as individual sale transactions.
@@ -1318,6 +1323,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-ITEMRPT-014:** The system shall display the report preview after clicking "Go".
 
 **FR-ITEMRPT-015:** [Inferred] The system shall sort transactions by date in chronological order.
+
 #### F. Business Rules
 
 **FR-ITEMRPT-017:** The system shall include all sale transactions regardless of payment status.
@@ -1408,6 +1414,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-DAILYRPT-018:** The system shall calculate net balance as (net amount - cash - collections - concessions).
 
 **FR-DAILYRPT-019:** The system shall display the report preview after clicking "Go".
+
 #### F. Business Rules
 
 **FR-DAILYRPT-021:** The system shall include all transactions within the date range regardless of status.
@@ -1493,6 +1500,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-LEDGER-019:** The system shall display page count and current page number.
 
 **FR-LEDGER-020:** The system shall support zoom functionality for report preview.
+
 #### F. Business Rules
 
 **FR-LEDGER-023:** [Inferred] The system shall classify transactions as debits (sales, advances from customer) or credits (payments, returns).
@@ -1566,6 +1574,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-ITEMPURCHRPT-012:** [Inferred] The system shall calculate average purchase rate.
 
 **FR-ITEMPURCHRPT-013:** The system shall display the report preview after clicking "Go".
+
 #### F. Business Rules
 
 **FR-ITEMPURCHRPT-015:** The system shall include all purchase transactions regardless of payment status.
@@ -1644,7 +1653,9 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-STOCKRPT-014:** The system shall display the report preview after clicking "Go".
 
 **FR-STOCKRPT-015:** [Inferred] The system shall list items even if stock is zero for completeness.
+
 #### F. Business Rules
+
 **FR-STOCKRPT-019:** The system shall support weight-based inventory tracking (not unit-based).
 
 ---
@@ -1722,7 +1733,9 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CUSTREG-014:** The system shall display the report preview after clicking "Go".
 
 **FR-CUSTREG-015:** [Inferred] The system shall list all active customers regardless of balance.
+
 #### F. Business Rules
+
 **FR-CUSTREG-018:** [Inferred] The system shall highlight customers with outstanding balances.
 
 **FR-CUSTREG-019:** The system shall support both Urdu names and English codes for customer identification.
@@ -1797,6 +1810,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-CONCESSIONRPT-013:** [Inferred] The system shall exclude transactions with zero concession.
 
 **FR-CONCESSIONRPT-014:** [Inferred] The system shall group by client when reporting for all clients.
+
 #### F. Business Rules
 
 **FR-CONCESSIONRPT-016:** The system shall include only sales transactions (not purchases) in the concession report.
@@ -1866,6 +1880,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-DAILYDETAIL-010:** The system shall calculate total sales for the day.
 
 **FR-DAILYDETAIL-011:** The system shall display the report preview after clicking "Go".
+
 #### F. Business Rules
 
 **FR-DAILYDETAIL-013:** The system shall include all sales transactions for the specified date.
@@ -1952,6 +1967,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-VENDORSALES-016:** The system shall calculate grand totals across all suppliers.
 
 **FR-VENDORSALES-017:** The system shall display the report preview after clicking "Go".
+
 #### F. Business Rules
 
 **FR-VENDORSALES-019:** The system shall link sales transactions back to their original purchase source (supplier traceability).
@@ -2033,6 +2049,7 @@ This document details the functional requirements for a comprehensive fish tradi
 **FR-NETSUMMARY-016:** The system shall display the report preview after clicking "Go".
 
 **FR-NETSUMMARY-017:** The system shall format large currency values with thousand separators.
+
 #### F. Business Rules
 
 **FR-NETSUMMARY-019:** The system shall provide a single-view snapshot of the entire receivables position.
@@ -2175,7 +2192,6 @@ This document details the functional requirements for a comprehensive fish tradi
 
 **FR-ADMIN-002:** [Inferred] The system shall provide backup and restore functionality.
 
-
 **FR-ADMIN-004:** [Inferred] The system shall provide database maintenance utilities.
 
 **FR-ADMIN-005:** [Inferred] The system shall support configuration of business rules (e.g., tax rates, default values).
@@ -2286,8 +2302,7 @@ Country (1) ───────┬───── (M) Supplier
 Current Stock = Opening Stock + Total Purchases - Total Sales
 ```
 
-**FR-DATAMODEL-002:** The system shall track stock per item using weight (kg) as the unit of measure.
----
+## **FR-DATAMODEL-002:** The system shall track stock per item using weight (kg) as the unit of measure.
 
 ## 12. ADDITIONAL INFERRED REQUIREMENTS
 
@@ -2318,7 +2333,6 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 **FR-BACKUP-001:** [Inferred] The system shall support database backup functionality.
 
 **FR-BACKUP-002:** [Inferred] The system shall support database restore functionality.
-
 
 ### 12.4 Year-End Processing
 
@@ -2354,7 +2368,7 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 | 18           | 10.21.48 PM | Customer Register Report         | Section 8.7       |
 | 19           | 10.22.03 PM | Client Sales Discount Report     | Section 8.8       |
 | 20           | 10.22.19 PM | Daily Sales Details Report       | Section 8.9       |
-| 21           | 10.22.35 PM | Supplier Sales Report              | Section 8.10      |
+| 21           | 10.22.35 PM | Supplier Sales Report            | Section 8.10      |
 | 22           | 10.23.07 PM | Daily Net Amount Summary         | Section 8.11      |
 
 ---
@@ -2400,12 +2414,11 @@ Current Stock = Opening Stock + Total Purchases - Total Sales
 - Supplier sales analysis
 - Profit margin calculations
 
-
 ### 14.3 Document Revision History
 
-| Version | Date       | Author       | Changes                                                                                                               |
-| ------- | ---------- | ------------ | --------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-02-04 | BA Team      | Initial extraction from screenshots                                                                                   |
+| Version | Date       | Author       | Changes                                                                                                                 |
+| ------- | ---------- | ------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-02-04 | BA Team      | Initial extraction from screenshots                                                                                     |
 | 1.1     | 2026-02-06 | AI Assistant | Added Supplier Sales Report, Daily Net Amount Summary, Data Model, Additional Inferred Requirements, Screenshot Mapping |
 
 ---

@@ -21,32 +21,25 @@ const contextBridge = { exposeInMainWorld };
 
 // BrowserWindow mock needs to be a class-like function
 const BrowserWindow = vi.fn(() => ({
-    loadURL: vi.fn(),
-    webContents: {
-        print: vi.fn(),
-        printToPDF: vi.fn(),
-    },
-    on: vi.fn(),
-    destroy: vi.fn(),
-    show: vi.fn(),
-    isDestroyed: vi.fn(() => false),
+  loadURL: vi.fn(),
+  webContents: {
+    print: vi.fn(),
+    printToPDF: vi.fn(),
+  },
+  on: vi.fn(),
+  destroy: vi.fn(),
+  show: vi.fn(),
+  isDestroyed: vi.fn(() => false),
 }));
 // Export named exports for ESM
-export {
-    ipcMain,
-    ipcRenderer,
-    app,
-    dialog,
-    BrowserWindow,
-    contextBridge,
-};
+export { ipcMain, ipcRenderer, app, dialog, BrowserWindow, contextBridge };
 
 // Default export
 export default {
-    ipcMain,
-    ipcRenderer,
-    app,
-    dialog,
-    BrowserWindow,
-    contextBridge,
+  ipcMain,
+  ipcRenderer,
+  app,
+  dialog,
+  BrowserWindow,
+  contextBridge,
 };

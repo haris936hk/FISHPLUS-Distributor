@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Stack, Grid, Button, Table, LoadingOverlay, Text, ScrollArea } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
@@ -53,6 +53,71 @@ export function StockReport() {
     }
   }, [asOfDate]);
 
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData || reportData.items.length === 0) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const rows = reportData.items
+      .map(
+        (item, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td style="text-align: right;">${item.item_name}</td>
+        <td class="amount-cell">${fmt(item.previous_stock)}</td>
+        <td class="amount-cell">${fmt(item.today_purchases)}</td>
+        <td class="amount-cell">${fmt(item.today_sales)}</td>
+        <td class="amount-cell" style="color: ${item.remaining_stock < 0 ? 'red' : 'black'}; font-weight: ${item.remaining_stock < 0 ? 'bold' : 'normal'};">
+          ${fmt(item.remaining_stock)}
+        </td>
+      </tr>
+    `
+      )
+      .join('');
+
+    return `
+      <style>
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
+        .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
+        .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
+        .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
+      </style>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="6" class="section-header">سٹاک رپورٹ / Stock Report</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="text-align: right;">آئٹم / Item Name</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">سابقہ سٹاک / Previous Stock</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">آج کی خریداری / Today Pur.</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">آج کی بکری / Today Sale</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">بقیہ سٹاک / Rem. Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="2" style="text-align: left;">Total / کل</td>
+            <td class="amount-cell">${fmt(reportData.totals.previous_stock)}</td>
+            <td class="amount-cell">${fmt(reportData.totals.today_purchases)}</td>
+            <td class="amount-cell">${fmt(reportData.totals.today_sales)}</td>
+            <td class="amount-cell">${fmt(reportData.totals.remaining_stock)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData]);
+
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -76,7 +141,12 @@ export function StockReport() {
 
       {/* Report Display */}
       {reportData && (
-        <ReportViewer title="Stock Report" titleUrdu="سٹاک رپورٹ" singleDate={formatDate(asOfDate)}>
+        <ReportViewer
+          title="Stock Report"
+          titleUrdu="سٹاک رپورٹ"
+          singleDate={formatDate(asOfDate)}
+          printContentHTML={printContentHTML}
+        >
           <ScrollArea>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>

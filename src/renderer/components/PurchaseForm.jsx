@@ -298,7 +298,11 @@ function PurchaseForm({ editPurchase, onSaved, onCancel }) {
       });
     } catch (error) {
       console.error('Print error:', error);
-      notifications.show({ title: 'Print Error', message: 'Failed to open print preview', color: 'red' });
+      notifications.show({
+        title: 'Print Error',
+        message: 'Failed to open print preview',
+        color: 'red',
+      });
     }
   }, [
     suppliers,

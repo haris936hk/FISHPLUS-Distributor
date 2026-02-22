@@ -9,7 +9,6 @@ import {
   Stack,
   Text,
   SimpleGrid,
-
   LoadingOverlay,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
@@ -200,7 +199,8 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
 
     // At least one contact method
     if (!formData.phone && !formData.mobile && !formData.email) {
-      newErrors.contact = 'کم از کم ایک رابطے کا طریقہ ضروری ہے / At least one contact method is required';
+      newErrors.contact =
+        'کم از کم ایک رابطے کا طریقہ ضروری ہے / At least one contact method is required';
     }
 
     setErrors(newErrors);
@@ -259,7 +259,8 @@ function SupplierForm({ opened, onClose, supplier = null, onSuccess }) {
     if (!validate()) {
       notifications.show({
         title: 'توثیق کی خرابی / Validation Error',
-        message: 'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
+        message:
+          'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
         color: 'red',
       });
       return;

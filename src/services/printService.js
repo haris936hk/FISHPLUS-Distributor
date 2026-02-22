@@ -70,10 +70,7 @@ async function printReport(mainWindow, htmlContent, options = {}) {
  * @returns {Promise<string>} Path to saved PDF file
  */
 async function exportToPDF(mainWindow, htmlContent, options = {}) {
-  const {
-    filename = 'report.pdf',
-    landscape = false,
-  } = options;
+  const { filename = 'report.pdf', landscape = false } = options;
 
   // Show save dialog
   const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
@@ -87,15 +84,10 @@ async function exportToPDF(mainWindow, htmlContent, options = {}) {
   }
 
   try {
-    // Render PDF using jsreport (chrome-pdf recipe)
+    // Render PDF using Electron's printToPDF with page numbers
     const pdfBuffer = await jsreportService.renderReport(htmlContent, {
       landscape,
-      format: 'A4',
       displayHeaderFooter: true,
-      marginTop: '15mm',
-      marginBottom: '20mm',
-      marginLeft: '15mm',
-      marginRight: '15mm',
     });
 
     // Save to file
@@ -385,54 +377,61 @@ function wrapInPrintHTML(bodyContent, options = {}) {
 }
 
 /**
- * Open a print preview window with Print/Cancel controls
+ * Open a print preview window using Electron's built-in PDF viewer.
+ * Guarantees exact parity with "Export to PDF" and hooks into native OS print dialogs perfectly.
  * @param {BrowserWindow} mainWindow - Main application window
  * @param {string} htmlContent - HTML content to preview
  * @param {Object} options - Preview options
  * @returns {Promise<void>}
  */
 async function printPreview(mainWindow, htmlContent, options = {}) {
-  const { width = 800, height = 600, title = 'Print Preview' } = options;
-
-  const previewWindow = new BrowserWindow({
-    parent: mainWindow,
-    width,
-    height,
-    title,
-    autoHideMenuBar: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-    },
-  });
-
-  // Add print/cancel buttons at the top of the HTML (using a fixed header)
-  const htmlWithControls = htmlContent.replace(
-    '</body>',
-    `<div style="position:fixed;top:0;left:0;right:0;background:#f8f9fa;padding:12px 20px;border-bottom:1px solid #dee2e6;z-index:9999;text-align:right;box-shadow: 0 2px 4px rgba(0,0,0,0.1);" class="no-print">
-      <span style="float:left;font-weight:bold;font-size:16px;margin-top:6px;color:#333;">🖨️ Print Preview</span>
-      <button onclick="window.print()" style="padding:8px 24px;margin-right:10px;cursor:pointer;background:#228be6;color:white;border:none;border-radius:4px;font-weight:600;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">Print</button>
-      <button onclick="window.close()" style="padding:8px 24px;cursor:pointer;background:#868e96;color:white;border:none;border-radius:4px;font-weight:600;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.2);">Close</button>
-    </div>
-    <style>@media print { .no-print { display: none !important; } body { padding-top: 0 !important; } }</style>
-    <div style="height:60px;"></div>
-    </body>`
-  );
+  const { width = 1000, height = 800, title = 'Print Preview', landscape = false } = options;
 
   try {
-    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(htmlWithControls)}`;
-    await previewWindow.loadURL(dataUrl);
-    previewWindow.show();
+    // 1. Render PDF buffer using jsreport (guarantees identical output to export)
+    const pdfBuffer = await jsreportService.renderReport(htmlContent, {
+      landscape,
+      displayHeaderFooter: true,
+    });
+
+    // 2. Save to a temporary file
+    const tempPath = path.join(app.getPath('temp'), `print_preview_${Date.now()}.pdf`);
+    fs.writeFileSync(tempPath, pdfBuffer);
+
+    // 3. Open a new visible BrowserWindow to show the PDF
+    const previewWindow = new BrowserWindow({
+      parent: mainWindow,
+      width,
+      height,
+      title,
+      autoHideMenuBar: true,
+      webPreferences: {
+        plugins: true, // Enables Chromium's built-in PDF viewer
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
+    });
+
+    previewWindow.setMenu(null);
+
+    // Clean up temporary file when window is closed
+    previewWindow.on('closed', () => {
+      try {
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      } catch (err) {
+        console.error('Failed to clean up temp PDF preview file:', err);
+      }
+    });
+
+    // 4. Load the PDF file directly
+    await previewWindow.loadFile(tempPath);
   } catch (error) {
     console.error('Print preview error:', error);
-    if (!previewWindow.isDestroyed()) {
-      previewWindow.destroy();
-    }
     throw error;
   }
 }
-
-
 
 export default {
   printReport,

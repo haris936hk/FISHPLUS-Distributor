@@ -1,4 +1,15 @@
-import { Card, Table, Text, Stack, ScrollArea, Loader, Center, Badge, Group, ThemeIcon } from '@mantine/core';
+import {
+  Card,
+  Table,
+  Text,
+  Stack,
+  ScrollArea,
+  Loader,
+  Center,
+  Badge,
+  Group,
+  ThemeIcon,
+} from '@mantine/core';
 import { IconPackage } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';

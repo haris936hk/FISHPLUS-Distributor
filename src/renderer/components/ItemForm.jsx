@@ -165,7 +165,8 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
     if (!validate()) {
       notifications.show({
         title: 'توثیق کی خرابی / Validation Error',
-        message: 'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
+        message:
+          'براہ کرم محفوظ کرنے سے پہلے غلطیاں درست کریں / Please fix the errors before saving',
         color: 'red',
       });
       return;

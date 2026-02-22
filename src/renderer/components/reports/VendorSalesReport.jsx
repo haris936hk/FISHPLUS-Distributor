@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -108,25 +108,27 @@ export function VendorSalesReport() {
   }, [selectedSupplier, dateFrom, dateTo, allVendors]);
 
   // Group transactions by vendor for display
-  const groupedByVendor = reportData
-    ? reportData.transactions.reduce((groups, txn) => {
-      const key = txn.supplier_id || 0;
-      if (!groups[key]) {
-        groups[key] = {
-          supplierName: txn.supplier_name || 'Unknown',
-          transactions: [],
-          totalWeight: 0,
-          totalAmount: 0,
-          vehicleNumbers: new Set(),
-        };
-      }
-      groups[key].transactions.push(txn);
-      groups[key].totalWeight += txn.weight || 0;
-      groups[key].totalAmount += txn.amount || 0;
-      if (txn.vehicle_number) groups[key].vehicleNumbers.add(txn.vehicle_number);
-      return groups;
-    }, {})
-    : {};
+  const groupedByVendor = useMemo(() => {
+    return reportData
+      ? reportData.transactions.reduce((groups, txn) => {
+          const key = txn.supplier_id || 0;
+          if (!groups[key]) {
+            groups[key] = {
+              supplierName: txn.supplier_name || 'Unknown',
+              transactions: [],
+              totalWeight: 0,
+              totalAmount: 0,
+              vehicleNumbers: new Set(),
+            };
+          }
+          groups[key].transactions.push(txn);
+          groups[key].totalWeight += txn.weight || 0;
+          groups[key].totalAmount += txn.amount || 0;
+          if (txn.vehicle_number) groups[key].vehicleNumbers.add(txn.vehicle_number);
+          return groups;
+        }, {})
+      : {};
+  }, [reportData]);
 
   // Grand totals
   const grandTotalWeight = reportData
@@ -139,6 +141,96 @@ export function VendorSalesReport() {
     (sum, g) => sum + g.vehicleNumbers.size,
     0
   );
+
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData || reportData.transactions.length === 0) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const fmtWeight = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+      });
+
+    let layoutHtml = '';
+
+    Object.values(groupedByVendor).forEach((group) => {
+      layoutHtml += `
+        <tr style="background-color: #f0f0f0; font-weight: bold;">
+          <td colspan="5" style="text-align: right; font-size: 14px;">بیوپاری: ${group.supplierName}</td>
+          <td colspan="2" style="text-align: left; font-size: 12px; direction: ltr;">Total Vehicles: ${group.vehicleNumbers.size}</td>
+        </tr>
+      `;
+
+      let lineNumber = 0;
+      group.transactions.forEach((row) => {
+        lineNumber++;
+        layoutHtml += `
+          <tr>
+            <td style="text-align: center;">${lineNumber}</td>
+            <td style="text-align: right;">${row.customer_name}</td>
+            <td style="text-align: right;">${row.item_name}</td>
+            <td style="text-align: right;">${row.vehicle_number || '-'}</td>
+            <td class="amount-cell">Rs. ${fmt(row.rate)}</td>
+            <td class="amount-cell">${fmtWeight(row.weight)}</td>
+            <td class="amount-cell">Rs. ${fmt(row.amount)}</td>
+          </tr>
+        `;
+      });
+
+      layoutHtml += `
+        <tr style="background-color: #e8e8e8; font-weight: bold; border-bottom: 2px solid #000;">
+          <td colspan="5" style="text-align: left;">ٹوٹل / Vendor Total:</td>
+          <td class="amount-cell">${fmtWeight(group.totalWeight)}</td>
+          <td class="amount-cell">Rs. ${fmt(group.totalAmount)}</td>
+        </tr>
+      `;
+    });
+
+    return `
+      <style>
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
+        .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
+        .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
+        .print-table .grand-total-row { background-color: #d0e0f0; font-weight: bold; font-size: 16px; border-top: 2px solid #000; }
+      </style>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="7" class="section-header">بیوپاری بکری / Vendor Sales Report</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="text-align: right;">گاہک / Customer</th>
+            <th style="text-align: right;">قسم / Item</th>
+            <th style="text-align: right;">گاڑی نمبر / Vehicle #</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">ریٹ / Rate</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">وزن / Weight</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">رقم / Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${layoutHtml}
+          <tr class="grand-total-row">
+            <td colspan="3" style="text-align: left;">Grand Total / مکمل ٹوٹل</td>
+            <td style="text-align: right;">Vehicles: ${grandTotalVehicles}</td>
+            <td></td>
+            <td class="amount-cell">${fmtWeight(grandTotalWeight)}</td>
+            <td class="amount-cell">Rs. ${fmt(grandTotalAmount)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData, groupedByVendor, grandTotalVehicles, grandTotalWeight, grandTotalAmount]);
 
   return (
     <Stack gap="md" pos="relative">
@@ -199,18 +291,46 @@ export function VendorSalesReport() {
           title="Vendor Sales Report"
           titleUrdu="بیوپاری بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
+          printContentHTML={printContentHTML}
         >
           <ScrollArea>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ textAlign: 'center' }}>نمبر<br />#</Table.Th>
-                  <Table.Th>گاہک<br />Customer</Table.Th>
-                  <Table.Th>قسم<br />Item</Table.Th>
-                  <Table.Th>گاڑی نمبر<br />Vehicle #</Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>ریٹ (kg)<br />Rate</Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>وزن (kg)<br />Weight</Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>رقم<br />Amount</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>
+                    نمبر
+                    <br />#
+                  </Table.Th>
+                  <Table.Th>
+                    گاہک
+                    <br />
+                    Customer
+                  </Table.Th>
+                  <Table.Th>
+                    قسم
+                    <br />
+                    Item
+                  </Table.Th>
+                  <Table.Th>
+                    گاڑی نمبر
+                    <br />
+                    Vehicle #
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>
+                    ریٹ (kg)
+                    <br />
+                    Rate
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>
+                    وزن (kg)
+                    <br />
+                    Weight
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>
+                    رقم
+                    <br />
+                    Amount
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>

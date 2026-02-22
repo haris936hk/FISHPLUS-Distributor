@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -99,6 +99,64 @@ export function ConcessionReport() {
     }
   }, [selectedCustomer, dateFrom, dateTo, allClients]);
 
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData || reportData.transactions.length === 0) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const rows = reportData.transactions
+      .map(
+        (row, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td style="text-align: right;">${row.customer_name}</td>
+        <td class="amount-cell" style="text-align: left;">${row.sale_number}</td>
+        <td class="amount-cell" style="text-align: left;">${new Date(row.sale_date).toLocaleDateString()}</td>
+        <td class="amount-cell">Rs. ${fmt(row.concession)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    return `
+      <style>
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
+        .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
+        .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
+        .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
+      </style>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="5" class="section-header">رعایت رپورٹ / Concession Report</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="text-align: right;">صارف / Customer</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">بل نمبر / Sale #</th>
+            <th style="width: 150px; text-align: left; direction: ltr;">تاریخ / Date</th>
+            <th style="width: 150px; text-align: left; direction: ltr;">رعایت / Concession Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="4" style="text-align: left;">Total Concession / کل رعایت</td>
+            <td class="amount-cell">Rs. ${fmt(reportData.totalConcession)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData]);
+
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -158,6 +216,7 @@ export function ConcessionReport() {
           title="Concession Report"
           titleUrdu="رعایت رپورٹ"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
+          printContentHTML={printContentHTML}
         >
           <ScrollArea>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

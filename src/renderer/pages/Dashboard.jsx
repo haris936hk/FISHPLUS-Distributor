@@ -91,8 +91,14 @@ StatCard.propTypes = {
  * Central navigation hub. Implements FR-DASH-001 through FR-DASH-027.
  */
 function Dashboard({ onNavigate, onToggleLanguage }) {
-  const { supplierAdvances, itemsStock, dashboardSummary, dashboardLoading, loadDashboardData, language } =
-    useStore();
+  const {
+    supplierAdvances,
+    itemsStock,
+    dashboardSummary,
+    dashboardLoading,
+    loadDashboardData,
+    language,
+  } = useStore();
   const { t } = useTranslation();
   const [autoRefresh, setAutoRefresh] = useState(true);
   const isUrdu = language === 'ur';
@@ -110,43 +116,132 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
     return () => window.clearInterval(interval);
   }, [autoRefresh, loadDashboardData]);
 
-  const handleNavigation = useCallback((moduleName) => {
-    notifications.show({
-      title: t('common.noDataFound'),
-      message: `${moduleName} module is not yet implemented.`,
-      color: 'blue',
-      autoClose: 3000,
-    });
-  }, [t]);
+  const handleNavigation = useCallback(
+    (moduleName) => {
+      notifications.show({
+        title: t('common.noDataFound'),
+        message: `${moduleName} module is not yet implemented.`,
+        color: 'blue',
+        autoClose: 3000,
+      });
+    },
+    [t]
+  );
 
   // Navigation button configuration — translated
   const adminButtons = [
-    { label: t('bill.title'), icon: <IconFileInvoice size={18} />, key: 'supplier-bill', navigate: 'supplier-bills' },
+    {
+      label: t('bill.title'),
+      icon: <IconFileInvoice size={18} />,
+      key: 'supplier-bill',
+      navigate: 'supplier-bills',
+    },
     { label: t('nav.items'), icon: <IconPackage size={18} />, key: 'item', navigate: 'item' },
   ];
 
   const transactionButtons = [
     { label: t('nav.sales'), icon: <IconCash size={18} />, key: 'sale', navigate: 'sales' },
-    { label: t('nav.purchases'), icon: <IconShoppingCart size={18} />, key: 'purchase', navigate: 'purchases' },
+    {
+      label: t('nav.purchases'),
+      icon: <IconShoppingCart size={18} />,
+      key: 'purchase',
+      navigate: 'purchases',
+    },
   ];
 
   const contactButtons = [
-    { label: t('nav.customers'), icon: <IconUsers size={18} />, key: 'customers', navigate: 'customers' },
-    { label: t('nav.suppliers'), icon: <IconTruck size={18} />, key: 'supplier', navigate: 'suppliers' },
+    {
+      label: t('nav.customers'),
+      icon: <IconUsers size={18} />,
+      key: 'customers',
+      navigate: 'customers',
+    },
+    {
+      label: t('nav.suppliers'),
+      icon: <IconTruck size={18} />,
+      key: 'supplier',
+      navigate: 'suppliers',
+    },
   ];
 
   const reportButtons = [
-    { label: t('report.customerLedger'), icon: <IconNotebook size={18} />, key: 'ledger', navigate: 'reports', tab: 'ledger' },
-    { label: t('report.vendorSales'), icon: <IconChartBar size={18} />, key: 'vendor-sales', navigate: 'reports', tab: 'vendor-sales' },
-    { label: isUrdu ? 'مال خریداری' : 'Item Purchase', icon: <IconReportAnalytics size={18} />, key: 'item-wise-purchase', navigate: 'reports', tab: 'item-purchase' },
-    { label: t('report.stockReport'), icon: <IconTrendingUp size={18} />, key: 'stock-report', navigate: 'reports', tab: 'stock' },
-    { label: isUrdu ? 'گاہک رجسٹر' : 'Customer Register', icon: <IconClipboardList size={18} />, key: 'customer-register', navigate: 'reports', tab: 'customer-register' },
-    { label: isUrdu ? 'گاہک بکری' : 'Customer Recovery', icon: <IconReceipt size={18} />, key: 'client-sales', navigate: 'reports', tab: 'client-recovery' },
-    { label: isUrdu ? 'روزانہ تفصیل' : 'Daily Details', icon: <IconCalendar size={18} />, key: 'daily-sales-details', navigate: 'reports', tab: 'daily-details' },
-    { label: isUrdu ? 'روزانہ بکری' : 'Daily Sales', icon: <IconCalendarStats size={18} />, key: 'daily-sales', navigate: 'reports', tab: 'daily-sales' },
-    { label: isUrdu ? 'مال بکری' : 'Item Sales', icon: <IconFish size={18} />, key: 'item-sale', navigate: 'reports', tab: 'item-sale' },
-    { label: isUrdu ? 'رعایت' : 'Concessions', icon: <IconDiscount2 size={18} />, key: 'concession', navigate: 'reports', tab: 'concession' },
-    { label: t('report.netSummary'), icon: <IconCoins size={18} />, key: 'net-summary', navigate: 'reports', tab: 'net-summary' },
+    {
+      label: t('report.customerLedger'),
+      icon: <IconNotebook size={18} />,
+      key: 'ledger',
+      navigate: 'reports',
+      tab: 'ledger',
+    },
+    {
+      label: t('report.vendorSales'),
+      icon: <IconChartBar size={18} />,
+      key: 'vendor-sales',
+      navigate: 'reports',
+      tab: 'vendor-sales',
+    },
+    {
+      label: isUrdu ? 'مال خریداری' : 'Item Purchase',
+      icon: <IconReportAnalytics size={18} />,
+      key: 'item-wise-purchase',
+      navigate: 'reports',
+      tab: 'item-purchase',
+    },
+    {
+      label: t('report.stockReport'),
+      icon: <IconTrendingUp size={18} />,
+      key: 'stock-report',
+      navigate: 'reports',
+      tab: 'stock',
+    },
+    {
+      label: isUrdu ? 'گاہک رجسٹر' : 'Customer Register',
+      icon: <IconClipboardList size={18} />,
+      key: 'customer-register',
+      navigate: 'reports',
+      tab: 'customer-register',
+    },
+    {
+      label: isUrdu ? 'گاہک بکری' : 'Customer Recovery',
+      icon: <IconReceipt size={18} />,
+      key: 'client-sales',
+      navigate: 'reports',
+      tab: 'client-recovery',
+    },
+    {
+      label: isUrdu ? 'روزانہ تفصیل' : 'Daily Details',
+      icon: <IconCalendar size={18} />,
+      key: 'daily-sales-details',
+      navigate: 'reports',
+      tab: 'daily-details',
+    },
+    {
+      label: isUrdu ? 'روزانہ بکری' : 'Daily Sales',
+      icon: <IconCalendarStats size={18} />,
+      key: 'daily-sales',
+      navigate: 'reports',
+      tab: 'daily-sales',
+    },
+    {
+      label: isUrdu ? 'مال بکری' : 'Item Sales',
+      icon: <IconFish size={18} />,
+      key: 'item-sale',
+      navigate: 'reports',
+      tab: 'item-sale',
+    },
+    {
+      label: isUrdu ? 'رعایت' : 'Concessions',
+      icon: <IconDiscount2 size={18} />,
+      key: 'concession',
+      navigate: 'reports',
+      tab: 'concession',
+    },
+    {
+      label: t('report.netSummary'),
+      icon: <IconCoins size={18} />,
+      key: 'net-summary',
+      navigate: 'reports',
+      tab: 'net-summary',
+    },
   ];
 
   // Section header component
@@ -229,7 +324,17 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                   <IconRefresh size={16} color="rgba(255,255,255,0.6)" />
                 </ActionIcon>
               </Tooltip>
-              <Tooltip label={autoRefresh ? (isUrdu ? 'خود کار تازہ چالو (60 سیکنڈ)' : 'Auto-refresh ON (60s)') : (isUrdu ? 'خود کار تازہ بند' : 'Auto-refresh OFF')}>
+              <Tooltip
+                label={
+                  autoRefresh
+                    ? isUrdu
+                      ? 'خود کار تازہ چالو (60 سیکنڈ)'
+                      : 'Auto-refresh ON (60s)'
+                    : isUrdu
+                      ? 'خود کار تازہ بند'
+                      : 'Auto-refresh OFF'
+                }
+              >
                 <ActionIcon
                   variant={autoRefresh ? 'filled' : 'subtle'}
                   color={autoRefresh ? 'teal' : 'gray'}
@@ -266,7 +371,11 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {/* Administration */}
                 <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
-                  <SectionHeader icon={IconFolder} label={isUrdu ? 'انتظامیہ' : 'Administration'} color="blue" />
+                  <SectionHeader
+                    icon={IconFolder}
+                    label={isUrdu ? 'انتظامیہ' : 'Administration'}
+                    color="blue"
+                  />
                   <Stack gap="xs">
                     {adminButtons.map((btn) => (
                       <DashboardButton
@@ -274,7 +383,11 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                         label={btn.label}
                         icon={btn.icon}
                         variant="administration"
-                        onClick={() => btn.navigate ? onNavigate?.(btn.navigate, { tab: btn.tab }) : handleNavigation(btn.label)}
+                        onClick={() =>
+                          btn.navigate
+                            ? onNavigate?.(btn.navigate, { tab: btn.tab })
+                            : handleNavigation(btn.label)
+                        }
                       />
                     ))}
                   </Stack>
@@ -282,7 +395,11 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
 
                 {/* Transactions */}
                 <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
-                  <SectionHeader icon={IconArrowsExchange} label={isUrdu ? 'لین دین' : 'Transactions'} color="teal" />
+                  <SectionHeader
+                    icon={IconArrowsExchange}
+                    label={isUrdu ? 'لین دین' : 'Transactions'}
+                    color="teal"
+                  />
                   <Stack gap="xs">
                     {transactionButtons.map((btn) => (
                       <DashboardButton
@@ -290,7 +407,9 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                         label={btn.label}
                         icon={btn.icon}
                         variant="transaction"
-                        onClick={() => btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)}
+                        onClick={() =>
+                          btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)
+                        }
                       />
                     ))}
                   </Stack>
@@ -299,7 +418,11 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
 
               {/* Row 2: Contacts */}
               <Card shadow="xs" padding="md" radius="md" style={{ background: '#ffffff' }}>
-                <SectionHeader icon={IconAddressBook} label={isUrdu ? 'رابطہ کار' : 'Contacts'} color="violet" />
+                <SectionHeader
+                  icon={IconAddressBook}
+                  label={isUrdu ? 'رابطہ کار' : 'Contacts'}
+                  color="violet"
+                />
                 <SimpleGrid cols={2} spacing="xs">
                   {contactButtons.map((btn) => (
                     <DashboardButton
@@ -307,7 +430,9 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                       label={btn.label}
                       icon={btn.icon}
                       variant="user"
-                      onClick={() => btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)}
+                      onClick={() =>
+                        btn.navigate ? onNavigate?.(btn.navigate) : handleNavigation(btn.label)
+                      }
                     />
                   ))}
                 </SimpleGrid>
@@ -323,7 +448,11 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
                       label={btn.label}
                       icon={btn.icon}
                       variant="report"
-                      onClick={() => btn.navigate ? onNavigate?.(btn.navigate, { tab: btn.tab }) : handleNavigation(btn.label)}
+                      onClick={() =>
+                        btn.navigate
+                          ? onNavigate?.(btn.navigate, { tab: btn.tab })
+                          : handleNavigation(btn.label)
+                      }
                     />
                   ))}
                 </SimpleGrid>
@@ -335,7 +464,13 @@ function Dashboard({ onNavigate, onToggleLanguage }) {
           <div style={{ flex: '0 0 320px', minWidth: '280px' }}>
             <Stack gap="md">
               {dashboardLoading ? (
-                <Card shadow="xs" padding="xl" radius="md" h={400} style={{ background: '#ffffff' }}>
+                <Card
+                  shadow="xs"
+                  padding="xl"
+                  radius="md"
+                  h={400}
+                  style={{ background: '#ffffff' }}
+                >
                   <Center h="100%">
                     <Loader size="lg" />
                   </Center>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -65,6 +65,93 @@ export function DailySalesReport() {
     }
   }, [dateFrom, dateTo]);
 
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData || reportData.byItem.length === 0) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const rows = reportData.byItem
+      .map(
+        (row, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td style="text-align: right;">${row.item_name}</td>
+        <td class="amount-cell">${fmt(row.total_weight)}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_amount)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    return `
+      <style>
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
+        .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
+        .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
+        .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; direction: rtl; }
+        .summary-box { border: 1px solid #ccc; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 4px; }
+        .summary-label { font-size: 12px; color: #555; margin-bottom: 5px; }
+        .summary-value { font-size: 16px; font-weight: bold; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; }
+      </style>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="4" class="section-header">امروزہ بکری / Daily Sales Report</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="text-align: right;">آئٹم / Item Name</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">کل وزن / Total Weight</th>
+            <th style="width: 150px; text-align: left; direction: ltr;">کل رقم / Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-label">Gross Amount / کل رقم</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.gross_amount)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Charges / اخراجات</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.total_charges)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Net Amount / خالص رقم</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.net_amount)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Cash Received / نقد وصولی</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.cash_received)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Collection / کل وصولی</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.total_collection)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Discount / رعایت</div>
+          <div class="summary-value">Rs. ${fmt(reportData.totals.total_discount)}</div>
+        </div>
+        <div class="summary-box" style="grid-column: span 2;">
+          <div class="summary-label">Balance / بقایا</div>
+          <div class="summary-value" style="color: ${reportData.totals.total_balance > 0 ? 'red' : 'green'};">Rs. ${fmt(reportData.totals.total_balance)}</div>
+        </div>
+      </div>
+    `;
+  }, [reportData]);
+
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -101,6 +188,7 @@ export function DailySalesReport() {
           title="Daily Sales Report"
           titleUrdu="امروزہ بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
+          printContentHTML={printContentHTML}
         >
           <ScrollArea>
             {/* Sales by Item Type */}

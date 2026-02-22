@@ -1,4 +1,6 @@
-# CLAUDE.md
+---
+trigger: always_on
+---
 
 > Persistent project memory for AI assistants working on FISHPLUS-Distributor.
 

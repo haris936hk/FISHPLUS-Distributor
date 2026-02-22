@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -106,14 +106,92 @@ export function LedgerReport() {
   }, [selectedAccount, accountType, dateFrom, dateTo]);
 
   // Calculate running balance
-  const getTransactionsWithBalance = () => {
+  const getTransactionsWithBalance = useCallback(() => {
     if (!reportData) return [];
     let balance = reportData.openingBalance;
     return reportData.transactions.map((txn) => {
       balance = balance + (txn.debit || 0) - (txn.credit || 0);
       return { ...txn, balance };
     });
-  };
+  }, [reportData]);
+
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const txnsWithBalance = getTransactionsWithBalance();
+
+    const rows = txnsWithBalance
+      .map(
+        (txn, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td class="amount-cell" style="text-align: left;">${new Date(txn.date).toLocaleDateString()}</td>
+        <td class="amount-cell" style="text-align: left;">${txn.reference || '-'}</td>
+        <td style="text-align: right;">${txn.description || '-'}</td>
+        <td class="amount-cell">${txn.debit > 0 ? fmt(txn.debit) : '-'}</td>
+        <td class="amount-cell">${txn.credit > 0 ? fmt(txn.credit) : '-'}</td>
+        <td class="amount-cell">Rs. ${fmt(txn.balance)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    const totalDebit = reportData.transactions.reduce((sum, t) => sum + (t.debit || 0), 0);
+    const totalCredit = reportData.transactions.reduce((sum, t) => sum + (t.credit || 0), 0);
+    const finalBalance =
+      txnsWithBalance.length > 0
+        ? txnsWithBalance[txnsWithBalance.length - 1].balance
+        : reportData.openingBalance;
+
+    return `
+      <style>
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
+        .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
+        .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
+        .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
+        .balance-info { padding: 10px; margin-bottom: 15px; border: 1px solid #000; direction: rtl; background-color: #fafafa; font-weight: bold; font-size: 15px; text-align: right; }
+      </style>
+
+      <div class="balance-info">
+        سابقہ بقایا / Opening Balance: <span class="amount-cell" style="display:inline-block; margin-right: 10px;">Rs. ${fmt(reportData.openingBalance)}</span>
+      </div>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="7" class="section-header">کھاتہ / Ledger Report</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">تاریخ / Date</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">حوالہ / Reference</th>
+            <th style="text-align: right;">تفصیل / Description</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">بنام / Debit</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">جمع / Credit</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">بقایا / Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="4" style="text-align: left;">Total / کل</td>
+            <td class="amount-cell">${fmt(totalDebit)}</td>
+            <td class="amount-cell">${fmt(totalCredit)}</td>
+            <td class="amount-cell">Rs. ${fmt(finalBalance)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData, getTransactionsWithBalance]);
 
   return (
     <Stack gap="md" pos="relative">
@@ -174,6 +252,7 @@ export function LedgerReport() {
           title="Ledger Report"
           titleUrdu="کھاتہ"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
+          printContentHTML={printContentHTML}
         >
           <ScrollArea>
             {/* Opening Balance */}
@@ -235,7 +314,7 @@ export function LedgerReport() {
                     <strong>
                       {formatNumber(
                         getTransactionsWithBalance().slice(-1)[0]?.balance ||
-                        reportData.openingBalance
+                          reportData.openingBalance
                       )}
                     </strong>
                   </Table.Td>

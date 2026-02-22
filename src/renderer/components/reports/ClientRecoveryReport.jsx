@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Stack,
   Grid,
@@ -99,6 +99,110 @@ export function ClientRecoveryReport() {
     }
   }, [selectedCustomer, dateFrom, dateTo, allClients]);
 
+  // ——— Professional Urdu-only print layout ———
+  const printContentHTML = useMemo(() => {
+    if (!reportData || reportData.summary.length === 0) return null;
+
+    const fmt = (num) =>
+      (num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+    const totalAmount = reportData.summary.reduce((sum, r) => sum + (r.total_amount || 0), 0);
+    const totalCharges = reportData.summary.reduce((sum, r) => sum + (r.total_charges || 0), 0);
+    const totalCollection = reportData.summary.reduce(
+      (sum, r) => sum + (r.total_collection || 0),
+      0
+    );
+    const totalDiscount = reportData.summary.reduce((sum, r) => sum + (r.total_discount || 0), 0);
+    const totalBalance = reportData.summary.reduce((sum, r) => sum + (r.total_balance || 0), 0);
+
+    const rows = reportData.summary
+      .map(
+        (row, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td style="text-align: right;">${row.customer_name}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_amount)}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_charges)}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_collection)}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_discount)}</td>
+        <td class="amount-cell">Rs. ${fmt(row.total_balance)}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    return `
+      <style>
+        .print-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 14px 0;
+          direction: rtl;
+        }
+        .print-table th,
+        .print-table td {
+          border: 1px solid #000;
+          padding: 8px 14px;
+          font-size: 14px;
+          text-align: right;
+        }
+        .print-table th {
+          background-color: #e8e8e8;
+          font-weight: bold;
+          font-size: 13px;
+        }
+        .print-table .section-header {
+          background-color: #f5f5f5;
+          font-weight: bold;
+          font-size: 14px;
+          text-align: center;
+        }
+        .print-table .amount-cell {
+          text-align: left;
+          direction: ltr;
+          font-family: 'Segoe UI', Tahoma, sans-serif;
+          white-space: nowrap;
+        }
+        .print-table .total-row {
+          background-color: #f0f0f0;
+          font-weight: bold;
+          font-size: 15px;
+        }
+      </style>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th colspan="7" class="section-header">کلائنٹ بکری تفصیلات / Client Recovery Details</th>
+          </tr>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th style="text-align: right;">صارف کا نام / Customer Name</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">کل رقم / Total Amount</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">اخراجات / Charges</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">وصولی / Collection</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">رعایت / Discount</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">بقایا / Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="total-row">
+            <td colspan="2" style="text-align: left;">Grand Total / کل</td>
+            <td class="amount-cell">Rs. ${fmt(totalAmount)}</td>
+            <td class="amount-cell">Rs. ${fmt(totalCharges)}</td>
+            <td class="amount-cell">Rs. ${fmt(totalCollection)}</td>
+            <td class="amount-cell">Rs. ${fmt(totalDiscount)}</td>
+            <td class="amount-cell">Rs. ${fmt(totalBalance)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }, [reportData]);
+
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
@@ -158,6 +262,7 @@ export function ClientRecoveryReport() {
           title="Customer Recovery Report"
           titleUrdu="کلائنٹ بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
+          printContentHTML={printContentHTML}
         >
           <ScrollArea>
             {/* Summary Table */}

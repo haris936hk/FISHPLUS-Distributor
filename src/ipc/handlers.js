@@ -887,5 +887,3 @@ export function registerHandlers() {
     }
   });
 }
-
-
