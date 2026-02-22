@@ -4,15 +4,34 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Stock Report (سٹاک رپورٹ)
  * Shows stock levels for all items as of a specific date
  */
 export function StockReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [asOfDate, setAsOfDate] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      asOfDate: isUr ? 'تاریخ تک' : 'As of Date',
+      go: isUr ? 'تلاش' : 'Go',
+      reportTitle: isUr ? 'سٹاک رپورٹ' : 'Stock Report',
+      item: isUr ? 'آئٹم' : 'Item Name',
+      prevStock: isUr ? 'سابقہ سٹاک' : 'Previous Stock',
+      todayPurchase: isUr ? 'آج کی خریداری' : 'Today Purchase',
+      todaySale: isUr ? 'آج کی بکری' : 'Today Sale',
+      remStock: isUr ? 'بقیہ سٹاک' : 'Remaining Stock',
+      total: isUr ? 'کل' : 'Total',
+      noRecords: isUr ? 'کوئی آئٹم نہیں ملا' : 'No items found',
+    }),
+    [isUr]
+  );
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
@@ -68,7 +87,7 @@ export function StockReport() {
         (item, index) => `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
-        <td style="text-align: right;">${item.item_name}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${item.item_name}</td>
         <td class="amount-cell">${fmt(item.previous_stock)}</td>
         <td class="amount-cell">${fmt(item.today_purchases)}</td>
         <td class="amount-cell">${fmt(item.today_sales)}</td>
@@ -82,8 +101,8 @@ export function StockReport() {
 
     return `
       <style>
-        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
         .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
         .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
         .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
@@ -93,21 +112,21 @@ export function StockReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="6" class="section-header">سٹاک رپورٹ / Stock Report</th>
+            <th colspan="6" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="text-align: right;">آئٹم / Item Name</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">سابقہ سٹاک / Previous Stock</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">آج کی خریداری / Today Pur.</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">آج کی بکری / Today Sale</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">بقیہ سٹاک / Rem. Stock</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.item}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.prevStock}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.todayPurchase}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.todaySale}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.remStock}</th>
           </tr>
         </thead>
         <tbody>
           ${rows}
           <tr class="total-row">
-            <td colspan="2" style="text-align: left;">Total / کل</td>
+            <td colspan="2" style="text-align: ${isUr ? 'right' : 'left'};">${t.total}</td>
             <td class="amount-cell">${fmt(reportData.totals.previous_stock)}</td>
             <td class="amount-cell">${fmt(reportData.totals.today_purchases)}</td>
             <td class="amount-cell">${fmt(reportData.totals.today_sales)}</td>
@@ -116,17 +135,17 @@ export function StockReport() {
         </tbody>
       </table>
     `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={6}>
           <DatePickerInput
-            label="As of Date"
+            label={t.asOfDate}
             value={asOfDate}
             onChange={setAsOfDate}
             maxDate={new Date()}
@@ -134,7 +153,7 @@ export function StockReport() {
         </Grid.Col>
         <Grid.Col span={6}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -147,29 +166,40 @@ export function StockReport() {
           singleDate={formatDate(asOfDate)}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
-                  <Table.Th>Item Name</Table.Th>
-                  <Table.Th className="text-right">Previous Stock</Table.Th>
-                  <Table.Th className="text-right">Today Purchase</Table.Th>
-                  <Table.Th className="text-right">Today Sale</Table.Th>
-                  <Table.Th className="text-right">Remaining Stock</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.item}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.prevStock}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>
+                    {t.todayPurchase}
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.todaySale}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.remStock}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {reportData.items.map((item, index) => (
                   <Table.Tr key={item.id}>
-                    <Table.Td>{index + 1}</Table.Td>
-                    <Table.Td>{item.item_name}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(item.previous_stock)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(item.today_purchases)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(item.today_sales)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {item.item_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(item.previous_stock)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(item.today_purchases)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(item.today_sales)}
+                    </Table.Td>
                     <Table.Td
-                      className="text-right"
                       style={{
+                        textAlign: isUr ? 'left' : 'right',
+                        direction: 'ltr',
                         color: item.remaining_stock < 0 ? 'red' : 'inherit',
                         fontWeight: item.remaining_stock < 0 ? 'bold' : 'normal',
                       }}
@@ -181,19 +211,19 @@ export function StockReport() {
               </Table.Tbody>
               <Table.Tfoot>
                 <Table.Tr className="font-bold bg-gray-100">
-                  <Table.Td colSpan={2}>
-                    <strong>Total</strong>
+                  <Table.Td colSpan={2} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.total}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.previous_stock)}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.today_purchases)}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.today_sales)}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.remaining_stock)}</strong>
                   </Table.Td>
                 </Table.Tr>
@@ -202,7 +232,7 @@ export function StockReport() {
 
             {reportData.items.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No items found
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

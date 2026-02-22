@@ -14,12 +14,14 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Client Recovery Report (کلائنٹ بکری)
  * Shows sales summary for clients with collection and balance details
  */
 export function ClientRecoveryReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -27,6 +29,29 @@ export function ClientRecoveryReport() {
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      fromDate: isUr ? 'تاریخ (سے)' : 'From Date',
+      toDate: isUr ? 'تاریخ (تک)' : 'To Date',
+      customer: isUr ? 'صارف' : 'Customer',
+      all: isUr ? 'سب' : 'All',
+      go: isUr ? 'تلاش' : 'Go',
+      customerName: isUr ? 'صارف کا نام' : 'Customer Name',
+      totalAmount: isUr ? 'کل رقم' : 'Total Amount',
+      charges: isUr ? 'اخراجات' : 'Charges',
+      collection: isUr ? 'وصولی' : 'Collection',
+      discount: isUr ? 'رعایت' : 'Discount',
+      balance: isUr ? 'بقایا' : 'Balance',
+      grandTotal: isUr ? 'کل' : 'Grand Total',
+      noRecords: isUr
+        ? 'منتخب کردہ معیار کے لئے کوئی ریکارڈ نہیں ملا'
+        : 'No records found for the selected criteria',
+      reportTitle: isUr ? 'کلائنٹ بکری تفصیلات' : 'Client Recovery Details',
+    }),
+    [isUr]
+  );
 
   // Fetch customers for dropdown
   useEffect(() => {
@@ -123,7 +148,7 @@ export function ClientRecoveryReport() {
         (row, index) => `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
-        <td style="text-align: right;">${row.customer_name}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${row.customer_name}</td>
         <td class="amount-cell">Rs. ${fmt(row.total_amount)}</td>
         <td class="amount-cell">Rs. ${fmt(row.total_charges)}</td>
         <td class="amount-cell">Rs. ${fmt(row.total_collection)}</td>
@@ -140,14 +165,14 @@ export function ClientRecoveryReport() {
           width: 100%;
           border-collapse: collapse;
           margin: 14px 0;
-          direction: rtl;
+          direction: ${isUr ? 'rtl' : 'ltr'};
         }
         .print-table th,
         .print-table td {
           border: 1px solid #000;
           padding: 8px 14px;
           font-size: 14px;
-          text-align: right;
+          text-align: ${isUr ? 'right' : 'left'};
         }
         .print-table th {
           background-color: #e8e8e8;
@@ -176,22 +201,22 @@ export function ClientRecoveryReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="7" class="section-header">کلائنٹ بکری تفصیلات / Client Recovery Details</th>
+            <th colspan="7" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="text-align: right;">صارف کا نام / Customer Name</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">کل رقم / Total Amount</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">اخراجات / Charges</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">وصولی / Collection</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">رعایت / Discount</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">بقایا / Balance</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.customerName}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.totalAmount}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.charges}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.collection}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.discount}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.balance}</th>
           </tr>
         </thead>
         <tbody>
           ${rows}
           <tr class="total-row">
-            <td colspan="2" style="text-align: left;">Grand Total / کل</td>
+            <td colspan="2" style="text-align: ${isUr ? 'right' : 'left'};">${t.grandTotal}</td>
             <td class="amount-cell">Rs. ${fmt(totalAmount)}</td>
             <td class="amount-cell">Rs. ${fmt(totalCharges)}</td>
             <td class="amount-cell">Rs. ${fmt(totalCollection)}</td>
@@ -201,17 +226,17 @@ export function ClientRecoveryReport() {
         </tbody>
       </table>
     `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={3}>
           <DatePickerInput
-            label="From Date"
+            label={t.fromDate}
             value={dateFrom}
             onChange={setDateFrom}
             maxDate={dateTo}
@@ -219,7 +244,7 @@ export function ClientRecoveryReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <DatePickerInput
-            label="To Date"
+            label={t.toDate}
             value={dateTo}
             onChange={setDateTo}
             minDate={dateFrom}
@@ -228,8 +253,8 @@ export function ClientRecoveryReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Select
-            label="Customer"
-            placeholder="Select client"
+            label={t.customer}
+            placeholder=""
             data={customers}
             value={selectedCustomer}
             onChange={setSelectedCustomer}
@@ -240,7 +265,7 @@ export function ClientRecoveryReport() {
         </Grid.Col>
         <Grid.Col span={1}>
           <Checkbox
-            label="All"
+            label={t.all}
             checked={allClients}
             onChange={(e) => {
               setAllClients(e.target.checked);
@@ -251,7 +276,7 @@ export function ClientRecoveryReport() {
         </Grid.Col>
         <Grid.Col span={2}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -264,67 +289,83 @@ export function ClientRecoveryReport() {
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Summary Table */}
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
-                  <Table.Th>Customer Name</Table.Th>
-                  <Table.Th className="text-right">Total Amount</Table.Th>
-                  <Table.Th className="text-right">Charges</Table.Th>
-                  <Table.Th className="text-right">Collection</Table.Th>
-                  <Table.Th className="text-right">Discount</Table.Th>
-                  <Table.Th className="text-right">Balance</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    {t.customerName}
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>
+                    {t.totalAmount}
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.charges}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.collection}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.discount}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.balance}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {reportData.summary.map((row, index) => (
                   <Table.Tr key={row.customer_id}>
-                    <Table.Td>{index + 1}</Table.Td>
-                    <Table.Td>{row.customer_name}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_amount)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_charges)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_collection)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_discount)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_balance)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {row.customer_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_amount)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_charges)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_collection)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_discount)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_balance)}
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
               <Table.Tfoot>
                 <Table.Tr className="font-bold bg-gray-100">
-                  <Table.Td colSpan={2}>
-                    <strong>Grand Total</strong>
+                  <Table.Td colSpan={2} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.grandTotal}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
                         reportData.summary.reduce((sum, r) => sum + (r.total_amount || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
                         reportData.summary.reduce((sum, r) => sum + (r.total_charges || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
                         reportData.summary.reduce((sum, r) => sum + (r.total_collection || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
                         reportData.summary.reduce((sum, r) => sum + (r.total_discount || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
                         reportData.summary.reduce((sum, r) => sum + (r.total_balance || 0), 0)
@@ -337,7 +378,7 @@ export function ClientRecoveryReport() {
 
             {reportData.summary.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No records found for the selected criteria
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

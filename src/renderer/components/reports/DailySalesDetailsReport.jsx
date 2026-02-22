@@ -4,15 +4,38 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Daily Sales Details Report (امروزہ بکری تفصیلات)
  * Shows detailed line-item sales for a specific date
  */
 export function DailySalesDetailsReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      date: isUr ? 'تاریخ' : 'Date',
+      go: isUr ? 'تلاش' : 'Go',
+      customer: isUr ? 'صارف' : 'Customer Name',
+      vendor: isUr ? 'وینڈر' : 'Vendor',
+      saleNumber: isUr ? 'بل نمبر' : 'Sale #',
+      item: isUr ? 'آئٹم' : 'Item',
+      weight: isUr ? 'وزن' : 'Weight',
+      rate: isUr ? 'ریٹ' : 'Rate',
+      amount: isUr ? 'رقم' : 'Amount',
+      total: isUr ? 'کل' : 'Total',
+      noRecords: isUr
+        ? 'منتخب کردہ تاریخ کے لئے کوئی بکری نہیں ملی'
+        : 'No sales found for the selected date',
+      reportTitle: isUr ? 'امروزہ بکری تفصیلات' : 'Daily Sales Details',
+    }),
+    [isUr]
+  );
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
@@ -68,9 +91,9 @@ export function DailySalesDetailsReport() {
         (row, index) => `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
-        <td style="text-align: right;">${row.customer_name}</td>
-        <td style="text-align: right;">${row.supplier_name || '-'}</td>
-        <td style="text-align: right;">${row.item_name}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${row.customer_name}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${row.supplier_name || '-'}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${row.item_name}</td>
         <td class="amount-cell" style="text-align: left;">${row.sale_number}</td>
         <td class="amount-cell">${fmt(row.weight)}</td>
         <td class="amount-cell">Rs. ${fmt(row.rate)}</td>
@@ -82,8 +105,8 @@ export function DailySalesDetailsReport() {
 
     return `
       <style>
-        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
         .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
         .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
         .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
@@ -93,23 +116,23 @@ export function DailySalesDetailsReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="8" class="section-header">امروزہ بکری تفصیلات / Daily Sales Details Report</th>
+            <th colspan="8" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="text-align: right;">صارف / Customer</th>
-            <th style="text-align: right;">وینڈر / Vendor</th>
-            <th style="text-align: right;">آئٹم / Item</th>
-            <th style="width: 80px; text-align: left; direction: ltr;">بل نمبر / Sale #</th>
-            <th style="width: 80px; text-align: left; direction: ltr;">وزن / Weight</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">ریٹ / Rate</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">رقم / Amount</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.customer}</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.vendor}</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.item}</th>
+            <th style="width: 80px; text-align: left; direction: ltr;">${t.saleNumber}</th>
+            <th style="width: 80px; text-align: left; direction: ltr;">${t.weight}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.rate}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.amount}</th>
           </tr>
         </thead>
         <tbody>
           ${rows}
           <tr class="total-row">
-            <td colspan="5" style="text-align: left;">Total / کل</td>
+            <td colspan="5" style="text-align: ${isUr ? 'right' : 'left'};">${t.total}</td>
             <td class="amount-cell">${fmt(reportData.totals.total_weight)}</td>
             <td class="amount-cell"></td>
             <td class="amount-cell">Rs. ${fmt(reportData.totals.total_amount)}</td>
@@ -117,17 +140,17 @@ export function DailySalesDetailsReport() {
         </tbody>
       </table>
     `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={6}>
           <DatePickerInput
-            label="Date"
+            label={t.date}
             value={selectedDate}
             onChange={setSelectedDate}
             maxDate={new Date()}
@@ -135,7 +158,7 @@ export function DailySalesDetailsReport() {
         </Grid.Col>
         <Grid.Col span={6}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -148,44 +171,58 @@ export function DailySalesDetailsReport() {
           singleDate={formatDate(selectedDate)}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
-                  <Table.Th>Sale #</Table.Th>
-                  <Table.Th>Customer</Table.Th>
-                  <Table.Th>Vendor</Table.Th>
-                  <Table.Th>Item</Table.Th>
-                  <Table.Th className="text-right">Weight</Table.Th>
-                  <Table.Th className="text-right">Rate</Table.Th>
-                  <Table.Th className="text-right">Amount</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.saleNumber}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.customer}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.vendor}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.item}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.weight}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.rate}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.amount}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {reportData.transactions.map((row, index) => (
                   <Table.Tr key={index}>
-                    <Table.Td>{index + 1}</Table.Td>
-                    <Table.Td>{row.sale_number}</Table.Td>
-                    <Table.Td>{row.customer_name}</Table.Td>
-                    <Table.Td>{row.supplier_name || '-'}</Table.Td>
-                    <Table.Td>{row.item_name}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.weight)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.rate)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.amount)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {row.sale_number}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {row.customer_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {row.supplier_name || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {row.item_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.weight)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.rate)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.amount)}
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
               <Table.Tfoot>
                 <Table.Tr className="font-bold bg-gray-100">
-                  <Table.Td colSpan={5}>
-                    <strong>Total</strong>
+                  <Table.Td colSpan={5} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.total}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.total_weight)}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right"></Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td></Table.Td>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totals.total_amount)}</strong>
                   </Table.Td>
                 </Table.Tr>
@@ -194,7 +231,7 @@ export function DailySalesDetailsReport() {
 
             {reportData.transactions.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No sales found for the selected date
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

@@ -13,6 +13,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Vendor Stock Bill Report (بیوپاری سٹاک بل)
@@ -21,11 +22,33 @@ import { ReportViewer } from '../ReportViewer';
  * columns: سیریل نمبر, گاہک, قسم, ریٹ (kg), وزن (kg), رقم
  */
 export function VendorStockBillReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [date, setDate] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      vendor: isUr ? 'بیوپاری' : 'Vendor',
+      dateLabel: isUr ? 'تاریخ' : 'Date',
+      go: isUr ? 'تلاش' : 'Go',
+      reportTitle: isUr ? 'بیوپاری سٹاک بل' : 'Vendor Stock Bill',
+      customer: isUr ? 'گاہک' : 'Customer',
+      item: isUr ? 'قسم' : 'Item',
+      rate: isUr ? 'ریٹ' : 'Rate',
+      weight: isUr ? 'وزن' : 'Weight',
+      amount: isUr ? 'رقم' : 'Amount',
+      total: isUr ? 'ٹوٹل' : 'Total',
+      selectVendorMsg: isUr ? 'بیوپاری منتخب کریں' : 'Please select a vendor',
+      noRecords: isUr
+        ? 'منتخب کردہ معیار کے لئے کوئی سٹاک آئٹم نہیں ملا'
+        : 'No stock items found for the selected criteria',
+    }),
+    [isUr]
+  );
 
   // Fetch suppliers for dropdown
   useEffect(() => {
@@ -65,7 +88,7 @@ export function VendorStockBillReport() {
     if (!selectedSupplier) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please select a vendor',
+        message: t.selectVendorMsg,
         color: 'red',
       });
       return;
@@ -97,7 +120,7 @@ export function VendorStockBillReport() {
     } finally {
       setLoading(false);
     }
-  }, [selectedSupplier, date]);
+  }, [selectedSupplier, date, t]);
 
   // ——— Professional Urdu-only print layout ———
   const printContentHTML = useMemo(() => {
@@ -120,8 +143,8 @@ export function VendorStockBillReport() {
         (item, index) => `
             <tr>
                 <td style="text-align: center;">${index + 1}</td>
-                <td style="text-align: right;">${item.customer_name}</td>
-                <td style="text-align: right;">${item.item_name}</td>
+                <td style="text-align: ${isUr ? 'right' : 'left'};">${item.customer_name}</td>
+                <td style="text-align: ${isUr ? 'right' : 'left'};">${item.item_name}</td>
                 <td class="amount-cell">Rs. ${fmt(item.rate)}</td>
                 <td class="amount-cell">${fmtWeight(item.weight)}</td>
                 <td class="amount-cell">Rs. ${fmt(item.amount)}</td>
@@ -132,8 +155,8 @@ export function VendorStockBillReport() {
 
     return `
             <style>
-                .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-                .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+                .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+                .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
                 .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
                 .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
                 .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
@@ -143,21 +166,21 @@ export function VendorStockBillReport() {
             <table class="print-table">
                 <thead>
                     <tr>
-                        <th colspan="6" class="section-header">بیوپاری سٹاک بل / Vendor Stock Bill</th>
+                        <th colspan="6" class="section-header">${t.reportTitle}</th>
                     </tr>
                     <tr>
                         <th style="width: 40px; text-align: center;">#</th>
-                        <th style="text-align: right;">گاہک / Customer</th>
-                        <th style="text-align: right;">قسم / Item</th>
-                        <th style="width: 100px; text-align: left; direction: ltr;">ریٹ / Rate</th>
-                        <th style="width: 100px; text-align: left; direction: ltr;">وزن / Weight</th>
-                        <th style="width: 120px; text-align: left; direction: ltr;">رقم / Amount</th>
+                        <th style="text-align: ${isUr ? 'right' : 'left'};">${t.customer}</th>
+                        <th style="text-align: ${isUr ? 'right' : 'left'};">${t.item}</th>
+                        <th style="width: 100px; text-align: left; direction: ltr;">${t.rate}</th>
+                        <th style="width: 100px; text-align: left; direction: ltr;">${t.weight}</th>
+                        <th style="width: 120px; text-align: left; direction: ltr;">${t.amount}</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${rows}
                     <tr class="grand-total-row">
-                        <td colspan="3" style="text-align: left;">ٹوٹل / Total</td>
+                        <td colspan="3" style="text-align: ${isUr ? 'right' : 'left'};">${t.total}</td>
                         <td></td>
                         <td class="amount-cell">${fmtWeight(reportData.totalWeight)}</td>
                         <td class="amount-cell">Rs. ${fmt(reportData.totalAmount)}</td>
@@ -165,17 +188,17 @@ export function VendorStockBillReport() {
                 </tbody>
             </table>
         `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={4}>
           <DatePickerInput
-            label="تاریخ (Date)"
+            label={t.dateLabel}
             value={date}
             onChange={setDate}
             maxDate={new Date()}
@@ -184,8 +207,8 @@ export function VendorStockBillReport() {
         </Grid.Col>
         <Grid.Col span={5}>
           <Select
-            label="بیوپاری (Vendor)"
-            placeholder="Select vendor"
+            label={t.vendor}
+            placeholder=""
             data={suppliers}
             value={selectedSupplier}
             onChange={setSelectedSupplier}
@@ -195,7 +218,7 @@ export function VendorStockBillReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -208,63 +231,50 @@ export function VendorStockBillReport() {
           dateRange={{ from: formatDate(date), to: formatDate(date) }}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ textAlign: 'center' }}>
-                    سیریل نمبر
-                    <br />#
-                  </Table.Th>
-                  <Table.Th>
-                    گاہک
-                    <br />
-                    Customer
-                  </Table.Th>
-                  <Table.Th>
-                    قسم
-                    <br />
-                    Item
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    ریٹ (kg)
-                    <br />
-                    Rate
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    وزن (kg)
-                    <br />
-                    Weight
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    رقم
-                    <br />
-                    Amount
-                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.customer}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.item}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.rate}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.weight}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.amount}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {reportData.items.map((item, index) => (
                   <Table.Tr key={item.id}>
                     <Table.Td style={{ textAlign: 'center' }}>{index + 1}</Table.Td>
-                    <Table.Td>{item.customer_name}</Table.Td>
-                    <Table.Td>{item.item_name}</Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>{formatNumber(item.rate)}</Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>{formatWeight(item.weight)}</Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>{formatNumber(item.amount)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {item.customer_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {item.item_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(item.rate)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatWeight(item.weight)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(item.amount)}
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
               <Table.Tfoot>
                 <Table.Tr style={{ fontWeight: 'bold', backgroundColor: '#d0e0f0' }}>
-                  <Table.Td colSpan={3} style={{ textAlign: 'right' }}>
-                    <strong>ٹوٹل (Total)</strong>
+                  <Table.Td colSpan={3} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.total}</strong>
                   </Table.Td>
                   <Table.Td></Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatWeight(reportData.totalWeight)}</strong>
                   </Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(reportData.totalAmount)}</strong>
                   </Table.Td>
                 </Table.Tr>
@@ -273,7 +283,7 @@ export function VendorStockBillReport() {
 
             {reportData.items.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No stock items found for the selected criteria
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

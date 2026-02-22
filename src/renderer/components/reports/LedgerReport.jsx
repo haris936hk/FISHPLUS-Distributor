@@ -14,12 +14,14 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Ledger Report (کھاتہ)
  * Shows account ledger for customer or supplier
  */
 export function LedgerReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -27,6 +29,33 @@ export function LedgerReport() {
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      accountType: isUr ? 'اکاؤنٹ کی قسم' : 'Account Type',
+      customerType: isUr ? 'گاہک' : 'Customer',
+      vendorType: isUr ? 'وینڈر / سپلائر' : 'Vendor',
+      account: isUr ? 'اکاؤنٹ' : 'Account',
+      fromDate: isUr ? 'تاریخ (سے)' : 'From Date',
+      toDate: isUr ? 'تاریخ (تک)' : 'To Date',
+      go: isUr ? 'تلاش' : 'Go',
+      reportTitle: isUr ? 'کھاتہ' : 'Ledger Report',
+      openingBalance: isUr ? 'سابقہ بقایا' : 'Opening Balance',
+      date: isUr ? 'تاریخ' : 'Date',
+      reference: isUr ? 'حوالہ' : 'Reference',
+      description: isUr ? 'تفصیل' : 'Description',
+      debit: isUr ? 'بنام' : 'Debit',
+      credit: isUr ? 'جمع' : 'Credit',
+      balance: isUr ? 'بقایا' : 'Balance',
+      totals: isUr ? 'کل' : 'Totals',
+      selectAccountMsg: isUr ? 'اکاؤنٹ منتخب کریں' : 'Please select an account',
+      noRecords: isUr
+        ? 'منتخب کردہ معیار کے لئے کوئی ریکارڈ نہیں ملا'
+        : 'No transactions found for the selected criteria',
+    }),
+    [isUr]
+  );
 
   // Fetch accounts based on type
   useEffect(() => {
@@ -69,7 +98,7 @@ export function LedgerReport() {
     if (!selectedAccount) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please select an account',
+        message: t.selectAccountMsg,
         color: 'red',
       });
       return;
@@ -103,7 +132,7 @@ export function LedgerReport() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccount, accountType, dateFrom, dateTo]);
+  }, [selectedAccount, accountType, dateFrom, dateTo, t]);
 
   // Calculate running balance
   const getTransactionsWithBalance = useCallback(() => {
@@ -134,7 +163,7 @@ export function LedgerReport() {
         <td style="text-align: center;">${index + 1}</td>
         <td class="amount-cell" style="text-align: left;">${new Date(txn.date).toLocaleDateString()}</td>
         <td class="amount-cell" style="text-align: left;">${txn.reference || '-'}</td>
-        <td style="text-align: right;">${txn.description || '-'}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${txn.description || '-'}</td>
         <td class="amount-cell">${txn.debit > 0 ? fmt(txn.debit) : '-'}</td>
         <td class="amount-cell">${txn.credit > 0 ? fmt(txn.credit) : '-'}</td>
         <td class="amount-cell">Rs. ${fmt(txn.balance)}</td>
@@ -152,38 +181,38 @@ export function LedgerReport() {
 
     return `
       <style>
-        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
         .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
         .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
         .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
         .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
-        .balance-info { padding: 10px; margin-bottom: 15px; border: 1px solid #000; direction: rtl; background-color: #fafafa; font-weight: bold; font-size: 15px; text-align: right; }
+        .balance-info { padding: 10px; margin-bottom: 15px; border: 1px solid #000; direction: ${isUr ? 'rtl' : 'ltr'}; background-color: #fafafa; font-weight: bold; font-size: 15px; text-align: ${isUr ? 'right' : 'left'}; }
       </style>
 
       <div class="balance-info">
-        سابقہ بقایا / Opening Balance: <span class="amount-cell" style="display:inline-block; margin-right: 10px;">Rs. ${fmt(reportData.openingBalance)}</span>
+        ${t.openingBalance}: <span class="amount-cell" style="display:inline-block; margin-${isUr ? 'right' : 'left'}: 10px;">Rs. ${fmt(reportData.openingBalance)}</span>
       </div>
 
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="7" class="section-header">کھاتہ / Ledger Report</th>
+            <th colspan="7" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">تاریخ / Date</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">حوالہ / Reference</th>
-            <th style="text-align: right;">تفصیل / Description</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">بنام / Debit</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">جمع / Credit</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">بقایا / Balance</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.date}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.reference}</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.description}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.debit}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.credit}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.balance}</th>
           </tr>
         </thead>
         <tbody>
           ${rows}
           <tr class="total-row">
-            <td colspan="4" style="text-align: left;">Total / کل</td>
+            <td colspan="4" style="text-align: ${isUr ? 'right' : 'left'};">${t.totals}</td>
             <td class="amount-cell">${fmt(totalDebit)}</td>
             <td class="amount-cell">${fmt(totalCredit)}</td>
             <td class="amount-cell">Rs. ${fmt(finalBalance)}</td>
@@ -191,20 +220,20 @@ export function LedgerReport() {
         </tbody>
       </table>
     `;
-  }, [reportData, getTransactionsWithBalance]);
+  }, [reportData, getTransactionsWithBalance, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={2}>
           <Select
-            label="Account Type"
+            label={t.accountType}
             data={[
-              { value: 'customer', label: 'Customer' },
-              { value: 'supplier', label: 'Vendor' },
+              { value: 'customer', label: t.customerType },
+              { value: 'supplier', label: t.vendorType },
             ]}
             value={accountType}
             onChange={setAccountType}
@@ -212,8 +241,8 @@ export function LedgerReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Select
-            label="Account"
-            placeholder="Select account"
+            label={t.account}
+            placeholder=""
             data={accounts}
             value={selectedAccount}
             onChange={setSelectedAccount}
@@ -224,7 +253,7 @@ export function LedgerReport() {
         </Grid.Col>
         <Grid.Col span={2}>
           <DatePickerInput
-            label="From Date"
+            label={t.fromDate}
             value={dateFrom}
             onChange={setDateFrom}
             maxDate={dateTo}
@@ -232,7 +261,7 @@ export function LedgerReport() {
         </Grid.Col>
         <Grid.Col span={2}>
           <DatePickerInput
-            label="To Date"
+            label={t.toDate}
             value={dateTo}
             onChange={setDateTo}
             minDate={dateFrom}
@@ -241,7 +270,7 @@ export function LedgerReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -254,66 +283,79 @@ export function LedgerReport() {
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Opening Balance */}
             <Paper p="sm" mb="md" withBorder>
-              <Text>
-                <strong>Opening Balance:</strong> {formatNumber(reportData.openingBalance)}
+              <Text style={{ textAlign: isUr ? 'right' : 'left' }}>
+                <strong>{t.openingBalance}:</strong>{' '}
+                <span style={{ direction: 'ltr', display: 'inline-block' }}>
+                  {formatNumber(reportData.openingBalance)}
+                </span>
               </Text>
             </Paper>
 
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
-                  <Table.Th>Date</Table.Th>
-                  <Table.Th>Reference</Table.Th>
-                  <Table.Th>Description</Table.Th>
-                  <Table.Th className="text-right">Debit</Table.Th>
-                  <Table.Th className="text-right">Credit</Table.Th>
-                  <Table.Th className="text-right">Balance</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.date}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.reference}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    {t.description}
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.debit}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.credit}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.balance}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {getTransactionsWithBalance().map((txn, index) => (
                   <Table.Tr key={index}>
-                    <Table.Td>{index + 1}</Table.Td>
-                    <Table.Td>{new Date(txn.date).toLocaleDateString()}</Table.Td>
-                    <Table.Td>{txn.reference}</Table.Td>
-                    <Table.Td>{txn.description}</Table.Td>
-                    <Table.Td className="text-right">
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {new Date(txn.date).toLocaleDateString()}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {txn.reference}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {txn.description}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       {txn.debit > 0 ? formatNumber(txn.debit) : '-'}
                     </Table.Td>
-                    <Table.Td className="text-right">
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       {txn.credit > 0 ? formatNumber(txn.credit) : '-'}
                     </Table.Td>
-                    <Table.Td className="text-right">{formatNumber(txn.balance)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(txn.balance)}
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
               <Table.Tfoot>
                 <Table.Tr className="font-bold bg-gray-100">
-                  <Table.Td colSpan={4}>
-                    <strong>Totals</strong>
+                  <Table.Td colSpan={4} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.totals}</strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
-                        reportData.transactions.reduce((sum, t) => sum + (t.debit || 0), 0)
+                        reportData.transactions.reduce((sum, txn) => sum + (txn.debit || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
-                        reportData.transactions.reduce((sum, t) => sum + (t.credit || 0), 0)
+                        reportData.transactions.reduce((sum, txn) => sum + (txn.credit || 0), 0)
                       )}
                     </strong>
                   </Table.Td>
-                  <Table.Td className="text-right">
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>
                       {formatNumber(
-                        getTransactionsWithBalance().slice(-1)[0]?.balance ||
+                        getTransactionsWithBalance().slice(-1)[0]?.balance ??
                           reportData.openingBalance
                       )}
                     </strong>
@@ -324,7 +366,7 @@ export function LedgerReport() {
 
             {reportData.transactions.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No transactions found for the selected criteria
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

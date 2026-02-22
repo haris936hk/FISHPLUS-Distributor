@@ -6,9 +6,9 @@
 
 ## Project Overview
 
-**FISHPLUS-Distributor** is a desktop (Desktop Optimized Layout mouse focused) application built with Electron Forge, React 19, and Zustand for state management. It uses SQLite for local data persistence, Mantine as the UI component library, and communicates between main/renderer processes via a secure IPC bridge.
+**FISHPLUS-Distributor** is a desktop (Desktop Optimized Layout mouse focused) application built with Electron Forge, React 19, and Zustand for state management. It uses SQLite for local data persistence, Mantine as the UI component library, i18next for English/Urdu localization, and communicates between main/renderer processes via a secure IPC bridge.
 
-**Tech Stack:** Electron 40 · React 19 · Zustand · Mantine 8 · SQLite · Tailwind CSS 4 · Webpack · Vitest · Playwright
+**Tech Stack:** Electron 40 · React 19 · Zustand · Mantine 8 · SQLite · Tailwind CSS 4 · Webpack · Vitest · Playwright · i18next · jsPDF/jsreport
 
 ---
 
@@ -66,6 +66,8 @@
 - **Zustand store** with `devtools` middleware for state management
 - **IPC abstraction** via `window.api.*` — never call `ipcRenderer` directly
 - **Domain-specific hooks** for data fetching (`useAppVersion`, `usePlatform`)
+- **Localization** — use `i18next` (`t()`) for all UI text to support English and Urdu
+- **Simplified Forms** — direct single-transaction entries for Sale/Purchase forms (no "Add Line Item" arrays)
 - **Barrel exports** — use `index.js` in component/hook directories
 
 ### Do's
@@ -74,6 +76,7 @@
 - ✅ Keep components small and focused
 - ✅ Use Mantine components for UI consistency
 - ✅ Access IPC through `window.api` (e.g., `window.api.settings.getAll()`)
+- ✅ Use translation keys instead of hardcoded English/Urdu strings
 - ✅ Use Tailwind utility classes for layout/spacing
 
 ### Don'ts
@@ -82,6 +85,13 @@
 - ❌ Don't disable `contextIsolation` or enable `nodeIntegration`
 - ❌ Don't import Electron directly in renderer process
 - ❌ Avoid inline styles; prefer Tailwind or Mantine props
+
+---
+
+## Terminology
+
+- **Customer**: Used exclusively in UI instead of "Client".
+- **Vendor**: Used exclusively in UI instead of "Supplier" (though `Supplier` may still appear in internal variables/DB).
 
 ---
 
@@ -108,13 +118,13 @@ FISHPLUS-Distributor/
 │       ├── index.jsx        # React entry point
 │       ├── index.css        # Global styles
 │       ├── components/      # Reusable UI components
-│       │   ├── index.js     # Barrel export
-│       │   ├── FeatureCard.jsx
-│       │   └── ErrorBoundary.jsx
+│       │   ├── reports/     # PDF-exportable report components
+│       │   └── index.js     # Barrel export
+│       ├── i18n/            # Localization maps (en.json, ur.json)
 │       ├── hooks/           # Custom React hooks
-│       │   └── useDatabase.js
+│       ├── pages/           # Top-level route components (Dashboard, Sales, etc.)
+│       ├── utils/           # Formatters and validators
 │       └── store/           # Zustand state management
-│           └── index.js
 ├── test/
 │   ├── components/          # React component tests (Vitest + RTL)
 │   ├── e2e/                 # End-to-End tests (Playwright)
@@ -141,3 +151,5 @@ FISHPLUS-Distributor/
 1. **IPC Security:** The `useDatabase` hook is deprecated. Always use `window.api.*` methods.
 2. **DevTools:** Auto-open only in development (`!app.isPackaged`).
 3. **Database Lifecycle:** Initialized on `app.whenReady()`, closed on `before-quit`.
+4. **SQLite Initialization:** Ensure `schema.sql` tables are ordered strictly by dependency (e.g., referenced tables first) or you will get "no such column/table" errors on startup.
+5. **PDF Export Margins:** When using Electron's `printToPDF` with `marginsType: 'custom'`, margins must be defined in **inches** and be less than the page size to avoid layout errors.

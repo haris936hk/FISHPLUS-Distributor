@@ -15,18 +15,47 @@ import { notifications } from '@mantine/notifications';
 import { IconSearch, IconCash, IconReceipt, IconCreditCard, IconWallet } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Daily Net Amount Summary Report (8.11) - رجسٹر ٹوٹل رقم
  * Shows day-end reconciliation summary with previous balance, sales, collections, and closing balance
  */
 export function DailyNetAmountSummaryReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [asOfDate, setAsOfDate] = useState(new Date());
   const [compareDate, setCompareDate] = useState(null);
   const [enableCompare, setEnableCompare] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [compareData, setCompareData] = useState(null);
+
+  // Translation helpers
+  const isUr = language === 'ur';
+
+  const t = useMemo(
+    () => ({
+      previousBalance: isUr ? 'سابقہ بقایا' : 'Previous Balance',
+      todaySales: isUr ? 'آج کی بکری' : "Today's Sales",
+      todayCharges: isUr ? 'آج کے اخراجات (کرایہ + برف)' : "Today's Charges (Fare + Ice)",
+      todayDiscount: isUr ? 'آج کی رعایت' : "Today's Discount",
+      totalAmount: isUr ? 'کل رقم' : 'Total Amount',
+      cashReceived: isUr ? 'نقد وصولی (بکری سے)' : 'Cash Received (Sale)',
+      paymentsReceived: isUr ? 'ادائیگیاں' : 'Payments Received',
+      totalCollection: isUr ? 'کل وصولی' : 'Total Collection',
+      closingBalance: isUr ? 'بقایا رقم' : 'Closing Balance',
+      details: isUr ? 'تفصیلات' : 'Details',
+      item: isUr ? 'مد' : 'Item',
+      amount: isUr ? 'رقم' : 'Amount',
+      collectionDetails: isUr ? 'وصولی کی تفصیلات' : 'Collection Details',
+      finalAccount: isUr ? 'حتمی حساب' : 'Balance Calculation',
+      dateComparison: isUr ? 'تاریخ کا موازنہ' : 'Date Comparison',
+      metric: isUr ? 'تفصیل' : 'Metric',
+      difference: isUr ? 'فرق' : 'Difference',
+      trend: isUr ? 'رجحان' : 'Trend',
+    }),
+    [isUr]
+  );
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
@@ -83,19 +112,21 @@ export function DailyNetAmountSummaryReport() {
     }
   }, [asOfDate, compareDate, enableCompare]);
 
-  const SummaryCard = ({ title, titleUrdu, value, icon: Icon, color = 'blue' }) => (
+  const SummaryCard = ({ title, value, icon: Icon, color = 'blue' }) => (
     <Paper shadow="sm" p="lg" radius="md" withBorder>
       <Stack gap="xs">
         <div className="flex items-center justify-between">
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {title}
           </Text>
           <Icon size={24} color={`var(--mantine-color-${color}-6)`} />
         </div>
-        <Text size="xs" c="dimmed" style={{ direction: 'rtl' }}>
-          {titleUrdu}
-        </Text>
-        <Text size="xl" fw={700} c={color}>
+        <Text
+          size="xl"
+          fw={700}
+          c={color}
+          style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}
+        >
           Rs. {formatNumber(value)}
         </Text>
       </Stack>
@@ -104,7 +135,6 @@ export function DailyNetAmountSummaryReport() {
 
   SummaryCard.propTypes = {
     title: PropTypes.string.isRequired,
-    titleUrdu: PropTypes.string.isRequired,
     value: PropTypes.number,
     icon: PropTypes.elementType.isRequired,
     color: PropTypes.string,
@@ -126,14 +156,14 @@ export function DailyNetAmountSummaryReport() {
           width: 100%;
           border-collapse: collapse;
           margin: 14px 0;
-          direction: rtl;
+          direction: ${isUr ? 'rtl' : 'ltr'};
         }
         .print-table th,
         .print-table td {
           border: 1px solid #000;
           padding: 8px 14px;
           font-size: 14px;
-          text-align: right;
+          text-align: ${isUr ? 'right' : 'left'};
         }
         .print-table th {
           background-color: #e8e8e8;
@@ -175,38 +205,38 @@ export function DailyNetAmountSummaryReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="3" class="section-header">تفصیلات</th>
+            <th colspan="3" class="section-header">${t.details}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;"></th>
-            <th>مد</th>
-            <th style="width: 180px;">رقم</th>
+            <th>${t.item}</th>
+            <th style="width: 180px;">${t.amount}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="operator"></td>
-            <td>سابقہ بقایا</td>
+            <td>${t.previousBalance}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.previousBalance)}</td>
           </tr>
           <tr>
             <td class="operator">+</td>
-            <td>آج کی بکری</td>
+            <td>${t.todaySales}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.todaySales)}</td>
           </tr>
           <tr>
             <td class="operator">+</td>
-            <td>آج کے اخراجات (کرایہ + برف)</td>
+            <td>${t.todayCharges}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.todayCharges)}</td>
           </tr>
           <tr>
             <td class="operator">−</td>
-            <td>آج کی رعایت</td>
+            <td>${t.todayDiscount}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.todayDiscount)}</td>
           </tr>
           <tr class="total-row">
             <td class="operator">=</td>
-            <td>کل رقم</td>
+            <td>${t.totalAmount}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.totalAmount)}</td>
           </tr>
         </tbody>
@@ -216,28 +246,28 @@ export function DailyNetAmountSummaryReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="3" class="section-header">وصولی کی تفصیلات</th>
+            <th colspan="3" class="section-header">${t.collectionDetails}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;"></th>
-            <th>مد</th>
-            <th style="width: 180px;">رقم</th>
+            <th>${t.item}</th>
+            <th style="width: 180px;">${t.amount}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="operator"></td>
-            <td>نقد وصولی (بکری سے)</td>
+            <td>${t.cashReceived}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.todayCollection)}</td>
           </tr>
           <tr>
             <td class="operator">+</td>
-            <td>ادائیگیاں</td>
+            <td>${t.paymentsReceived}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.todayPayments)}</td>
           </tr>
           <tr class="total-row">
             <td class="operator">=</td>
-            <td>کل وصولی</td>
+            <td>${t.totalCollection}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.totalCollection)}</td>
           </tr>
         </tbody>
@@ -247,29 +277,29 @@ export function DailyNetAmountSummaryReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="3" class="section-header">حتمی حساب</th>
+            <th colspan="3" class="section-header">${t.finalAccount}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="operator"></td>
-            <td>کل رقم</td>
+            <td>${t.totalAmount}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.totalAmount)}</td>
           </tr>
           <tr>
             <td class="operator">−</td>
-            <td>کل وصولی</td>
+            <td>${t.totalCollection}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.totalCollection)}</td>
           </tr>
           <tr class="grand-total-row">
             <td class="operator">=</td>
-            <td>بقایا رقم</td>
+            <td>${t.closingBalance}</td>
             <td class="amount-cell">Rs. ${fmt(reportData.closingBalance)}</td>
           </tr>
         </tbody>
       </table>
     `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
@@ -279,7 +309,7 @@ export function DailyNetAmountSummaryReport() {
       <Grid align="flex-end">
         <Grid.Col span={4}>
           <DatePickerInput
-            label="Date"
+            label={isUr ? 'تاریخ' : 'Date'}
             value={asOfDate}
             onChange={setAsOfDate}
             maxDate={new Date()}
@@ -287,7 +317,7 @@ export function DailyNetAmountSummaryReport() {
         </Grid.Col>
         <Grid.Col span={1}>
           <Checkbox
-            label="Compare"
+            label={isUr ? 'موازنہ' : 'Compare'}
             checked={enableCompare}
             onChange={(e) => {
               setEnableCompare(e.target.checked);
@@ -299,7 +329,7 @@ export function DailyNetAmountSummaryReport() {
         {enableCompare && (
           <Grid.Col span={3}>
             <DatePickerInput
-              label="Compare Date"
+              label={isUr ? 'تاریخ موازنہ' : 'Compare Date'}
               value={compareDate}
               onChange={setCompareDate}
               maxDate={new Date()}
@@ -308,7 +338,7 @@ export function DailyNetAmountSummaryReport() {
         )}
         <Grid.Col span={2}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {isUr ? 'تلاش' : 'Go'}
           </Button>
         </Grid.Col>
       </Grid>
@@ -321,40 +351,35 @@ export function DailyNetAmountSummaryReport() {
           singleDate={formatDate(asOfDate)}
           printContentHTML={printContentHTML}
         >
-          <Stack gap="lg">
+          <Stack gap="lg" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Summary Cards */}
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 5 }} spacing="md">
               <SummaryCard
-                title="Previous Balance"
-                titleUrdu="سابقہ بقایا"
+                title={t.previousBalance}
                 value={reportData.previousBalance}
                 icon={IconWallet}
                 color="gray"
               />
               <SummaryCard
-                title="Today's Sales"
-                titleUrdu="آج کی بکری"
+                title={t.todaySales}
                 value={reportData.todaySales}
                 icon={IconReceipt}
                 color="blue"
               />
               <SummaryCard
-                title="Total Amount"
-                titleUrdu="کل رقم"
+                title={t.totalAmount}
                 value={reportData.totalAmount}
                 icon={IconCash}
                 color="indigo"
               />
               <SummaryCard
-                title="Total Collection"
-                titleUrdu="کل وصولی"
+                title={t.totalCollection}
                 value={reportData.totalCollection}
                 icon={IconCreditCard}
                 color="green"
               />
               <SummaryCard
-                title="Closing Balance"
-                titleUrdu="بقایا رقم"
+                title={t.closingBalance}
                 value={reportData.closingBalance}
                 icon={IconWallet}
                 color="red"
@@ -364,53 +389,57 @@ export function DailyNetAmountSummaryReport() {
             {/* Detailed Breakdown */}
             <Paper shadow="sm" p="lg" radius="md" withBorder>
               <Text fw={600} mb="md">
-                Detailed Breakdown / تفصیلات
+                {t.details}
               </Text>
               <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                 <Stack gap="sm">
-                  <Text size="sm" fw={500}>
-                    Sales Details
-                  </Text>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Today&apos;s Sales:
+                      {t.todaySales}:
                     </Text>
-                    <Text size="sm">Rs. {formatNumber(reportData.todaySales)}</Text>
+                    <Text size="sm" style={{ direction: 'ltr' }}>
+                      Rs. {formatNumber(reportData.todaySales)}
+                    </Text>
                   </div>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Today&apos;s Charges (Fare + Ice):
+                      {t.todayCharges}:
                     </Text>
-                    <Text size="sm">Rs. {formatNumber(reportData.todayCharges)}</Text>
+                    <Text size="sm" style={{ direction: 'ltr' }}>
+                      Rs. {formatNumber(reportData.todayCharges)}
+                    </Text>
                   </div>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Today&apos;s Discount:
+                      {t.todayDiscount}:
                     </Text>
-                    <Text size="sm">Rs. {formatNumber(reportData.todayDiscount)}</Text>
+                    <Text size="sm" style={{ direction: 'ltr' }}>
+                      Rs. {formatNumber(reportData.todayDiscount)}
+                    </Text>
                   </div>
                 </Stack>
                 <Stack gap="sm">
-                  <Text size="sm" fw={500}>
-                    Collection Details
-                  </Text>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Cash Received (Sale):
+                      {t.cashReceived}:
                     </Text>
-                    <Text size="sm">Rs. {formatNumber(reportData.todayCollection)}</Text>
+                    <Text size="sm" style={{ direction: 'ltr' }}>
+                      Rs. {formatNumber(reportData.todayCollection)}
+                    </Text>
                   </div>
                   <div className="flex justify-between">
                     <Text size="sm" c="dimmed">
-                      Payments Received:
+                      {t.paymentsReceived}:
                     </Text>
-                    <Text size="sm">Rs. {formatNumber(reportData.todayPayments)}</Text>
+                    <Text size="sm" style={{ direction: 'ltr' }}>
+                      Rs. {formatNumber(reportData.todayPayments)}
+                    </Text>
                   </div>
                   <div className="flex justify-between border-t pt-2 mt-2">
                     <Text size="sm" fw={500}>
-                      Total Collection:
+                      {t.totalCollection}:
                     </Text>
-                    <Text size="sm" fw={500}>
+                    <Text size="sm" fw={500} style={{ direction: 'ltr' }}>
                       Rs. {formatNumber(reportData.totalCollection)}
                     </Text>
                   </div>
@@ -421,33 +450,47 @@ export function DailyNetAmountSummaryReport() {
             {/* Balance Calculation */}
             <Paper shadow="sm" p="lg" radius="md" withBorder bg="gray.0">
               <Text fw={600} mb="md">
-                Balance Calculation / باقی حساب
+                {t.finalAccount}
               </Text>
               <Stack gap="xs">
                 <div className="flex justify-between">
-                  <Text>Previous Balance (سابقہ بقایا):</Text>
-                  <Text fw={500}>Rs. {formatNumber(reportData.previousBalance)}</Text>
+                  <Text>{t.previousBalance}:</Text>
+                  <Text fw={500} style={{ direction: 'ltr' }}>
+                    Rs. {formatNumber(reportData.previousBalance)}
+                  </Text>
                 </div>
                 <div className="flex justify-between">
-                  <Text>+ Today&apos;s Sales (آج کی بکری):</Text>
-                  <Text fw={500}>Rs. {formatNumber(reportData.todaySales)}</Text>
+                  <Text>
+                    {isUr ? '+' : '+'} {t.todaySales}:
+                  </Text>
+                  <Text fw={500} style={{ direction: 'ltr' }}>
+                    Rs. {formatNumber(reportData.todaySales)}
+                  </Text>
                 </div>
                 <div className="flex justify-between border-t pt-2">
-                  <Text fw={500}>= Total Amount (کل رقم):</Text>
-                  <Text fw={600}>Rs. {formatNumber(reportData.totalAmount)}</Text>
+                  <Text fw={500}>
+                    {isUr ? '=' : '='} {t.totalAmount}:
+                  </Text>
+                  <Text fw={600} style={{ direction: 'ltr' }}>
+                    Rs. {formatNumber(reportData.totalAmount)}
+                  </Text>
                 </div>
                 <div className="flex justify-between">
-                  <Text>- Total Collection (کل وصولی):</Text>
-                  <Text fw={500}>Rs. {formatNumber(reportData.totalCollection)}</Text>
+                  <Text>
+                    {isUr ? '−' : '-'} {t.totalCollection}:
+                  </Text>
+                  <Text fw={500} style={{ direction: 'ltr' }}>
+                    Rs. {formatNumber(reportData.totalCollection)}
+                  </Text>
                 </div>
                 <div
                   className="flex justify-between border-t pt-2 mt-2"
                   style={{ borderTopWidth: 2 }}
                 >
                   <Text size="lg" fw={700}>
-                    Closing Balance (بقایا رقم):
+                    {t.closingBalance}:
                   </Text>
-                  <Text size="lg" fw={700} c="red">
+                  <Text size="lg" fw={700} c="red" style={{ direction: 'ltr' }}>
                     Rs. {formatNumber(reportData.closingBalance)}
                   </Text>
                 </div>
@@ -458,43 +501,45 @@ export function DailyNetAmountSummaryReport() {
             {compareData && (
               <Paper shadow="sm" p="lg" radius="md" withBorder>
                 <Text fw={600} mb="md">
-                  Date Comparison / تاریخ کا موازنہ
+                  {t.dateComparison}
                 </Text>
                 <Table striped highlightOnHover withTableBorder withColumnBorders>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Metric</Table.Th>
-                      <Table.Th style={{ textAlign: 'right' }}>
+                      <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.metric}</Table.Th>
+                      <Table.Th style={{ textAlign: 'center' }}>
                         {new Date(asOfDate).toLocaleDateString('en-GB')}
                       </Table.Th>
-                      <Table.Th style={{ textAlign: 'right' }}>
+                      <Table.Th style={{ textAlign: 'center' }}>
                         {new Date(compareDate).toLocaleDateString('en-GB')}
                       </Table.Th>
-                      <Table.Th style={{ textAlign: 'right' }}>Difference</Table.Th>
-                      <Table.Th style={{ textAlign: 'center' }}>Trend</Table.Th>
+                      <Table.Th style={{ textAlign: 'center' }}>{t.difference}</Table.Th>
+                      <Table.Th style={{ textAlign: 'center' }}>{t.trend}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
                     {[
-                      { label: 'Previous Balance / سابقہ', key: 'previousBalance' },
-                      { label: "Today's Sales / بکری", key: 'todaySales' },
-                      { label: 'Total Amount / کل رقم', key: 'totalAmount' },
-                      { label: 'Total Collection / وصولی', key: 'totalCollection' },
-                      { label: 'Closing Balance / بقایا', key: 'closingBalance' },
+                      { label: t.previousBalance, key: 'previousBalance' },
+                      { label: t.todaySales, key: 'todaySales' },
+                      { label: t.totalAmount, key: 'totalAmount' },
+                      { label: t.totalCollection, key: 'totalCollection' },
+                      { label: t.closingBalance, key: 'closingBalance' },
                     ].map((metric) => {
                       const val1 = reportData[metric.key] || 0;
                       const val2 = compareData[metric.key] || 0;
                       const diff = val1 - val2;
                       return (
                         <Table.Tr key={metric.key}>
-                          <Table.Td>{metric.label}</Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                            {metric.label}
+                          </Table.Td>
+                          <Table.Td style={{ textAlign: 'center', direction: 'ltr' }}>
                             Rs. {formatNumber(val1)}
                           </Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td style={{ textAlign: 'center', direction: 'ltr' }}>
                             Rs. {formatNumber(val2)}
                           </Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td style={{ textAlign: 'center', direction: 'ltr' }}>
                             <Text c={diff > 0 ? 'red' : diff < 0 ? 'green' : 'dimmed'} size="sm">
                               Rs. {formatNumber(Math.abs(diff))}
                             </Text>

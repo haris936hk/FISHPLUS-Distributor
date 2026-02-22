@@ -14,16 +14,43 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Daily Sales Report (امروزہ بکری)
  * Shows aggregated daily sales summary by item type
  */
 export function DailySalesReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      fromDate: isUr ? 'تاریخ (سے)' : 'From Date',
+      toDate: isUr ? 'تاریخ (تک)' : 'To Date',
+      go: isUr ? 'تلاش' : 'Go',
+      reportTitle: isUr ? 'امروزہ بکری' : 'Daily Sales Report',
+      item: isUr ? 'آئٹم' : 'Item Name',
+      totalWeight: isUr ? 'کل وزن' : 'Total Weight',
+      totalAmount: isUr ? 'کل رقم' : 'Total Amount',
+      grossAmount: isUr ? 'کل رقم' : 'Gross Amount',
+      charges: isUr ? 'اخراجات' : 'Charges',
+      netAmount: isUr ? 'خالص رقم' : 'Net Amount',
+      cashReceived: isUr ? 'نقد وصولی' : 'Cash Received',
+      collection: isUr ? 'کل وصولی' : 'Collection',
+      discount: isUr ? 'رعایت' : 'Discount',
+      balance: isUr ? 'بقایا' : 'Balance',
+      summary: isUr ? 'خلاصہ' : 'Summary',
+      noRecords: isUr
+        ? 'منتخب کردہ معیار کے لئے کوئی ریکارڈ نہیں ملا'
+        : 'No records found for the selected criteria',
+    }),
+    [isUr]
+  );
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
@@ -80,7 +107,7 @@ export function DailySalesReport() {
         (row, index) => `
       <tr>
         <td style="text-align: center;">${index + 1}</td>
-        <td style="text-align: right;">${row.item_name}</td>
+        <td style="text-align: ${isUr ? 'right' : 'left'};">${row.item_name}</td>
         <td class="amount-cell">${fmt(row.total_weight)}</td>
         <td class="amount-cell">Rs. ${fmt(row.total_amount)}</td>
       </tr>
@@ -90,13 +117,13 @@ export function DailySalesReport() {
 
     return `
       <style>
-        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
         .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
         .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
         .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
         .print-table .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 15px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; direction: rtl; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; direction: ${isUr ? 'rtl' : 'ltr'}; }
         .summary-box { border: 1px solid #ccc; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 4px; }
         .summary-label { font-size: 12px; color: #555; margin-bottom: 5px; }
         .summary-value { font-size: 16px; font-weight: bold; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -105,13 +132,13 @@ export function DailySalesReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="4" class="section-header">امروزہ بکری / Daily Sales Report</th>
+            <th colspan="4" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="text-align: right;">آئٹم / Item Name</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">کل وزن / Total Weight</th>
-            <th style="width: 150px; text-align: left; direction: ltr;">کل رقم / Total Amount</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.item}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.totalWeight}</th>
+            <th style="width: 150px; text-align: left; direction: ltr;">${t.totalAmount}</th>
           </tr>
         </thead>
         <tbody>
@@ -121,46 +148,46 @@ export function DailySalesReport() {
 
       <div class="summary-grid">
         <div class="summary-box">
-          <div class="summary-label">Gross Amount / کل رقم</div>
+          <div class="summary-label">${t.grossAmount}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.gross_amount)}</div>
         </div>
         <div class="summary-box">
-          <div class="summary-label">Charges / اخراجات</div>
+          <div class="summary-label">${t.charges}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.total_charges)}</div>
         </div>
         <div class="summary-box">
-          <div class="summary-label">Net Amount / خالص رقم</div>
+          <div class="summary-label">${t.netAmount}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.net_amount)}</div>
         </div>
         <div class="summary-box">
-          <div class="summary-label">Cash Received / نقد وصولی</div>
+          <div class="summary-label">${t.cashReceived}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.cash_received)}</div>
         </div>
         <div class="summary-box">
-          <div class="summary-label">Collection / کل وصولی</div>
+          <div class="summary-label">${t.collection}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.total_collection)}</div>
         </div>
         <div class="summary-box">
-          <div class="summary-label">Discount / رعایت</div>
+          <div class="summary-label">${t.discount}</div>
           <div class="summary-value">Rs. ${fmt(reportData.totals.total_discount)}</div>
         </div>
         <div class="summary-box" style="grid-column: span 2;">
-          <div class="summary-label">Balance / بقایا</div>
+          <div class="summary-label">${t.balance}</div>
           <div class="summary-value" style="color: ${reportData.totals.total_balance > 0 ? 'red' : 'green'};">Rs. ${fmt(reportData.totals.total_balance)}</div>
         </div>
       </div>
     `;
-  }, [reportData]);
+  }, [reportData, t, isUr]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={4}>
           <DatePickerInput
-            label="From Date"
+            label={t.fromDate}
             value={dateFrom}
             onChange={setDateFrom}
             maxDate={dateTo}
@@ -168,7 +195,7 @@ export function DailySalesReport() {
         </Grid.Col>
         <Grid.Col span={4}>
           <DatePickerInput
-            label="To Date"
+            label={t.toDate}
             value={dateTo}
             onChange={setDateTo}
             minDate={dateFrom}
@@ -177,7 +204,7 @@ export function DailySalesReport() {
         </Grid.Col>
         <Grid.Col span={4}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -190,24 +217,34 @@ export function DailySalesReport() {
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Sales by Item Type */}
             <Table striped highlightOnHover withTableBorder withColumnBorders mb="md">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
-                  <Table.Th>Item Name</Table.Th>
-                  <Table.Th className="text-right">Total Weight</Table.Th>
-                  <Table.Th className="text-right">Total Amount</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.item}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>
+                    {t.totalWeight}
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>
+                    {t.totalAmount}
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {reportData.byItem.map((row, index) => (
                   <Table.Tr key={row.item_id}>
-                    <Table.Td>{index + 1}</Table.Td>
-                    <Table.Td>{row.item_name}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_weight)}</Table.Td>
-                    <Table.Td className="text-right">{formatNumber(row.total_amount)}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>{index + 1}</Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {row.item_name}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_weight)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                      {formatNumber(row.total_amount)}
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -216,50 +253,66 @@ export function DailySalesReport() {
             {/* Grand Totals Summary */}
             <Paper p="md" withBorder>
               <Text fw={600} mb="sm">
-                Summary
+                {t.summary}
               </Text>
               <Group grow>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Gross Amount
+                    {t.grossAmount}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.gross_amount)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.gross_amount)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Charges
+                    {t.charges}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.total_charges)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.total_charges)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Net Amount
+                    {t.netAmount}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.net_amount)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.net_amount)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Cash Received
+                    {t.cashReceived}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.cash_received)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.cash_received)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Collection
+                    {t.collection}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.total_collection)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.total_collection)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Discount
+                    {t.discount}
                   </Text>
-                  <Text fw={600}>{formatNumber(reportData.totals.total_discount)}</Text>
+                  <Text fw={600} style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}>
+                    {formatNumber(reportData.totals.total_discount)}
+                  </Text>
                 </Stack>
                 <Stack gap="xs">
                   <Text size="sm" c="dimmed">
-                    Balance
+                    {t.balance}
                   </Text>
-                  <Text fw={600} c={reportData.totals.total_balance > 0 ? 'red' : 'green'}>
+                  <Text
+                    fw={600}
+                    c={reportData.totals.total_balance > 0 ? 'red' : 'green'}
+                    style={{ direction: 'ltr', textAlign: isUr ? 'right' : 'left' }}
+                  >
                     {formatNumber(reportData.totals.total_balance)}
                   </Text>
                 </Stack>
@@ -268,7 +321,7 @@ export function DailySalesReport() {
 
             {reportData.byItem.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No records found for the selected criteria
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

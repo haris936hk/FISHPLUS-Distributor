@@ -14,6 +14,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import { IconSearch } from '@tabler/icons-react';
 import { ReportViewer } from '../ReportViewer';
+import useStore from '../../store';
 
 /**
  * Vendor Sales Report (8.10) - بیوپاری بکری
@@ -21,6 +22,7 @@ import { ReportViewer } from '../ReportViewer';
  * Matches the original system layout: transactions grouped by vendor with subtotals.
  */
 export function VendorSalesReport() {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
@@ -28,6 +30,34 @@ export function VendorSalesReport() {
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
   const [reportData, setReportData] = useState(null);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      vendor: isUr ? 'بیوپاری' : 'Vendor',
+      all: isUr ? 'سب' : 'All',
+      fromDate: isUr ? 'تاریخ (سے)' : 'Sale Date From',
+      toDate: isUr ? 'تاریخ (تک)' : 'Sale Date To',
+      go: isUr ? 'تلاش' : 'Go',
+      reportTitle: isUr ? 'بیوپاری بکری' : 'Vendor Sales Report',
+      customer: isUr ? 'گاہک' : 'Customer',
+      item: isUr ? 'قسم' : 'Item',
+      vehicle: isUr ? 'گاڑی نمبر' : 'Vehicle #',
+      rate: isUr ? 'ریٹ' : 'Rate',
+      weight: isUr ? 'وزن' : 'Weight',
+      amount: isUr ? 'رقم' : 'Amount',
+      totalVehicles: isUr ? 'ٹوٹل گاڑیاں' : 'Total Vehicles',
+      vendorTotal: isUr ? 'ٹوٹل' : 'Vendor Total',
+      grandTotal: isUr ? 'مکمل ٹوٹل' : 'Grand Total',
+      selectVendorMsg: isUr
+        ? 'بیوپاری منتخب کریں یا "سب" پر نشان لگائیں'
+        : 'Please select a vendor or check "All"',
+      noRecords: isUr
+        ? 'منتخب کردہ معیار کے لئے کوئی ریکارڈ نہیں ملا'
+        : 'No records found for the selected criteria',
+    }),
+    [isUr]
+  );
 
   // Fetch suppliers for dropdown
   useEffect(() => {
@@ -71,7 +101,7 @@ export function VendorSalesReport() {
     if (!allVendors && !selectedSupplier) {
       notifications.show({
         title: 'Validation Error',
-        message: 'Please select a vendor or check "All Vendors"',
+        message: t.selectVendorMsg,
         color: 'red',
       });
       return;
@@ -105,7 +135,7 @@ export function VendorSalesReport() {
     } finally {
       setLoading(false);
     }
-  }, [selectedSupplier, dateFrom, dateTo, allVendors]);
+  }, [selectedSupplier, dateFrom, dateTo, allVendors, t]);
 
   // Group transactions by vendor for display
   const groupedByVendor = useMemo(() => {
@@ -163,8 +193,8 @@ export function VendorSalesReport() {
     Object.values(groupedByVendor).forEach((group) => {
       layoutHtml += `
         <tr style="background-color: #f0f0f0; font-weight: bold;">
-          <td colspan="5" style="text-align: right; font-size: 14px;">بیوپاری: ${group.supplierName}</td>
-          <td colspan="2" style="text-align: left; font-size: 12px; direction: ltr;">Total Vehicles: ${group.vehicleNumbers.size}</td>
+          <td colspan="5" style="text-align: ${isUr ? 'right' : 'left'}; font-size: 14px;">${t.vendor}: ${group.supplierName}</td>
+          <td colspan="2" style="text-align: left; font-size: 12px; direction: ltr;">${t.totalVehicles}: ${group.vehicleNumbers.size}</td>
         </tr>
       `;
 
@@ -174,9 +204,9 @@ export function VendorSalesReport() {
         layoutHtml += `
           <tr>
             <td style="text-align: center;">${lineNumber}</td>
-            <td style="text-align: right;">${row.customer_name}</td>
-            <td style="text-align: right;">${row.item_name}</td>
-            <td style="text-align: right;">${row.vehicle_number || '-'}</td>
+            <td style="text-align: ${isUr ? 'right' : 'left'};">${row.customer_name}</td>
+            <td style="text-align: ${isUr ? 'right' : 'left'};">${row.item_name}</td>
+            <td style="text-align: ${isUr ? 'right' : 'left'}; direction: ltr;">${row.vehicle_number || '-'}</td>
             <td class="amount-cell">Rs. ${fmt(row.rate)}</td>
             <td class="amount-cell">${fmtWeight(row.weight)}</td>
             <td class="amount-cell">Rs. ${fmt(row.amount)}</td>
@@ -186,7 +216,7 @@ export function VendorSalesReport() {
 
       layoutHtml += `
         <tr style="background-color: #e8e8e8; font-weight: bold; border-bottom: 2px solid #000;">
-          <td colspan="5" style="text-align: left;">ٹوٹل / Vendor Total:</td>
+          <td colspan="5" style="text-align: ${isUr ? 'right' : 'left'};">${t.vendorTotal}:</td>
           <td class="amount-cell">${fmtWeight(group.totalWeight)}</td>
           <td class="amount-cell">Rs. ${fmt(group.totalAmount)}</td>
         </tr>
@@ -195,8 +225,8 @@ export function VendorSalesReport() {
 
     return `
       <style>
-        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: rtl; }
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: right; }
+        .print-table { width: 100%; border-collapse: collapse; margin: 14px 0; direction: ${isUr ? 'rtl' : 'ltr'}; }
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px 14px; font-size: 14px; text-align: ${isUr ? 'right' : 'left'}; }
         .print-table th { background-color: #e8e8e8; font-weight: bold; font-size: 13px; }
         .print-table .section-header { background-color: #f5f5f5; font-weight: bold; font-size: 14px; text-align: center; }
         .print-table .amount-cell { text-align: left; direction: ltr; font-family: 'Segoe UI', Tahoma, sans-serif; white-space: nowrap; }
@@ -206,23 +236,23 @@ export function VendorSalesReport() {
       <table class="print-table">
         <thead>
           <tr>
-            <th colspan="7" class="section-header">بیوپاری بکری / Vendor Sales Report</th>
+            <th colspan="7" class="section-header">${t.reportTitle}</th>
           </tr>
           <tr>
             <th style="width: 40px; text-align: center;">#</th>
-            <th style="text-align: right;">گاہک / Customer</th>
-            <th style="text-align: right;">قسم / Item</th>
-            <th style="text-align: right;">گاڑی نمبر / Vehicle #</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">ریٹ / Rate</th>
-            <th style="width: 100px; text-align: left; direction: ltr;">وزن / Weight</th>
-            <th style="width: 120px; text-align: left; direction: ltr;">رقم / Amount</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.customer}</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'};">${t.item}</th>
+            <th style="text-align: ${isUr ? 'right' : 'left'}; direction: ltr;">${t.vehicle}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.rate}</th>
+            <th style="width: 100px; text-align: left; direction: ltr;">${t.weight}</th>
+            <th style="width: 120px; text-align: left; direction: ltr;">${t.amount}</th>
           </tr>
         </thead>
         <tbody>
           ${layoutHtml}
           <tr class="grand-total-row">
-            <td colspan="3" style="text-align: left;">Grand Total / مکمل ٹوٹل</td>
-            <td style="text-align: right;">Vehicles: ${grandTotalVehicles}</td>
+            <td colspan="3" style="text-align: ${isUr ? 'right' : 'left'};">${t.grandTotal}</td>
+            <td style="text-align: left; direction: ltr;">${t.totalVehicles}: ${grandTotalVehicles}</td>
             <td></td>
             <td class="amount-cell">${fmtWeight(grandTotalWeight)}</td>
             <td class="amount-cell">Rs. ${fmt(grandTotalAmount)}</td>
@@ -230,18 +260,26 @@ export function VendorSalesReport() {
         </tbody>
       </table>
     `;
-  }, [reportData, groupedByVendor, grandTotalVehicles, grandTotalWeight, grandTotalAmount]);
+  }, [
+    reportData,
+    groupedByVendor,
+    grandTotalVehicles,
+    grandTotalWeight,
+    grandTotalAmount,
+    t,
+    isUr,
+  ]);
 
   return (
     <Stack gap="md" pos="relative">
       <LoadingOverlay visible={loading} />
 
       {/* Filters */}
-      <Grid align="flex-end">
+      <Grid align="flex-end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
         <Grid.Col span={3}>
           <Select
-            label="بیوپاری (Vendor)"
-            placeholder="Select vendor"
+            label={t.vendor}
+            placeholder=""
             data={suppliers}
             value={selectedSupplier}
             onChange={setSelectedSupplier}
@@ -252,7 +290,7 @@ export function VendorSalesReport() {
         </Grid.Col>
         <Grid.Col span={1}>
           <Checkbox
-            label="All"
+            label={t.all}
             checked={allVendors}
             onChange={(e) => {
               setAllVendors(e.target.checked);
@@ -263,7 +301,7 @@ export function VendorSalesReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <DatePickerInput
-            label="Sale Date From"
+            label={t.fromDate}
             value={dateFrom}
             onChange={setDateFrom}
             maxDate={dateTo}
@@ -271,7 +309,7 @@ export function VendorSalesReport() {
         </Grid.Col>
         <Grid.Col span={3}>
           <DatePickerInput
-            label="Sale Date To"
+            label={t.toDate}
             value={dateTo}
             onChange={setDateTo}
             minDate={dateFrom}
@@ -280,7 +318,7 @@ export function VendorSalesReport() {
         </Grid.Col>
         <Grid.Col span={2}>
           <Button leftSection={<IconSearch size={16} />} onClick={handleGenerate} fullWidth>
-            Go
+            {t.go}
           </Button>
         </Grid.Col>
       </Grid>
@@ -293,44 +331,17 @@ export function VendorSalesReport() {
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
         >
-          <ScrollArea>
+          <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ textAlign: 'center' }}>
-                    نمبر
-                    <br />#
-                  </Table.Th>
-                  <Table.Th>
-                    گاہک
-                    <br />
-                    Customer
-                  </Table.Th>
-                  <Table.Th>
-                    قسم
-                    <br />
-                    Item
-                  </Table.Th>
-                  <Table.Th>
-                    گاڑی نمبر
-                    <br />
-                    Vehicle #
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    ریٹ (kg)
-                    <br />
-                    Rate
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    وزن (kg)
-                    <br />
-                    Weight
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'right' }}>
-                    رقم
-                    <br />
-                    Amount
-                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>#</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.customer}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.item}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'right' : 'left' }}>{t.vehicle}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.rate}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.weight}</Table.Th>
+                  <Table.Th style={{ textAlign: isUr ? 'left' : 'right' }}>{t.amount}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -339,11 +350,18 @@ export function VendorSalesReport() {
                   return [
                     // Vendor header row
                     <Table.Tr key={`header-${supplierId}`} style={{ backgroundColor: '#f0f0f0' }}>
-                      <Table.Td colSpan={4}>
-                        <Text fw={700}>بیوپاری: {group.supplierName}</Text>
+                      <Table.Td colSpan={4} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                        <Text fw={700}>
+                          {t.vendor}: {group.supplierName}
+                        </Text>
                       </Table.Td>
-                      <Table.Td colSpan={3} style={{ textAlign: 'right' }}>
-                        <Text size="sm">ٹوٹل گاڑیاں: {group.vehicleNumbers.size}</Text>
+                      <Table.Td
+                        colSpan={3}
+                        style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}
+                      >
+                        <Text size="sm">
+                          {t.totalVehicles}: {group.vehicleNumbers.size}
+                        </Text>
                       </Table.Td>
                     </Table.Tr>,
                     // Transaction rows
@@ -352,16 +370,30 @@ export function VendorSalesReport() {
                       return (
                         <Table.Tr key={`${row.sale_id}-${row.item_name}-${lineNumber}`}>
                           <Table.Td style={{ textAlign: 'center' }}>{lineNumber}</Table.Td>
-                          <Table.Td>{row.customer_name}</Table.Td>
-                          <Table.Td>{row.item_name}</Table.Td>
-                          <Table.Td>{row.vehicle_number || '-'}</Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                            {row.customer_name}
+                          </Table.Td>
+                          <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                            {row.item_name}
+                          </Table.Td>
+                          <Table.Td
+                            style={{ textAlign: isUr ? 'right' : 'left', direction: 'ltr' }}
+                          >
+                            {row.vehicle_number || '-'}
+                          </Table.Td>
+                          <Table.Td
+                            style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}
+                          >
                             {formatNumber(row.rate)}
                           </Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td
+                            style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}
+                          >
                             {formatWeight(row.weight)}
                           </Table.Td>
-                          <Table.Td style={{ textAlign: 'right' }}>
+                          <Table.Td
+                            style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}
+                          >
                             {formatNumber(row.amount)}
                           </Table.Td>
                         </Table.Tr>
@@ -372,13 +404,13 @@ export function VendorSalesReport() {
                       key={`subtotal-${supplierId}`}
                       style={{ backgroundColor: '#e8e8e8', fontWeight: 'bold' }}
                     >
-                      <Table.Td colSpan={5} style={{ textAlign: 'right' }}>
-                        <strong>ٹوٹل (Total)</strong>
+                      <Table.Td colSpan={5} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                        <strong>{t.vendorTotal}</strong>
                       </Table.Td>
-                      <Table.Td style={{ textAlign: 'right' }}>
+                      <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                         <strong>{formatWeight(group.totalWeight)}</strong>
                       </Table.Td>
-                      <Table.Td style={{ textAlign: 'right' }}>
+                      <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                         <strong>{formatNumber(group.totalAmount)}</strong>
                       </Table.Td>
                     </Table.Tr>,
@@ -388,17 +420,19 @@ export function VendorSalesReport() {
               {/* Grand Total Footer */}
               <Table.Tfoot>
                 <Table.Tr className="font-bold" style={{ backgroundColor: '#d0e0f0' }}>
-                  <Table.Td colSpan={3}>
-                    <strong>Grand Total</strong>
+                  <Table.Td colSpan={3} style={{ textAlign: isUr ? 'right' : 'left' }}>
+                    <strong>{t.grandTotal}</strong>
                   </Table.Td>
-                  <Table.Td>
-                    <strong>Vehicles: {grandTotalVehicles}</strong>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
+                    <strong>
+                      {t.totalVehicles}: {grandTotalVehicles}
+                    </strong>
                   </Table.Td>
                   <Table.Td></Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatWeight(grandTotalWeight)}</strong>
                   </Table.Td>
-                  <Table.Td style={{ textAlign: 'right' }}>
+                  <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                     <strong>{formatNumber(grandTotalAmount)}</strong>
                   </Table.Td>
                 </Table.Tr>
@@ -407,7 +441,7 @@ export function VendorSalesReport() {
 
             {reportData.transactions.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
-                No records found for the selected criteria
+                {t.noRecords}
               </Text>
             )}
           </ScrollArea>

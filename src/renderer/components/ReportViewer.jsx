@@ -8,6 +8,7 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
+import useStore from '../store';
 
 /**
  * ReportViewer - Shared report viewer component with print and export functionality
@@ -25,6 +26,10 @@ export function ReportViewer({
   printContentHTML = null, // Optional: Custom print body HTML (overrides DOM capture)
 }) {
   const printRef = useRef();
+  const { language } = useStore();
+
+  // Determine the display title based on the active language
+  const displayTitle = language === 'ur' && titleUrdu ? titleUrdu : title;
 
   const generatePrintHTML = () => {
     const content = printRef.current;
@@ -36,31 +41,41 @@ export function ReportViewer({
       return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
-    // Build date section HTML
+    // Build date section HTML (Language-aware)
     let dateHTML = '';
     if (dateRange) {
-      dateHTML = `
-        <div class="date-box">
-          <span class="date-label">تاریخ :</span>
-          <span>${formatPrintDate(dateRange.from)}</span>
-          <span class="date-separator">سے</span>
-          <span>${formatPrintDate(dateRange.to)}</span>
-          <span class="date-separator">تک</span>
-        </div>`;
+      if (language === 'ur') {
+        dateHTML = `
+          <div class="date-box">
+            <span class="date-label">تاریخ :</span>
+            <span>${formatPrintDate(dateRange.from)}</span>
+            <span class="date-separator">سے</span>
+            <span>${formatPrintDate(dateRange.to)}</span>
+            <span class="date-separator">تک</span>
+          </div>`;
+      } else {
+        dateHTML = `
+          <div class="date-box">
+            <span class="date-label">Date:</span>
+            <span>${formatPrintDate(dateRange.from)}</span>
+            <span class="date-separator">to</span>
+            <span>${formatPrintDate(dateRange.to)}</span>
+          </div>`;
+      }
     } else if (singleDate) {
       dateHTML = `
         <div class="date-box">
-          <span class="date-label">تاریخ :</span>
+          <span class="date-label">${language === 'ur' ? 'تاریخ :' : 'Date:'}</span>
           <span>${formatPrintDate(singleDate)}</span>
         </div>`;
     }
 
     return `
       <!DOCTYPE html>
-      <html dir="rtl">
+      <html dir="${language === 'ur' ? 'rtl' : 'ltr'}">
         <head>
           <meta charset="UTF-8">
-          <title>${title}</title>
+          <title>${displayTitle}</title>
           <style>
             @page {
               size: A4;
@@ -72,7 +87,7 @@ export function ReportViewer({
               margin: 0;
               padding: 20px 30px;
               color: #000;
-              direction: rtl;
+              direction: ${language === 'ur' ? 'rtl' : 'ltr'};
               font-size: 13px;
               line-height: 1.5;
             }
@@ -270,9 +285,12 @@ export function ReportViewer({
           </div>
 
           <!-- Report Title -->
-          <div class="title-section">
-            ${titleUrdu ? `<p class="report-title-urdu">${titleUrdu}</p>` : ''}
-            ${title ? `<p class="report-title-en">${title}</p>` : ''}
+          <div class="title-section" style="text-align: ${language === 'ur' ? 'right' : 'center'}">
+            ${
+              language === 'ur'
+                ? `<p class="report-title-urdu">${displayTitle}</p>`
+                : `<p style="font-size: 24px; font-weight: bold; margin: 0; text-align: center;">${displayTitle}</p>`
+            }
           </div>
 
           <!-- Date -->
@@ -289,7 +307,7 @@ export function ReportViewer({
     try {
       const htmlContent = generatePrintHTML();
       const response = await window.api.print.preview(htmlContent, {
-        title: `${title} - Print Preview`,
+        title: `${displayTitle} - Print Preview`,
         landscape: false,
       });
 
@@ -314,7 +332,7 @@ export function ReportViewer({
     try {
       const htmlContent = generatePrintHTML();
       const response = await window.api.print.exportPDF(htmlContent, {
-        filename: `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+        filename: `${displayTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
         landscape: false,
       });
 
@@ -386,9 +404,9 @@ export function ReportViewer({
       }
 
       const response = await window.api.print.exportExcel(dataToExport, {
-        filename: `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`,
+        filename: `${displayTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`,
         columns: columnsToUse,
-        title: title,
+        title: displayTitle,
         titleUrdu: titleUrdu,
         dateRange: dateRange,
       });
@@ -434,21 +452,19 @@ export function ReportViewer({
         <Group justify="space-between" align="flex-start">
           <Stack gap="xs">
             <Group gap="xs" justify="center">
-              <Title order={4}>{title}</Title>
-              {titleUrdu && (
-                <Text size="lg" fw={600} style={{ direction: 'rtl' }}>
-                  {titleUrdu}
-                </Text>
-              )}
+              <Title order={4} style={{ direction: language === 'ur' ? 'rtl' : 'ltr' }}>
+                {displayTitle}
+              </Title>
             </Group>
             {dateRange && (
               <Text size="sm" c="dimmed" ta="center">
-                From: {formatDateDisplay(dateRange.from)} To: {formatDateDisplay(dateRange.to)}
+                {language === 'ur' ? 'from:' : 'From:'} {formatDateDisplay(dateRange.from)}{' '}
+                {language === 'ur' ? 'to:' : 'To:'} {formatDateDisplay(dateRange.to)}
               </Text>
             )}
             {singleDate && (
               <Text size="sm" c="dimmed" ta="center">
-                Date: {formatDateDisplay(singleDate)}
+                {language === 'ur' ? 'تاریخ :' : 'Date:'} {formatDateDisplay(singleDate)}
               </Text>
             )}
           </Stack>
