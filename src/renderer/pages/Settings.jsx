@@ -321,7 +321,9 @@ function Settings() {
                   <NumberInput
                     label="Default Commission %"
                     value={settings.default_commission_pct}
-                    onChange={(value) => handleChange('default_commission_pct', value)}
+                    onChange={(value) =>
+                      handleChange('default_commission_pct', value === '' ? '' : value)
+                    }
                     min={0}
                     max={100}
                     decimalScale={2}
@@ -332,7 +334,7 @@ function Settings() {
                   <NumberInput
                     label="Default VAT %"
                     value={settings.default_vat_pct}
-                    onChange={(value) => handleChange('default_vat_pct', value)}
+                    onChange={(value) => handleChange('default_vat_pct', value === '' ? '' : value)}
                     min={0}
                     max={100}
                     decimalScale={2}

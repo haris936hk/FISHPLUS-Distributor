@@ -40,12 +40,12 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
 
   // Charges state
   const [commissionPct, setCommissionPct] = useState(5.0);
-  const [drugsCharges, setDrugsCharges] = useState(0);
-  const [fareCharges, setFareCharges] = useState(0);
-  const [laborCharges, setLaborCharges] = useState(0);
-  const [iceCharges, setIceCharges] = useState(0);
-  const [concessionAmount, setConcessionAmount] = useState(0);
-  const [cashPaid, setCashPaid] = useState(0);
+  const [drugsCharges, setDrugsCharges] = useState('');
+  const [fareCharges, setFareCharges] = useState('');
+  const [laborCharges, setLaborCharges] = useState('');
+  const [iceCharges, setIceCharges] = useState('');
+  const [concessionAmount, setConcessionAmount] = useState('');
+  const [cashPaid, setCashPaid] = useState('');
 
   // Calculated values from preview
   const [previewData, setPreviewData] = useState(null);
@@ -53,11 +53,19 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
   const [grossAmount, setGrossAmount] = useState(0);
 
   // Calculated values
-  const commissionAmount = (grossAmount * commissionPct) / 100;
-  const totalCharges = drugsCharges + fareCharges + laborCharges + iceCharges;
+  const numCommissionPct = Number(commissionPct) || 0;
+  const numDrugs = Number(drugsCharges) || 0;
+  const numFare = Number(fareCharges) || 0;
+  const numLabor = Number(laborCharges) || 0;
+  const numIce = Number(iceCharges) || 0;
+  const numConcession = Number(concessionAmount) || 0;
+  const numCash = Number(cashPaid) || 0;
+
+  const commissionAmount = (grossAmount * numCommissionPct) / 100;
+  const totalCharges = numDrugs + numFare + numLabor + numIce;
   const netAmount = grossAmount - commissionAmount - totalCharges;
-  const totalPayable = netAmount - concessionAmount;
-  const balanceAmount = totalPayable - cashPaid;
+  const totalPayable = netAmount - numConcession;
+  const balanceAmount = totalPayable - numCash;
 
   // Load suppliers on mount
   useEffect(() => {
@@ -178,17 +186,17 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
         date_to: formatDate(dateTo),
         total_weight: totalWeight,
         gross_amount: grossAmount,
-        commission_pct: commissionPct,
+        commission_pct: numCommissionPct,
         commission_amount: commissionAmount,
-        drugs_charges: drugsCharges,
-        fare_charges: fareCharges,
-        labor_charges: laborCharges,
-        ice_charges: iceCharges,
+        drugs_charges: numDrugs,
+        fare_charges: numFare,
+        labor_charges: numLabor,
+        ice_charges: numIce,
         other_charges: 0,
         total_charges: totalCharges,
         total_payable: totalPayable,
-        concession_amount: concessionAmount,
-        cash_paid: cashPaid,
+        concession_amount: numConcession,
+        cash_paid: numCash,
         collection_amount: 0,
         balance_amount: balanceAmount,
       };
@@ -206,8 +214,8 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
         setPreviewData(null);
         setTotalWeight(0);
         setGrossAmount(0);
-        setConcessionAmount(0);
-        setCashPaid(0);
+        setConcessionAmount('');
+        setCashPaid('');
       } else {
         notifications.show({
           title: 'خرابی / Error',
@@ -233,16 +241,16 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
     dateTo,
     totalWeight,
     grossAmount,
-    commissionPct,
+    numCommissionPct,
     commissionAmount,
-    drugsCharges,
-    fareCharges,
-    laborCharges,
-    iceCharges,
+    numDrugs,
+    numFare,
+    numLabor,
+    numIce,
     totalCharges,
     totalPayable,
-    concessionAmount,
-    cashPaid,
+    numConcession,
+    numCash,
     balanceAmount,
     onBillSaved,
   ]);
@@ -254,12 +262,12 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
     setDateFrom(new Date());
     setDateTo(new Date());
     setCommissionPct(5.0);
-    setDrugsCharges(0);
-    setFareCharges(0);
-    setLaborCharges(0);
-    setIceCharges(0);
-    setConcessionAmount(0);
-    setCashPaid(0);
+    setDrugsCharges('');
+    setFareCharges('');
+    setLaborCharges('');
+    setIceCharges('');
+    setConcessionAmount('');
+    setCashPaid('');
     setPreviewData(null);
     setTotalWeight(0);
     setGrossAmount(0);
@@ -328,7 +336,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="منشیانا (Drugs/Chemicals)"
               value={drugsCharges}
-              onChange={setDrugsCharges}
+              onChange={(val) => setDrugsCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "
@@ -338,7 +346,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="کرایہ (Fare)"
               value={fareCharges}
-              onChange={setFareCharges}
+              onChange={(val) => setFareCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "
@@ -351,7 +359,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="مزدوری (Labor)"
               value={laborCharges}
-              onChange={setLaborCharges}
+              onChange={(val) => setLaborCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "
@@ -361,7 +369,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="برف (Ice)"
               value={iceCharges}
-              onChange={setIceCharges}
+              onChange={(val) => setIceCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "
@@ -371,7 +379,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="کمیش % (Commission %)"
               value={commissionPct}
-              onChange={setCommissionPct}
+              onChange={(val) => setCommissionPct(val === '' ? '' : val)}
               min={0}
               max={100}
               decimalScale={2}
@@ -395,7 +403,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="رعایت (Concession)"
               value={concessionAmount}
-              onChange={setConcessionAmount}
+              onChange={(val) => setConcessionAmount(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "
@@ -405,7 +413,7 @@ function SupplierBillForm({ onPreviewGenerated, onBillSaved }) {
             <NumberInput
               label="نقل (Cash Paid)"
               value={cashPaid}
-              onChange={setCashPaid}
+              onChange={(val) => setCashPaid(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               prefix="Rs. "

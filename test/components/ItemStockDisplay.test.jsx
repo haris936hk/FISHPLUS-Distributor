@@ -45,7 +45,7 @@ describe('ItemStockDisplay Component', () => {
     const { container } = renderWithMantine(<ItemStockDisplay loading={true} />);
     // Mantine v7 loader uses styled spans/divs usually, let's check for the loader class
     // or just verify that the table/empty text is NOT there
-    expect(screen.queryByText('No items in inventory')).not.toBeInTheDocument();
+    expect(screen.queryByText('item.noResults')).not.toBeInTheDocument();
     expect(screen.queryByText('Item 1')).not.toBeInTheDocument();
     // Check for loader by class
     const loader = container.querySelector('.mantine-Loader-root');
@@ -54,7 +54,7 @@ describe('ItemStockDisplay Component', () => {
 
   it('renders empty state correctly', () => {
     renderWithMantine(<ItemStockDisplay data={[]} />);
-    expect(screen.getByText('No items in inventory')).toBeInTheDocument();
+    expect(screen.getByText('item.noResults')).toBeInTheDocument();
   });
 
   it('renders items with correct stock levels', () => {

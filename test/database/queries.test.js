@@ -534,8 +534,8 @@ describe('supplierBills queries', () => {
 
   it('generatePreview calculates totals from items', () => {
     const mockItems = [
-      { net_weight: 100, amount: 15000 },
-      { net_weight: 50, amount: 7500 },
+      { weight: 100, amount: 15000 },
+      { weight: 50, amount: 7500 },
     ];
     mockDb.query
       .mockReturnValueOnce(mockItems) // sale items

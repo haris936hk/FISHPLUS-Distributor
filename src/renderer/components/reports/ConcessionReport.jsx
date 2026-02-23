@@ -232,13 +232,22 @@ export function ConcessionReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Concession Report"
           titleUrdu="رعایت رپورٹ"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.transactions.map((row) => ({
+            ...row,
+            sale_date_formatted: new Date(row.sale_date).toLocaleDateString(),
+          }))}
+          exportColumns={[
+            { key: 'sale_date_formatted', label: t.date },
+            { key: 'sale_number', label: t.saleNumber },
+            { key: 'customer_name', label: t.customer },
+            { key: 'concession', label: t.concessionAmount },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

@@ -192,13 +192,6 @@ async function exportToExcel(mainWindow, data, options = {}) {
     const cols =
       columns || (data.length > 0 ? Object.keys(data[0]).map((key) => ({ key, label: key })) : []);
 
-    // Set columns
-    worksheet.columns = cols.map((col) => ({
-      header: col.label || col.key,
-      key: col.key,
-      width: col.width || 15,
-    }));
-
     // Style header row
     const headerRow = worksheet.getRow(currentRow);
     headerRow.values = cols.map((col) => col.label || col.key);
@@ -223,13 +216,17 @@ async function exportToExcel(mainWindow, data, options = {}) {
     }
 
     // Auto-fit columns (approximate)
-    worksheet.columns.forEach((column) => {
-      let maxLength = column.header?.length || 10;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const length = cell.value?.toString().length || 0;
+    cols.forEach((col, index) => {
+      let maxLength = (col.label || col.key).toString().length || 10;
+      data.forEach((row) => {
+        const val = row[col.key] ?? '';
+        const length = val.toString().length;
         if (length > maxLength) maxLength = length;
       });
-      column.width = Math.min(maxLength + 2, 50);
+
+      const column = worksheet.getColumn(index + 1);
+      // Give extra padding for styling and Urdu text size differences
+      column.width = Math.min(Math.max(maxLength * 1.2 + 2, 10), 60);
     });
 
     // Save workbook

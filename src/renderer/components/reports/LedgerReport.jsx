@@ -275,13 +275,24 @@ export function LedgerReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Ledger Report"
           titleUrdu="کھاتہ"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={getTransactionsWithBalance().map((row) => ({
+            ...row,
+            txn_date_formatted: new Date(row.date).toLocaleDateString(),
+          }))}
+          exportColumns={[
+            { key: 'txn_date_formatted', label: t.date },
+            { key: 'reference', label: t.reference },
+            { key: 'description', label: t.description },
+            { key: 'debit', label: t.debit },
+            { key: 'credit', label: t.credit },
+            { key: 'balance', label: t.balance },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Opening Balance */}

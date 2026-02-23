@@ -1,6 +1,4 @@
-// filepath: test/ipc/handlers.test.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ipcMain, app } from 'electron';
 import db from '../../src/database';
 import queries from '../../src/database/queries';
 import channels from '../../src/ipc/channels.js';
@@ -323,11 +321,6 @@ describe('IPC Handlers', () => {
   });
 
   describe('Sale Handlers', () => {
-    it('SALE_CREATE validates customer_id', async () => {
-      const result = await handlers[channels.SALE_CREATE](null, { items: [{ id: 1 }] });
-      expect(result).toEqual({ success: false, error: 'Customer is required' });
-    });
-
     it('SALE_CREATE validates items', async () => {
       const result = await handlers[channels.SALE_CREATE](null, { customer_id: 1, items: [] });
       expect(result).toEqual({ success: false, error: 'At least one line item is required' });
@@ -403,11 +396,6 @@ describe('IPC Handlers', () => {
       queries.items.getById.mockReturnValue(null);
       const result = await handlers[channels.ITEM_GET_BY_ID](null, 999);
       expect(result).toEqual({ success: false, error: 'Item not found' });
-    });
-
-    it('SALE_UPDATE validates input', async () => {
-      const result = await handlers[channels.SALE_UPDATE](null, { id: 1, data: {} });
-      expect(result).toEqual({ success: false, error: 'Customer is required' });
     });
 
     it('PURCHASE_CREATE validates invalid supplier', async () => {

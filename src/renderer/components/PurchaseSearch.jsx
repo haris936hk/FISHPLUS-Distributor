@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Paper,
   Stack,
@@ -24,6 +24,7 @@ import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
 import { useResizableColumns } from '../hooks/useResizableColumns';
+import useStore from '../store';
 
 /**
  * PurchaseSearch Component
@@ -33,11 +34,70 @@ import { useResizableColumns } from '../hooks/useResizableColumns';
  * @param {function} onEdit - Callback to edit a purchase
  */
 function PurchaseSearch({ onEdit }) {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 25;
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      title: isUr ? 'خریداری تلاش' : 'Search Purchases',
+      filterDate: isUr ? 'تاریخ سے فلٹر' : 'Filter by Date',
+      dateFrom: isUr ? 'شروع تاریخ' : 'From Date',
+      dateTo: isUr ? 'اختتام تاریخ' : 'To Date',
+      filterSupplier: isUr ? 'بیوپاری سے فلٹر' : 'Filter by Supplier',
+      supplier: isUr ? 'بیوپاری' : 'Supplier',
+      purchNo: isUr ? 'خریداری نمبر' : 'Purchase #',
+      search: isUr ? 'تلاش' : 'Search',
+      selected: isUr ? 'منتخب' : 'selected',
+      deleteSelectedTitle: isUr ? 'منتخب خریداریاں حذف کریں' : 'Delete Selected Purchases',
+      deleteSelectedMsg: (count) =>
+        isUr
+          ? `کیا آپ ${count} منتخب خریداری(یاں) حذف کرنا چاہتے ہیں؟`
+          : `Are you sure you want to delete ${count} selected purchase(s)?`,
+      deleteAll: isUr ? 'حذف کریں' : 'Delete All',
+      cancel: isUr ? 'منسوخ' : 'Cancel',
+      deleteSelectedBtn: isUr ? 'منتخب حذف کریں' : 'Delete Selected',
+      clearSelection: isUr ? 'انتخاب صاف کریں' : 'Clear Selection',
+      recordsFound: isUr ? 'ریکارڈ ملے' : 'Records Found',
+      noPurchasesFound: isUr
+        ? 'کوئی خریداری نہیں ملی — اوپر کے فلٹر استعمال کریں۔'
+        : 'No purchases found. Use the filters above to search.',
+      purchNumCol: isUr ? 'خریداری نمبر' : 'Purchase #',
+      dateCol: isUr ? 'تاریخ' : 'Date',
+      supplierCol: isUr ? 'بیوپاری' : 'Supplier',
+      vehicleCol: isUr ? 'گاڑی نمبر' : 'Vehicle No',
+      weightCol: isUr ? 'وزن' : 'Weight (kg)',
+      netAmtCol: isUr ? 'خالص رقم' : 'Net Amount',
+      balanceCol: isUr ? 'بقایا' : 'Balance',
+      statusCol: isUr ? 'حالت' : 'Status',
+      actionsCol: isUr ? 'عمل' : 'Actions',
+      valErrorTitle: isUr ? 'توثیق کی خرابی' : 'Validation Error',
+      valErrorDateMsg: isUr
+        ? 'شروع کی تاریخ اختتام کی تاریخ کے بعد نہیں ہو سکتی'
+        : 'Start date cannot be after end date',
+      noResultsTitle: isUr ? 'کوئی نتیجہ نہیں' : 'No Results',
+      noResultsMsg: isUr
+        ? 'معیار کے مطابق کوئی خریداری نہیں ملی'
+        : 'No purchases found matching the criteria',
+      searchErrorTitle: isUr ? 'خرابی' : 'Error',
+      searchErrorMsg: isUr ? 'خریداریاں تلاش کرنے میں خرابی' : 'Failed to search purchases',
+      deleteTitle: isUr ? 'خریداری حذف کریں' : 'Delete Purchase',
+      deleteMsg: (num) =>
+        isUr
+          ? `کیا آپ واقعی خریداری <strong>${num}</strong> حذف کرنا چاہتے ہیں؟ یہ عمل ناقابل واپسی ہے۔ سٹاک اور بیوپاری کا بیلنس بحال ہو جائے گا۔`
+          : `Are you sure you want to delete purchase <strong>${num}</strong>? This action cannot be undone. Stock and supplier balance will be restored.`,
+      deleteConfirm: isUr ? 'حذف کریں' : 'Delete',
+      deleteSuccessTitle: isUr ? 'کامیابی' : 'Success',
+      deleteSuccessMsg: isUr ? 'خریداری کامیابی سے حذف ہو گئی' : 'Purchase deleted successfully',
+      deleteErrorTitle: isUr ? 'خرابی' : 'Error',
+      deleteErrorMsg: isUr ? 'خریداری حذف کرنے میں خرابی' : 'Failed to delete purchase',
+    }),
+    [isUr]
+  );
 
   // Filters
   const [dateFrom, setDateFrom] = useState(new Date());
@@ -94,8 +154,8 @@ function PurchaseSearch({ onEdit }) {
   const handleSearch = useCallback(async () => {
     if (filterByDate && dateFrom > dateTo) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Start date cannot be after end date',
+        title: t.valErrorTitle,
+        message: t.valErrorDateMsg,
         color: 'red',
       });
       return;
@@ -119,42 +179,42 @@ function PurchaseSearch({ onEdit }) {
         setPage(1);
         if (response.data.length === 0) {
           notifications.show({
-            title: 'No Results',
-            message: 'No purchases found matching the criteria',
+            title: t.noResultsTitle,
+            message: t.noResultsMsg,
             color: 'yellow',
           });
         }
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to search purchases',
+          title: t.searchErrorTitle,
+          message: response.error || t.searchErrorMsg,
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Search error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Failed to search purchases',
+        title: t.searchErrorTitle,
+        message: t.searchErrorMsg,
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, filterByDate, selectedSupplier, filterBySupplier, purchaseNumber]);
+  }, [dateFrom, dateTo, filterByDate, selectedSupplier, filterBySupplier, purchaseNumber, t]);
 
   // Delete purchase
   const handleDelete = useCallback(
     (purchase) => {
       modals.openConfirmModal({
-        title: 'Delete Purchase',
+        title: t.deleteTitle,
         children: (
-          <Text size="sm">
-            Are you sure you want to delete purchase <strong>{purchase.purchase_number}</strong>?
-            This action cannot be undone. Stock and supplier balance will be restored.
-          </Text>
+          <Text
+            size="sm"
+            dangerouslySetInnerHTML={{ __html: t.deleteMsg(purchase.purchase_number) }}
+          />
         ),
-        labels: { confirm: 'Delete', cancel: 'Cancel' },
+        labels: { confirm: t.deleteConfirm, cancel: t.cancel },
         confirmProps: { color: 'red' },
         onConfirm: async () => {
           setLoading(true);
@@ -162,23 +222,23 @@ function PurchaseSearch({ onEdit }) {
             const response = await window.api.purchases.delete(purchase.id);
             if (response.success) {
               notifications.show({
-                title: 'Success',
-                message: 'Purchase deleted successfully',
+                title: t.deleteSuccessTitle,
+                message: t.deleteSuccessMsg,
                 color: 'green',
               });
               handleSearch();
             } else {
               notifications.show({
-                title: 'Error',
-                message: response.error || 'Failed to delete purchase',
+                title: t.deleteErrorTitle,
+                message: response.error || t.deleteErrorMsg,
                 color: 'red',
               });
             }
           } catch (error) {
             console.error('Delete error:', error);
             notifications.show({
-              title: 'Error',
-              message: 'Failed to delete purchase',
+              title: t.deleteErrorTitle,
+              message: t.deleteErrorMsg,
               color: 'red',
             });
           } finally {
@@ -187,7 +247,7 @@ function PurchaseSearch({ onEdit }) {
         },
       });
     },
-    [handleSearch]
+    [handleSearch, t]
   );
 
   // Format display date
@@ -203,24 +263,24 @@ function PurchaseSearch({ onEdit }) {
 
       <Stack gap="md">
         <Title order={4} className="text-green-700">
-          🔍 Search Purchases (خریداری تلاش)
+          🔍 {t.title}
         </Title>
 
         <Divider />
 
         {/* Filters */}
-        <Grid align="end">
+        <Grid align="end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={2}>
             <Checkbox
-              label="Filter by Date"
+              label={t.filterDate}
               checked={filterByDate}
               onChange={(e) => setFilterByDate(e.target.checked)}
             />
           </Grid.Col>
           <Grid.Col span={2.5}>
             <DatePickerInput
-              label="From Date"
-              placeholder="Start date"
+              label={t.dateFrom}
+              placeholder=""
               value={dateFrom}
               onChange={setDateFrom}
               maxDate={dateTo || undefined}
@@ -229,8 +289,8 @@ function PurchaseSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={2.5}>
             <DatePickerInput
-              label="To Date"
-              placeholder="End date"
+              label={t.dateTo}
+              placeholder=""
               value={dateTo}
               onChange={setDateTo}
               minDate={dateFrom || undefined}
@@ -239,15 +299,15 @@ function PurchaseSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={2}>
             <Checkbox
-              label="Filter by Supplier"
+              label={t.filterSupplier}
               checked={filterBySupplier}
               onChange={(e) => setFilterBySupplier(e.target.checked)}
             />
           </Grid.Col>
           <Grid.Col span={3}>
             <Select
-              label="Supplier"
-              placeholder="Select supplier"
+              label={t.supplier}
+              placeholder=""
               data={suppliers}
               value={selectedSupplier}
               onChange={setSelectedSupplier}
@@ -257,11 +317,11 @@ function PurchaseSearch({ onEdit }) {
           </Grid.Col>
         </Grid>
 
-        <Grid align="end">
+        <Grid align="end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={3}>
             <TextInput
-              label="Purchase #"
-              placeholder="Enter purchase number"
+              label={t.purchNo}
+              placeholder=""
               value={purchaseNumber}
               onChange={(e) => setPurchaseNumber(e.target.value)}
             />
@@ -269,7 +329,7 @@ function PurchaseSearch({ onEdit }) {
           <Grid.Col span={9}>
             <Group justify="flex-end">
               <Button variant="filled" color="green" onClick={handleSearch}>
-                Search
+                {t.search}
               </Button>
             </Group>
           </Grid.Col>
@@ -282,10 +342,14 @@ function PurchaseSearch({ onEdit }) {
           <Group
             gap="sm"
             p="xs"
-            style={{ background: 'var(--mantine-color-green-0)', borderRadius: 8 }}
+            style={{
+              background: 'var(--mantine-color-green-0)',
+              borderRadius: 8,
+              direction: isUr ? 'rtl' : 'ltr',
+            }}
           >
             <Text size="sm" fw={500}>
-              {selectedIds.size} selected
+              {selectedIds.size} {t.selected}
             </Text>
             <Button
               size="xs"
@@ -293,13 +357,9 @@ function PurchaseSearch({ onEdit }) {
               color="red"
               onClick={() => {
                 modals.openConfirmModal({
-                  title: 'Delete Selected Purchases',
-                  children: (
-                    <Text size="sm">
-                      Are you sure you want to delete {selectedIds.size} selected purchase(s)?
-                    </Text>
-                  ),
-                  labels: { confirm: 'Delete All', cancel: 'Cancel' },
+                  title: t.deleteSelectedTitle,
+                  children: <Text size="sm">{t.deleteSelectedMsg(selectedIds.size)}</Text>,
+                  labels: { confirm: t.deleteAll, cancel: t.cancel },
                   confirmProps: { color: 'red' },
                   onConfirm: async () => {
                     for (const id of selectedIds) {
@@ -308,30 +368,30 @@ function PurchaseSearch({ onEdit }) {
                     setSelectedIds(new Set());
                     handleSearch();
                     notifications.show({
-                      title: 'Deleted',
-                      message: `${selectedIds.size} purchase(s) deleted`,
+                      title: t.deleteSuccessTitle,
+                      message: t.deleteSuccessMsg,
                       color: 'green',
                     });
                   },
                 });
               }}
             >
-              🗑️ Delete Selected
+              🗑️ {t.deleteSelectedBtn}
             </Button>
             <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
-              Clear Selection
+              {t.clearSelection}
             </Button>
           </Group>
         )}
 
         {/* Results */}
-        <Group justify="space-between">
+        <Group justify="space-between" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Text size="sm" c="dimmed">
-            Records Found: <strong>{purchases.length}</strong>
+            {t.recordsFound}: <strong>{purchases.length}</strong>
           </Text>
         </Group>
 
-        <ScrollArea h={400}>
+        <ScrollArea h={400} style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Table striped withTableBorder highlightOnHover style={{ tableLayout: 'fixed' }}>
             <Table.Thead>
               <Table.Tr>
@@ -366,16 +426,16 @@ function PurchaseSearch({ onEdit }) {
                   />
                 </Table.Th>
                 {[
-                  ['purchNum', 'خریداری نمبر', 'Purchase #'],
-                  ['date', 'تاریخ', 'Date'],
-                  ['supplier', 'بیوپاری', 'Supplier'],
-                  ['vehicle', 'گڑی نمبر', 'Vehicle No'],
-                  ['weight', 'وزن', 'Weight (kg)'],
-                  ['netAmt', 'خالص رقم', 'Net Amount'],
-                  ['balance', 'بقایا', 'Balance'],
-                  ['status', 'حالت', 'Status'],
-                  ['actions', '', 'Actions'],
-                ].map(([key, ur, en]) => {
+                  ['purchNum', t.purchNumCol, ''],
+                  ['date', t.dateCol, ''],
+                  ['supplier', t.supplierCol, ''],
+                  ['vehicle', t.vehicleCol, ''],
+                  ['weight', t.weightCol, ''],
+                  ['netAmt', t.netAmtCol, ''],
+                  ['balance', t.balanceCol, ''],
+                  ['status', t.statusCol, ''],
+                  ['actions', t.actionsCol, ''],
+                ].map(([key, label]) => {
                   const rp = getResizeProps(key);
                   return (
                     <Table.Th
@@ -383,12 +443,15 @@ function PurchaseSearch({ onEdit }) {
                       style={{
                         ...rp.style,
                         textAlign: ['weight', 'netAmt', 'balance'].includes(key)
-                          ? 'right'
-                          : undefined,
+                          ? isUr
+                            ? 'left'
+                            : 'right'
+                          : isUr
+                            ? 'right'
+                            : 'left',
                       }}
                     >
-                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{ur}</div>
-                      <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.6 }}>{en}</div>
+                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{label}</div>
                       <div {...rp.resizeHandle} />
                     </Table.Th>
                   );
@@ -400,7 +463,7 @@ function PurchaseSearch({ onEdit }) {
                 <Table.Tr>
                   <Table.Td colSpan={9}>
                     <Text c="dimmed" ta="center" py="xl">
-                      No purchases found. Use the filters above to search.
+                      {t.noPurchasesFound}
                     </Text>
                   </Table.Td>
                 </Table.Tr>
@@ -422,24 +485,30 @@ function PurchaseSearch({ onEdit }) {
                         }}
                       />
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
                       <Text fw={500}>{purchase.purchase_number}</Text>
                     </Table.Td>
-                    <Table.Td>{formatDisplayDate(purchase.purchase_date)}</Table.Td>
-                    <Table.Td>{purchase.supplier_name || '-'}</Table.Td>
-                    <Table.Td>{purchase.vehicle_number || '-'}</Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {formatDisplayDate(purchase.purchase_date)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {purchase.supplier_name || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {purchase.vehicle_number || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       {(purchase.total_weight || 0).toFixed(2)}
                     </Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       Rs. {(purchase.net_amount || 0).toFixed(2)}
                     </Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       <Text c={purchase.balance_amount > 0 ? 'red' : 'green'}>
                         Rs. {(purchase.balance_amount || 0).toFixed(2)}
                       </Text>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
                       <Badge
                         color={purchase.status === 'posted' ? 'green' : 'orange'}
                         variant="light"

@@ -281,13 +281,21 @@ export function ClientRecoveryReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Customer Recovery Report"
           titleUrdu="کلائنٹ بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.summary}
+          exportColumns={[
+            { key: 'customer_name', label: t.customerName },
+            { key: 'total_amount', label: t.totalAmount },
+            { key: 'total_charges', label: t.charges },
+            { key: 'total_collection', label: t.collection },
+            { key: 'total_discount', label: t.discount },
+            { key: 'total_balance', label: t.balance },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Summary Table */}

@@ -34,7 +34,7 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
   const [formData, setFormData] = useState({
     name: '',
     name_english: '',
-    unit_price: 0,
+    unit_price: '',
     category_id: null,
     notes: '',
   });
@@ -78,7 +78,7 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
       const editData = {
         name: item.name || '',
         name_english: item.name_english || '',
-        unit_price: item.unit_price || 0,
+        unit_price: item.unit_price || '',
         category_id: item.category_id ? String(item.category_id) : null,
         notes: item.notes || '',
       };
@@ -124,7 +124,7 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
     setFormData({
       name: '',
       name_english: '',
-      unit_price: 0,
+      unit_price: '',
       category_id: null,
       notes: '',
     });
@@ -260,7 +260,7 @@ function ItemForm({ opened, onClose, item = null, onSuccess }) {
             label="یونٹ قیمت (Rs.) - Unit Price"
             placeholder="0.00"
             value={formData.unit_price}
-            onChange={(value) => handleChange('unit_price', value || 0)}
+            onChange={(value) => handleChange('unit_price', value === '' ? '' : value)}
             error={errors.unit_price}
             min={0}
             decimalScale={2}

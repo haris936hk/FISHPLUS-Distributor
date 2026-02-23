@@ -209,13 +209,18 @@ export function DailySalesReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Daily Sales Report"
           titleUrdu="امروزہ بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.byItem}
+          exportColumns={[
+            { key: 'item_name', label: t.item },
+            { key: 'total_weight', label: t.totalWeight },
+            { key: 'total_amount', label: t.totalAmount },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Sales by Item Type */}

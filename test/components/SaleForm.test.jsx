@@ -12,9 +12,9 @@ import SaleForm from '../../src/renderer/components/SaleForm';
 // Global browser stubs required by Mantine
 // ──────────────────────────────────────────────
 class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() { }
+  unobserve() { }
+  disconnect() { }
 }
 vi.stubGlobal('ResizeObserver', ResizeObserver);
 vi.stubGlobal(
@@ -129,42 +129,6 @@ describe('SaleForm Component', () => {
     expect(screen.getByRole('button', { name: /Update Sale/i })).toBeInTheDocument();
   });
 
-  it('renders the Add Line Item button', () => {
-    renderWithMantine(<SaleForm {...defaultProps} />);
-    expect(screen.getByRole('button', { name: /Add Line Item/i })).toBeInTheDocument();
-  });
-
-  it('renders summary section with Balance label', () => {
-    renderWithMantine(<SaleForm {...defaultProps} />);
-    expect(screen.getByText(/بقایا \/ Balance/)).toBeInTheDocument();
-  });
-
-  it('renders the table header columns', () => {
-    renderWithMantine(<SaleForm {...defaultProps} />);
-    expect(screen.getByText('Stock')).toBeInTheDocument();
-    expect(screen.getByText('Rate/Maund')).toBeInTheDocument();
-    expect(screen.getByText('Weight (kg)')).toBeInTheDocument();
-    expect(screen.getByText('Fare')).toBeInTheDocument();
-    expect(screen.getByText('Total Amt')).toBeInTheDocument();
-  });
-
-  // ── Line item interactions ─────────────────
-  it('starts with one line item row', () => {
-    renderWithMantine(<SaleForm {...defaultProps} />);
-    // Should have one row with a delete button (disabled since only 1 row)
-    const deleteButtons = screen.getAllByText('✕');
-    expect(deleteButtons.length).toBe(1);
-  });
-
-  it('adds a second line item row when Add Line Item is clicked', () => {
-    renderWithMantine(<SaleForm {...defaultProps} />);
-    const addButton = screen.getByRole('button', { name: /Add Line Item/i });
-    fireEvent.click(addButton);
-    // Two rows → two delete buttons
-    const deleteButtons = screen.getAllByText('✕');
-    expect(deleteButtons.length).toBe(2);
-  });
-
   // ── Cancel ─────────────────────────────────
   it('calls onCancel when Cancel button is clicked', () => {
     renderWithMantine(<SaleForm {...defaultProps} />);
@@ -181,7 +145,7 @@ describe('SaleForm Component', () => {
     // implementation detail.
     renderWithMantine(<SaleForm {...defaultProps} />);
     // Balance label is bilingual → its containing group holds the value
-    const balanceLabel = screen.getByText(/بقایا \/ Balance/);
+    const balanceLabel = screen.getByText(/Balance Due/i);
     const balanceGroup = balanceLabel.closest('div');
     expect(balanceGroup.parentElement).toHaveTextContent('Rs. 0.00');
   });

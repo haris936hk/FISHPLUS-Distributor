@@ -80,7 +80,7 @@ describe('SupplierForm Component', () => {
 
   it('renders all required form fields', () => {
     renderWithMantine(<SupplierForm {...defaultProps} />);
-    expect(screen.getByLabelText(/Name \(Urdu\)/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/نام \(اردو\)/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/NIC #/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Phone #/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe('SupplierForm Component', () => {
         supplier={{ id: 1, name: 'احمد علی', nic: '12345-1234567-1' }}
       />
     );
-    const nameInput = screen.getByLabelText(/Name \(Urdu\)/i);
+    const nameInput = screen.getByLabelText(/نام \(اردو\)/i);
     expect(nameInput.value).toBe('احمد علی');
   });
 
@@ -113,7 +113,7 @@ describe('SupplierForm Component', () => {
     renderWithMantine(<SupplierForm {...defaultProps} />);
 
     // Fill required fields
-    const nameInput = screen.getByLabelText(/Name \(Urdu\)/i);
+    const nameInput = screen.getByLabelText(/نام \(اردو\)/i);
     fireEvent.change(nameInput, { target: { value: 'Test Supplier' } });
 
     const phoneInput = screen.getByLabelText(/Phone #/i);

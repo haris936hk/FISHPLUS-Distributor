@@ -343,13 +343,46 @@ export function DailyNetAmountSummaryReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Daily Net Amount Summary"
           titleUrdu="رجسٹر ٹوٹل رقم"
           singleDate={formatDate(asOfDate)}
           printContentHTML={printContentHTML}
+          exportData={[
+            { category: t.details, metric: t.previousBalance, amount: reportData.previousBalance },
+            { category: t.details, metric: t.todaySales, amount: reportData.todaySales },
+            { category: t.details, metric: t.todayCharges, amount: reportData.todayCharges },
+            { category: t.details, metric: t.todayDiscount, amount: reportData.todayDiscount },
+            { category: t.details, metric: t.totalAmount, amount: reportData.totalAmount },
+
+            {
+              category: t.collectionDetails,
+              metric: t.cashReceived,
+              amount: reportData.todayCollection,
+            },
+            {
+              category: t.collectionDetails,
+              metric: t.paymentsReceived,
+              amount: reportData.todayPayments,
+            },
+            {
+              category: t.collectionDetails,
+              metric: t.totalCollection,
+              amount: reportData.totalCollection,
+            },
+
+            {
+              category: t.finalAccount,
+              metric: t.closingBalance,
+              amount: reportData.closingBalance,
+            },
+          ]}
+          exportColumns={[
+            { key: 'category', label: 'Category' },
+            { key: 'metric', label: t.metric },
+            { key: 'amount', label: t.amount },
+          ]}
         >
           <Stack gap="lg" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             {/* Summary Cards */}

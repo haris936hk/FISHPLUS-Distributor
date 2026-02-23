@@ -20,6 +20,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
+import useStore from '../store';
 
 /**
  * SaleForm Component
@@ -31,10 +32,70 @@ import '@mantine/dates/styles.css';
  * @param {function} onCancel - Callback to cancel/close form
  */
 function SaleForm({ editSale, onSaved, onCancel }) {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [itemsList, setItemsList] = useState([]);
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      title: editSale ? (isUr ? 'بکری ترمیم کریں' : 'Edit Sale') : isUr ? 'نئی بکری' : 'New Sale',
+      saleDate: isUr ? 'بکری تاریخ' : 'Sale Date',
+      supplier: isUr ? 'بیوپاری' : 'Supplier',
+      supplierPh: isUr ? 'بیوپاری منتخب کریں (اختیاری)' : 'Select supplier (optional)',
+      vehicleNo: isUr ? 'گاڑی نمبر' : 'Vehicle No',
+      details: isUr ? 'تفصیل' : 'Details',
+      detailsPh: isUr ? 'مزید تفصیلات...' : 'Additional notes...',
+      saleDetails: isUr ? 'بکری تفصیل' : 'Sale Details',
+      item: isUr ? 'مچھلی' : 'Item',
+      customer: isUr ? 'گاہک' : 'Customer',
+      stock: isUr ? 'سٹاک' : 'Stock',
+      rateMaund: isUr ? 'ریٹ فی من' : 'Rate/Maund',
+      rateKg: isUr ? 'ریٹ فی کلوگرام' : 'Rate/kg',
+      weightKg: isUr ? 'وزن کلوگرام' : 'Weight kg',
+      totalAmount: isUr ? 'ٹوٹل رقم' : 'Total Amount',
+      iceCharges: isUr ? 'برف' : 'Ice Charges',
+      fareCharges: isUr ? 'کرایہ' : 'Fare Charges',
+      cash: isUr ? 'نقدی' : 'Cash',
+      receipt: isUr ? 'وصولی' : 'Receipt',
+      summary: isUr ? 'خلاصہ' : 'Summary',
+      grossAmount: isUr ? 'مجموعی رقم' : 'Gross Amount',
+      charges: isUr ? 'اخراجات' : 'Charges',
+      netAmount: isUr ? 'خالص رقم' : 'Net Amount',
+      cashReceipt: isUr ? 'نقد + وصولی' : 'Cash + Receipt',
+      balance: isUr ? 'بقایا' : 'Balance',
+      printReceipt: isUr ? 'رسید پرنٹ کریں' : 'Print Receipt',
+      cancel: isUr ? 'منسوخ کریں' : 'Cancel',
+      clear: isUr ? 'صاف کریں' : 'Clear',
+      saveSale: editSale
+        ? isUr
+          ? 'بکری اپ ڈیٹ کریں'
+          : 'Update Sale'
+        : isUr
+          ? 'بکری محفوظ کریں'
+          : 'Save Sale',
+      valErrorItem: isUr ? 'براہ کرم آئٹم منتخب کریں' : 'Please select an item',
+      valErrorCustomer: isUr ? 'ہر آئٹم کے لیے گاہک منتخب کریں' : 'Please select a customer',
+      insufficientStockTitle: isUr ? 'ناکافی سٹاک' : 'Insufficient Stock',
+      insufficientStockMsg: (name, need, avail) =>
+        isUr
+          ? `${name}: ${need} کلوگرام درکار ہے، ${avail} کلوگرام دستیاب ہے`
+          : `${name}: need ${need} kg, available ${avail} kg`,
+      saveSuccessTitle: isUr ? 'بکری محفوظ' : 'Sale Saved',
+      saveSuccessEditMsg: isUr ? 'بکری کامیابی سے اپ ڈیٹ ہو گئی' : 'Sale updated successfully',
+      saveSuccessNewMsg: (num) =>
+        isUr ? `بکری نمبر ${num} کامیابی سے محفوظ` : `Sale ${num} created successfully`,
+      saveErrorTitle: isUr ? 'خرابی' : 'Error',
+      saveErrorMsg: isUr ? 'بکری محفوظ کرنے میں خرابی' : 'Failed to save sale',
+      printReceiptTitle: isUr ? 'بکری رسید' : 'Sale Receipt',
+      receiptNo: isUr ? 'رسید نمبر' : 'Receipt #',
+      date: isUr ? 'تاریخ' : 'Date',
+      printErrorMsg: isUr ? 'پرنٹ پیش نظارہ کھولنے میں ناکام' : 'Failed to open print preview',
+    }),
+    [isUr, editSale]
+  );
 
   // Header fields
   const [saleNumber, setSaleNumber] = useState('00000');
@@ -47,13 +108,13 @@ function SaleForm({ editSale, onSaved, onCancel }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isStock, setIsStock] = useState(false);
-  const [rateMaund, setRateMaund] = useState(0);
-  const [rateKg, setRateKg] = useState(0);
-  const [weight, setWeight] = useState(0);
-  const [iceCharges, setIceCharges] = useState(0);
-  const [fareCharges, setFareCharges] = useState(0);
-  const [cashAmount, setCashAmount] = useState(0);
-  const [receiptAmount, setReceiptAmount] = useState(0);
+  const [rateMaund, setRateMaund] = useState('');
+  const [rateKg, setRateKg] = useState('');
+  const [weight, setWeight] = useState('');
+  const [iceCharges, setIceCharges] = useState('');
+  const [fareCharges, setFareCharges] = useState('');
+  const [cashAmount, setCashAmount] = useState('');
+  const [receiptAmount, setReceiptAmount] = useState('');
 
   // Load data on mount
   useEffect(() => {
@@ -118,13 +179,13 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         setSelectedItem(String(item.item_id));
         setSelectedCustomer(item.customer_id ? String(item.customer_id) : null);
         setIsStock(!!item.is_stock);
-        setRateMaund(item.rate_per_maund || 0);
-        setRateKg(item.rate || 0);
-        setWeight(item.weight || 0);
-        setIceCharges(item.ice_charges || 0);
-        setFareCharges(item.fare_charges || 0);
-        setCashAmount(item.cash_amount || 0);
-        setReceiptAmount(item.receipt_amount || 0);
+        setRateMaund(item.rate_per_maund || '');
+        setRateKg(item.rate || '');
+        setWeight(item.weight || '');
+        setIceCharges(item.ice_charges || '');
+        setFareCharges(item.fare_charges || '');
+        setCashAmount(item.cash_amount || '');
+        setReceiptAmount(item.receipt_amount || '');
       }
     }
   }, [editSale]);
@@ -141,29 +202,46 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
   // Dual-rate sync: 1 Maund = 40 kg
   const handleRateMaundChange = (val) => {
-    const v = val || 0;
+    if (val === '') {
+      setRateMaund('');
+      setRateKg('');
+      return;
+    }
+    const v = Number(val) || 0;
     setRateMaund(v);
     setRateKg(v / 40);
   };
 
   const handleRateKgChange = (val) => {
-    const v = val || 0;
+    if (val === '') {
+      setRateKg('');
+      setRateMaund('');
+      return;
+    }
+    const v = Number(val) || 0;
     setRateKg(v);
     setRateMaund(v * 40);
   };
 
   // Calculated totals
   const totals = useMemo(() => {
-    const lineAmount = weight * rateKg;
-    const netAmount = lineAmount + fareCharges + iceCharges;
-    const balanceAmount = netAmount - cashAmount - receiptAmount;
+    const w = Number(weight) || 0;
+    const r = Number(rateKg) || 0;
+    const fc = Number(fareCharges) || 0;
+    const ic = Number(iceCharges) || 0;
+    const ca = Number(cashAmount) || 0;
+    const ra = Number(receiptAmount) || 0;
+
+    const lineAmount = w * r;
+    const netAmount = lineAmount + fc + ic;
+    const balanceAmount = netAmount - ca - ra;
     return {
       grossAmount: lineAmount,
-      fareCharges,
-      iceCharges,
+      fareCharges: fc,
+      iceCharges: ic,
       netAmount,
-      cashReceived: cashAmount,
-      receiptAmount,
+      cashReceived: ca,
+      receiptAmount: ra,
       balanceAmount,
     };
   }, [weight, rateKg, fareCharges, iceCharges, cashAmount, receiptAmount]);
@@ -179,8 +257,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
   const handleSave = useCallback(async () => {
     if (!selectedItem) {
       notifications.show({
-        title: 'توثیق کی خرابی / Validation Error',
-        message: 'براہ کرم آئٹم منتخب کریں / Please select an item (مچھلی)',
+        title: t.saveErrorTitle,
+        message: t.valErrorItem,
         color: 'red',
       });
       return;
@@ -188,8 +266,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
     if (!selectedCustomer) {
       notifications.show({
-        title: 'توثیق کی خرابی / Validation Error',
-        message: 'ہر آئٹم کے لیے گابک منتخب کریں / Please select a customer (گابک)',
+        title: t.saveErrorTitle,
+        message: t.valErrorCustomer,
         color: 'red',
       });
       return;
@@ -215,10 +293,15 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         }
 
         const stockInfo = stockMap[String(selectedItem)];
-        if (stockInfo && weight > stockInfo.stock) {
+        const numWeight = Number(weight) || 0;
+        if (stockInfo && numWeight > stockInfo.stock) {
           notifications.show({
-            title: 'Insufficient Stock',
-            message: `${stockInfo.name}: need ${weight.toFixed(2)} kg, available ${stockInfo.stock.toFixed(2)} kg`,
+            title: t.insufficientStockTitle,
+            message: t.insufficientStockMsg(
+              stockInfo.name,
+              numWeight.toFixed(2),
+              stockInfo.stock.toFixed(2)
+            ),
             color: 'red',
             autoClose: 8000,
           });
@@ -228,8 +311,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     } catch (error) {
       console.error('Stock check error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Unable to verify stock availability. Please try again.',
+        title: t.saveErrorTitle,
+        message: t.saveErrorMsg,
         color: 'red',
       });
       return;
@@ -269,25 +352,23 @@ function SaleForm({ editSale, onSaved, onCancel }) {
 
       if (response.success) {
         notifications.show({
-          title: 'بکری محفوظ / Sale Saved',
-          message: editSale
-            ? 'Sale updated successfully / بکری کامیابی سے اپ ڈیٹ ہو گئی'
-            : `Sale ${response.data.saleNumber} created successfully / بکری نمبر ${response.data.saleNumber} کامیابی سے محفوظ`,
+          title: t.saveSuccessTitle,
+          message: editSale ? t.saveSuccessEditMsg : t.saveSuccessNewMsg(response.data.saleNumber),
           color: 'green',
         });
         onSaved?.(response.data);
       } else {
         notifications.show({
-          title: 'خرابی / Error',
-          message: response.error || 'بکری محفوظ کرنے میں خرابی / Failed to save sale',
+          title: t.saveErrorTitle,
+          message: response.error || t.saveErrorMsg,
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Save sale error:', error);
       notifications.show({
-        title: 'خرابی / Error',
-        message: 'بکری محفوظ کرنے میں خرابی / Failed to save sale',
+        title: t.saveErrorTitle,
+        message: t.saveErrorMsg,
         color: 'red',
       });
     } finally {
@@ -310,6 +391,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     receiptAmount,
     editSale,
     onSaved,
+    t,
   ]);
 
   // Print receipt for saved sale
@@ -318,21 +400,27 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     const itemInfo = itemsList.find((i) => String(i.id) === String(selectedItem));
     const custInfo = customers.find((c) => c.value === String(selectedCustomer));
 
-    const lineAmount = weight * rateKg;
-    const totalAmount = lineAmount + fareCharges + iceCharges;
+    const numWeight = Number(weight) || 0;
+    const numRateKg = Number(rateKg) || 0;
+    const numFare = Number(fareCharges) || 0;
+    const numIce = Number(iceCharges) || 0;
+    const numCash = Number(cashAmount) || 0;
 
-    const html = `<!DOCTYPE html><html dir="rtl"><head><title>Sale Receipt - ${saleNumber}</title>
+    const lineAmount = numWeight * numRateKg;
+    const totalAmount = lineAmount + numFare + numIce;
+
+    const html = `<!DOCTYPE html><html dir="${isUr ? 'rtl' : 'ltr'}"><head><title>${t.printReceiptTitle} - ${saleNumber}</title>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet" />
         <style>
             @page { margin: 1cm; }
-            body { font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; direction: rtl; }
+            body { font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; color: #333; direction: ${isUr ? 'rtl' : 'ltr'}; }
             .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
             .header h2 { margin: 0; } .header p { margin: 3px 0; font-size: 12px; }
             .info { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
             th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; }
-            th { background: #f5f5f5; text-align: right; }
-            .totals { text-align: right; font-size: 13px; }
+            th { background: #f5f5f5; text-align: ${isUr ? 'right' : 'left'}; }
+            .totals { text-align: ${isUr ? 'right' : 'left'}; font-size: 13px; }
             .totals td { border: none; padding: 3px 8px; }
             .grand-total { font-size: 16px; font-weight: bold; border-top: 2px solid #333 !important; }
             @media print { body { padding: 0; } }
@@ -342,45 +430,45 @@ function SaleForm({ editSale, onSaved, onCancel }) {
             <p style="font-size:18px;direction:rtl">اے ایل شیخ فش ٹریڈر اینڈ ڈسٹری بیوٹر</p>
             <p>Shop No. W-644 Gunj Mandi Rawalpindi</p>
             <p>Ph: +92-3008501724 | 051-5534607</p>
-            <h3 style="margin:10px 0 0">Sale Receipt / بکری رسید</h3>
+            <h3 style="margin:10px 0 0">${t.printReceiptTitle}</h3>
         </div>
         <div class="info">
-            <div><strong>Receipt #:</strong> ${saleNumber}</div>
-            <div><strong>Date:</strong> ${dateStr}</div>
+            <div><strong>${t.receiptNo}:</strong> ${saleNumber}</div>
+            <div><strong>${t.date}:</strong> ${dateStr}</div>
         </div>
         <table>
-            <thead><tr><th>مچھلی / Item</th><th>گابک / Customer</th><th style="text-align:right">وزن / Weight (kg)</th><th style="text-align:right">ریٹ / Rate</th><th style="text-align:right">ٹوٹل رقم / Amount</th></tr></thead>
+            <thead><tr><th style="text-align:${isUr ? 'right' : 'left'}">${t.item}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.customer}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.weightKg}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.rateKg}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.totalAmount}</th></tr></thead>
             <tbody>
               <tr>
-                <td>${itemInfo?.name || ''}</td>
-                <td>${custInfo?.label || ''}</td>
-                <td style="text-align:right">${weight.toFixed(2)}</td>
-                <td style="text-align:right">${rateKg.toFixed(2)}</td>
-                <td style="text-align:right">${totalAmount.toFixed(2)}</td>
+                <td style="text-align:${isUr ? 'right' : 'left'}">${itemInfo?.name || ''}</td>
+                <td style="text-align:${isUr ? 'right' : 'left'}">${custInfo?.label || ''}</td>
+                <td style="text-align:${isUr ? 'right' : 'left'}">${numWeight.toFixed(2)}</td>
+                <td style="text-align:${isUr ? 'right' : 'left'}">${numRateKg.toFixed(2)}</td>
+                <td style="text-align:${isUr ? 'right' : 'left'}">${totalAmount.toFixed(2)}</td>
               </tr>
             </tbody>
         </table>
         <table class="totals">
-            <tr><td>Gross Amount:</td><td>Rs. ${lineAmount.toFixed(2)}</td></tr>
-            <tr><td>Fare Charges / کرایہ:</td><td>Rs. ${fareCharges.toFixed(2)}</td></tr>
-            <tr><td>Ice Charges / برف:</td><td>Rs. ${iceCharges.toFixed(2)}</td></tr>
-            <tr><td>Net Amount:</td><td><strong>Rs. ${totals.netAmount.toFixed(2)}</strong></td></tr>
-            <tr><td>Cash Received:</td><td>Rs. ${cashAmount.toFixed(2)}</td></tr>
-            <tr class="grand-total"><td>Balance:</td><td>Rs. ${totals.balanceAmount.toFixed(2)}</td></tr>
+            <tr><td>${t.grossAmount}:</td><td>Rs. ${lineAmount.toFixed(2)}</td></tr>
+            <tr><td>${t.fareCharges}:</td><td>Rs. ${numFare.toFixed(2)}</td></tr>
+            <tr><td>${t.iceCharges}:</td><td>Rs. ${numIce.toFixed(2)}</td></tr>
+            <tr><td>${t.netAmount}:</td><td><strong>Rs. ${totals.netAmount.toFixed(2)}</strong></td></tr>
+            <tr><td>${t.cash}:</td><td>Rs. ${numCash.toFixed(2)}</td></tr>
+            <tr class="grand-total"><td>${t.balance}:</td><td>Rs. ${totals.balanceAmount.toFixed(2)}</td></tr>
         </table>
         </body></html>`;
 
     try {
       window.api.print.preview(html, {
-        title: `Sale Receipt - ${saleNumber}`,
+        title: `${t.printReceiptTitle} - ${saleNumber}`,
         width: 1000,
         height: 800,
       });
     } catch (error) {
       console.error('Print error:', error);
       notifications.show({
-        title: 'Print Error',
-        message: 'Failed to open print preview',
+        title: t.saveErrorTitle,
+        message: t.printErrorMsg,
         color: 'red',
       });
     }
@@ -397,6 +485,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     iceCharges,
     cashAmount,
     totals,
+    t,
+    isUr,
   ]);
 
   // Clear form
@@ -407,13 +497,13 @@ function SaleForm({ editSale, onSaved, onCancel }) {
     setSelectedItem(null);
     setSelectedCustomer(null);
     setIsStock(false);
-    setRateMaund(0);
-    setRateKg(0);
-    setWeight(0);
-    setIceCharges(0);
-    setFareCharges(0);
-    setCashAmount(0);
-    setReceiptAmount(0);
+    setRateMaund('');
+    setRateKg('');
+    setWeight('');
+    setIceCharges('');
+    setFareCharges('');
+    setCashAmount('');
+    setReceiptAmount('');
   }, []);
 
   return (
@@ -423,7 +513,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={4} className="text-blue-700">
-            💰 {editSale ? 'Edit Sale' : 'New Sale'} (بکری)
+            💰 {t.title}
           </Title>
           <Badge size="lg" variant="light" color="blue">
             {saleNumber}
@@ -433,11 +523,11 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         <Divider />
 
         {/* Header Fields */}
-        <Grid>
+        <Grid style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={4}>
             <DatePickerInput
-              label="بکری تاریخ (Sale Date)"
-              placeholder="Select date"
+              label={t.saleDate}
+              placeholder=""
               value={saleDate}
               onChange={setSaleDate}
               maxDate={new Date()}
@@ -446,8 +536,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={4}>
             <Select
-              label="بیوپاری (Supplier)"
-              placeholder="Select supplier (optional)"
+              label={t.supplier}
+              placeholder={t.supplierPh}
               data={suppliers}
               value={selectedSupplier}
               onChange={setSelectedSupplier}
@@ -457,8 +547,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={4}>
             <TextInput
-              label="گڑی نمبر (Vehicle No)"
-              placeholder="Enter vehicle number"
+              label={t.vehicleNo}
+              placeholder=""
               value={vehicleNumber}
               onChange={(e) => setVehicleNumber(e.target.value)}
               className="ltr-field"
@@ -468,11 +558,11 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
         </Grid>
 
-        <Grid>
+        <Grid style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={12}>
             <Textarea
-              label="تفصیل (Details)"
-              placeholder="Additional notes..."
+              label={t.details}
+              placeholder={t.detailsPh}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               minRows={1}
@@ -481,15 +571,15 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
         </Grid>
 
-        <Divider label="بکری تفصیل / Sale Details" labelPosition="center" />
+        <Divider label={t.saleDetails} labelPosition="center" />
 
         {/* Single Sale Row — flat fields */}
-        <Grid gutter="md">
+        <Grid gutter="md" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           {/* Row 1: Item + Customer + Is Stock */}
           <Grid.Col span={5}>
             <Select
-              label="مچھلی (Item)"
-              placeholder="Select item"
+              label={t.item}
+              placeholder=""
               data={itemOptions}
               value={selectedItem}
               onChange={setSelectedItem}
@@ -499,8 +589,8 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={5}>
             <Select
-              label="گابک (Customer)"
-              placeholder="Select customer"
+              label={t.customer}
+              placeholder=""
               data={customers}
               value={selectedCustomer}
               onChange={setSelectedCustomer}
@@ -510,7 +600,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={2} style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 6 }}>
             <Checkbox
-              label="سٹاک (Stock)"
+              label={t.stock}
               checked={isStock}
               onChange={(e) => setIsStock(e.currentTarget.checked)}
             />
@@ -519,7 +609,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           {/* Row 2: Rates + Weight */}
           <Grid.Col span={3}>
             <NumberInput
-              label="ریٹ فی من (Rate/Maund)"
+              label={t.rateMaund}
               value={rateMaund}
               onChange={handleRateMaundChange}
               min={0}
@@ -529,7 +619,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <NumberInput
-              label="ریٹ فی کلوگرام (Rate/kg)"
+              label={t.rateKg}
               value={rateKg}
               onChange={handleRateKgChange}
               min={0}
@@ -539,9 +629,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <NumberInput
-              label="وزن کلوگرام (Weight kg)"
+              label={t.weightKg}
               value={weight}
-              onChange={(val) => setWeight(val || 0)}
+              onChange={(val) => setWeight(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               hideControls
@@ -550,9 +640,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           <Grid.Col span={3}>
             <Paper p="xs" radius="sm" withBorder style={{ background: '#eff6ff' }}>
               <Text size="xs" c="dimmed" mb={2}>
-                ٹوٹل رقم / Total Amount
+                {t.totalAmount}
               </Text>
-              <Text fw={700} size="md" c="blue">
+              <Text fw={700} size="md" c="blue" dir="ltr" ta={isUr ? 'right' : 'left'}>
                 Rs. {totals.netAmount.toFixed(2)}
               </Text>
             </Paper>
@@ -561,9 +651,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           {/* Row 3: Charges + Payments */}
           <Grid.Col span={3}>
             <NumberInput
-              label="برف (Ice Charges)"
+              label={t.iceCharges}
               value={iceCharges}
-              onChange={(val) => setIceCharges(val || 0)}
+              onChange={(val) => setIceCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               hideControls
@@ -571,9 +661,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <NumberInput
-              label="کرایہ (Fare Charges)"
+              label={t.fareCharges}
               value={fareCharges}
-              onChange={(val) => setFareCharges(val || 0)}
+              onChange={(val) => setFareCharges(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               hideControls
@@ -581,9 +671,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <NumberInput
-              label="نقدی (Cash)"
+              label={t.cash}
               value={cashAmount}
-              onChange={(val) => setCashAmount(val || 0)}
+              onChange={(val) => setCashAmount(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               hideControls
@@ -591,9 +681,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <NumberInput
-              label="وصولی (Receipt)"
+              label={t.receipt}
               value={receiptAmount}
-              onChange={(val) => setReceiptAmount(val || 0)}
+              onChange={(val) => setReceiptAmount(val === '' ? '' : val)}
               min={0}
               decimalScale={2}
               hideControls
@@ -601,7 +691,7 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           </Grid.Col>
         </Grid>
 
-        <Divider label="خلاصہ / Summary" labelPosition="center" />
+        <Divider label={t.summary} labelPosition="center" />
 
         {/* Summary */}
         <Paper
@@ -610,36 +700,34 @@ function SaleForm({ editSale, onSaved, onCancel }) {
           style={{
             background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
             border: '1px solid #bae6fd',
+            direction: isUr ? 'rtl' : 'ltr',
           }}
         >
           {/* Row 1: weight + amounts */}
           <Grid mb="xs" gutter="sm">
             {[
               {
-                ur: 'مجموعی رقم',
-                en: 'Gross Amount',
+                label: t.grossAmount,
                 val: `Rs. ${totals.grossAmount.toFixed(2)}`,
                 color: 'dark',
               },
               {
-                ur: 'اخراجات',
-                en: 'Charges',
+                label: t.charges,
                 val: `Rs. ${(totals.fareCharges + totals.iceCharges).toFixed(2)}`,
                 color: 'dark',
               },
               {
-                ur: 'خالص رقم',
-                en: 'Net Amount',
+                label: t.netAmount,
                 val: `Rs. ${totals.netAmount.toFixed(2)}`,
                 color: 'blue',
               },
-            ].map(({ ur, en, val, color }) => (
-              <Grid.Col key={en} span={4}>
+            ].map(({ label, val, color }) => (
+              <Grid.Col key={label} span={4}>
                 <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
                   <Text size="xs" c="dimmed" mb={2}>
-                    {ur} / {en}
+                    {label}
                   </Text>
-                  <Text fw={700} size="sm" c={color}>
+                  <Text fw={700} size="sm" c={color} dir="ltr" ta={isUr ? 'right' : 'left'}>
                     {val}
                   </Text>
                 </Paper>
@@ -652,9 +740,9 @@ function SaleForm({ editSale, onSaved, onCancel }) {
             <Grid.Col span={6}>
               <Paper p="xs" radius="sm" withBorder style={{ background: '#fff' }}>
                 <Text size="xs" c="dimmed" mb={2}>
-                  نقد + وصولی / Cash + Receipt
+                  {t.cashReceipt}
                 </Text>
-                <Text fw={600} size="sm">
+                <Text fw={600} size="sm" dir="ltr" ta={isUr ? 'right' : 'left'}>
                   Rs. {(totals.cashReceived + totals.receiptAmount).toFixed(2)}
                 </Text>
               </Paper>
@@ -670,9 +758,15 @@ function SaleForm({ editSale, onSaved, onCancel }) {
                 }}
               >
                 <Text size="xs" c="dimmed" mb={2}>
-                  بقایا / Balance
+                  {t.balance}
                 </Text>
-                <Text fw={700} size="md" c={totals.balanceAmount > 0 ? 'red' : 'green'}>
+                <Text
+                  fw={700}
+                  size="md"
+                  c={totals.balanceAmount > 0 ? 'red' : 'green'}
+                  dir="ltr"
+                  ta={isUr ? 'right' : 'left'}
+                >
                   Rs. {totals.balanceAmount.toFixed(2)}
                 </Text>
               </Paper>
@@ -681,17 +775,17 @@ function SaleForm({ editSale, onSaved, onCancel }) {
         </Paper>
 
         {/* Action Buttons */}
-        <Group justify="flex-end" mt="md">
+        <Group justify="flex-end" mt="md" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           {editSale && (
             <Button variant="light" color="teal" onClick={handlePrint}>
-              🖨️ Print Receipt
+              🖨️ {t.printReceipt}
             </Button>
           )}
           <Button variant="light" color="gray" onClick={onCancel || handleClear}>
-            {onCancel ? 'Cancel' : 'Clear'}
+            {onCancel ? t.cancel : t.clear}
           </Button>
           <Button variant="filled" color="blue" onClick={handleSave}>
-            {editSale ? 'Update Sale' : 'Save Sale'}
+            {t.saveSale}
           </Button>
         </Group>
       </Stack>

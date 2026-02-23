@@ -158,13 +158,20 @@ export function StockReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Stock Report"
           titleUrdu="سٹاک رپورٹ"
           singleDate={formatDate(asOfDate)}
           printContentHTML={printContentHTML}
+          exportData={reportData.items}
+          exportColumns={[
+            { key: 'item_name', label: t.item },
+            { key: 'previous_stock', label: t.prevStock },
+            { key: 'today_purchases', label: t.todayPurchase },
+            { key: 'today_sales', label: t.todaySale },
+            { key: 'remaining_stock', label: t.remStock },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

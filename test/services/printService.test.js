@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import printService from '../../src/services/printService.js';
-import { BrowserWindow, dialog, app } from 'electron';
+import { BrowserWindow, dialog } from 'electron';
 import fs from 'fs';
+import { Buffer } from 'node:buffer';
 import ExcelJS from 'exceljs';
 
 // Mock dependencies

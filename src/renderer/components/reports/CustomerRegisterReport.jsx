@@ -161,13 +161,21 @@ export function CustomerRegisterReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Customer Register"
           titleUrdu="رجسٹر کھاتہ رقم"
           singleDate={formatDate(asOfDate)}
           printContentHTML={printContentHTML}
+          exportData={reportData.customers}
+          exportColumns={[
+            { key: 'code', label: t.code },
+            { key: 'customer_name', label: t.customer },
+            { key: 'opening_balance', label: t.openingBalance },
+            { key: 'net_amount', label: t.netAmount },
+            { key: 'collection', label: t.collection },
+            { key: 'balance', label: t.balance },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

@@ -10,7 +10,4 @@ export default {
   module: {
     rules,
   },
-  externals: {
-    'better-sqlite3': 'commonjs better-sqlite3',
-  },
 };

@@ -163,13 +163,22 @@ export function DailySalesDetailsReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Daily Sales Details"
           titleUrdu="امروزہ بکری تفصیلات"
           singleDate={formatDate(selectedDate)}
           printContentHTML={printContentHTML}
+          exportData={reportData.transactions}
+          exportColumns={[
+            { key: 'sale_number', label: t.saleNumber },
+            { key: 'customer_name', label: t.customer },
+            { key: 'supplier_name', label: t.vendor },
+            { key: 'item_name', label: t.item },
+            { key: 'weight', label: t.weight },
+            { key: 'rate', label: t.rate },
+            { key: 'amount', label: t.amount },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

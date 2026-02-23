@@ -323,13 +323,22 @@ export function VendorSalesReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Vendor Sales Report"
           titleUrdu="بیوپاری بکری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.transactions}
+          exportColumns={[
+            { key: 'customer_name', label: t.customer },
+            { key: 'item_name', label: t.item },
+            { key: 'vehicle_number', label: t.vehicle },
+            { key: 'rate', label: t.rate },
+            { key: 'weight', label: t.weight },
+            { key: 'amount', label: t.amount },
+            { key: 'supplier_name', label: t.vendor },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

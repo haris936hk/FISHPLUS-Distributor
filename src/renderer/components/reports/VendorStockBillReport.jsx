@@ -223,13 +223,20 @@ export function VendorStockBillReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Vendor Stock Bill"
           titleUrdu="بیوپاری سٹاک بل"
           dateRange={{ from: formatDate(date), to: formatDate(date) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.items}
+          exportColumns={[
+            { key: 'customer_name', label: t.customer },
+            { key: 'item_name', label: t.item },
+            { key: 'rate', label: t.rate },
+            { key: 'weight', label: t.weight },
+            { key: 'amount', label: t.amount },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

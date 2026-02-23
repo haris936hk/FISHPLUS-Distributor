@@ -230,13 +230,25 @@ export function ItemPurchaseReport() {
         </Grid.Col>
       </Grid>
 
-      {/* Report Display */}
       {reportData && (
         <ReportViewer
           title="Item Purchase Report"
           titleUrdu="خریداری"
           dateRange={{ from: formatDate(dateFrom), to: formatDate(dateTo) }}
           printContentHTML={printContentHTML}
+          exportData={reportData.transactions.map((row) => ({
+            ...row,
+            purchase_date_formatted: new Date(row.purchase_date).toLocaleDateString(),
+          }))}
+          exportColumns={[
+            { key: 'purchase_date_formatted', label: t.date },
+            { key: 'purchase_number', label: t.purchaseNumber },
+            { key: 'supplier_name', label: t.vendor },
+            { key: 'item_name', label: t.item },
+            { key: 'weight', label: t.weight },
+            { key: 'rate', label: t.rate },
+            { key: 'amount', label: t.amount },
+          ]}
         >
           <ScrollArea style={{ direction: isUr ? 'rtl' : 'ltr' }}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>

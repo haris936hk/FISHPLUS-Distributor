@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Paper,
   Stack,
@@ -24,6 +24,7 @@ import { notifications } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import '@mantine/dates/styles.css';
 import { useResizableColumns } from '../hooks/useResizableColumns';
+import useStore from '../store';
 
 /**
  * SaleSearch Component
@@ -33,11 +34,82 @@ import { useResizableColumns } from '../hooks/useResizableColumns';
  * @param {function} onEdit - Callback to edit a sale
  */
 function SaleSearch({ onEdit }) {
+  const { language } = useStore();
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [sales, setSales] = useState([]);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 25;
+
+  const isUr = language === 'ur';
+  const t = useMemo(
+    () => ({
+      title: isUr ? 'بکری تلاش' : 'Search Sales',
+      dateFrom: isUr ? 'شروع تاریخ' : 'From Date',
+      dateTo: isUr ? 'اختتام تاریخ' : 'To Date',
+      customer: isUr ? 'گاہک' : 'Customer',
+      allCustomers: isUr ? 'تمام گاہک' : 'All Customers',
+      saleNo: isUr ? 'بکری نمبر' : 'Sale #',
+      searchBySaleNo: isUr ? 'بکری نمبر سے تلاش' : 'Search by Sale #',
+      printSlips: isUr ? 'تمام رسیدیں پرنٹ' : 'Print All Customer Slips',
+      search: isUr ? 'تلاش' : 'Search',
+      selected: isUr ? 'منتخب' : 'selected',
+      deleteSelectedTitle: isUr ? 'منتخب بکریاں حذف کریں' : 'Delete Selected Sales',
+      deleteSelectedMsg: (count) =>
+        isUr
+          ? `کیا آپ ${count} منتخب بکری(یاں) حذف کرنا چاہتے ہیں؟`
+          : `Are you sure you want to delete ${count} selected sale(s)?`,
+      deleteAll: isUr ? 'حذف کریں' : 'Delete All',
+      cancel: isUr ? 'منسوخ' : 'Cancel',
+      deleteSelectedBtn: isUr ? 'منتخب حذف کریں' : 'Delete Selected',
+      clearSelection: isUr ? 'انتخاب صاف کریں' : 'Clear Selection',
+      recordsFound: isUr ? 'ریکارڈ ملے' : 'Records Found',
+      noSalesFound: isUr
+        ? 'کوئی بکری نہیں ملی — اوپر کے فلٹر استعمال کریں۔'
+        : 'No sales found. Use the filters above to search.',
+      noSalesFoundEn: isUr ? '' : '',
+      saleNumCol: isUr ? 'بکری نمبر' : 'Sale #',
+      dateCol: isUr ? 'تاریخ' : 'Date',
+      customerCol: isUr ? 'گاہک' : 'Customer',
+      supplierCol: isUr ? 'بیوپاری' : 'Supplier',
+      vehicleCol: isUr ? 'گاڑی نمبر' : 'Vehicle No',
+      netAmtCol: isUr ? 'خالص رقم' : 'Net Amount',
+      balanceCol: isUr ? 'بقایا' : 'Balance',
+      statusCol: isUr ? 'حالت' : 'Status',
+      actionsCol: isUr ? 'عمل' : 'Actions',
+      deleteTitle: isUr ? 'بکری حذف کریں' : 'Delete Sale',
+      deleteMsg: (num) =>
+        isUr
+          ? `کیا آپ واقعی بکری <strong>${num}</strong> حذف کرنا چاہتے ہیں؟ یہ عمل ناقابل واپسی ہے۔ سٹاک اور گاہک کا بیلنس بحال ہو جائے گا۔`
+          : `Are you sure you want to delete sale <strong>${num}</strong>? This action cannot be undone. Stock and customer balance will be restored.`,
+      deleteConfirm: isUr ? 'حذف کریں' : 'Delete',
+      deleteSuccessTitle: isUr ? 'کامیابی' : 'Success',
+      deleteSuccessMsg: isUr ? 'بکری کامیابی سے حذف ہو گئی' : 'Sale deleted successfully',
+      deleteErrorTitle: isUr ? 'خرابی' : 'Error',
+      deleteErrorMsg: isUr ? 'بکری حذف کرنے میں خرابی' : 'Failed to delete sale',
+      valErrorTitle: isUr ? 'توثیق کی خرابی' : 'Validation Error',
+      valErrorDateMsg: isUr
+        ? 'شروع کی تاریخ اختتام کی تاریخ کے بعد نہیں ہو سکتی'
+        : 'Start date cannot be after end date',
+      noResultsTitle: isUr ? 'کوئی نتیجہ نہیں' : 'No Results',
+      noResultsMsg: isUr
+        ? 'معیار کے مطابق کوئی بکری نہیں ملی'
+        : 'No sales found matching the criteria',
+      searchErrorTitle: isUr ? 'خرابی' : 'Error',
+      searchErrorMsg: isUr ? 'بکریاں تلاش کرنے میں خرابی' : 'Failed to search sales',
+      noDataTitle: isUr ? 'کوئی ڈیٹا نہیں' : 'No Data',
+      noDataMsg: isUr ? 'پرنٹ کرنے کے لیے کوئی بکریاں نہیں ہیں' : 'No sales to print',
+      printErrorMsg: isUr ? 'گاہک کی رسیدیں بنانے میں ناکام' : 'Failed to generate customer slips',
+      printAllTitle: isUr ? 'تمام گاہک کی رسیدیں' : 'All Customer Slips',
+      receiptTitle: isUr ? 'بکری رسید' : 'Sale Receipt',
+      itemCol: isUr ? 'مچھلی' : 'Item',
+      weightCol: isUr ? 'وزن' : 'Weight',
+      rateCol: isUr ? 'ریٹ' : 'Rate',
+      amountCol: isUr ? 'رقم' : 'Amount',
+      cashReceivedCol: isUr ? 'نقد وصولی' : 'Cash Received',
+    }),
+    [isUr]
+  );
 
   // Filters
   const [dateFrom, setDateFrom] = useState(new Date());
@@ -94,8 +166,8 @@ function SaleSearch({ onEdit }) {
   const handleSearch = useCallback(async () => {
     if (dateFrom > dateTo) {
       notifications.show({
-        title: 'Validation Error',
-        message: 'Start date cannot be after end date',
+        title: t.valErrorTitle,
+        message: t.valErrorDateMsg,
         color: 'red',
       });
       return;
@@ -118,42 +190,39 @@ function SaleSearch({ onEdit }) {
         setPage(1);
         if (response.data.length === 0) {
           notifications.show({
-            title: 'No Results',
-            message: 'No sales found matching the criteria',
+            title: t.noResultsTitle,
+            message: t.noResultsMsg,
             color: 'yellow',
           });
         }
       } else {
         notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to search sales',
+          title: t.searchErrorTitle,
+          message: response.error || t.searchErrorMsg,
           color: 'red',
         });
       }
     } catch (error) {
       console.error('Search error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Failed to search sales',
+        title: t.searchErrorTitle,
+        message: t.searchErrorMsg,
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, selectedCustomer, allCustomers, saleNumber, searchBySaleNumber]);
+  }, [dateFrom, dateTo, selectedCustomer, allCustomers, saleNumber, searchBySaleNumber, t]);
 
   // Delete sale
   const handleDelete = useCallback(
     (sale) => {
       modals.openConfirmModal({
-        title: 'Delete Sale',
+        title: t.deleteTitle,
         children: (
-          <Text size="sm">
-            Are you sure you want to delete sale <strong>{sale.sale_number}</strong>? This action
-            cannot be undone. Stock and customer balance will be restored.
-          </Text>
+          <Text size="sm" dangerouslySetInnerHTML={{ __html: t.deleteMsg(sale.sale_number) }} />
         ),
-        labels: { confirm: 'Delete', cancel: 'Cancel' },
+        labels: { confirm: t.deleteConfirm, cancel: t.cancel },
         confirmProps: { color: 'red' },
         onConfirm: async () => {
           setLoading(true);
@@ -161,23 +230,23 @@ function SaleSearch({ onEdit }) {
             const response = await window.api.sales.delete(sale.id);
             if (response.success) {
               notifications.show({
-                title: 'Success',
-                message: 'Sale deleted successfully',
+                title: t.deleteSuccessTitle,
+                message: t.deleteSuccessMsg,
                 color: 'green',
               });
               handleSearch();
             } else {
               notifications.show({
-                title: 'Error',
-                message: response.error || 'Failed to delete sale',
+                title: t.deleteErrorTitle,
+                message: response.error || t.deleteErrorMsg,
                 color: 'red',
               });
             }
           } catch (error) {
             console.error('Delete error:', error);
             notifications.show({
-              title: 'Error',
-              message: 'Failed to delete sale',
+              title: t.deleteErrorTitle,
+              message: t.deleteErrorMsg,
               color: 'red',
             });
           } finally {
@@ -186,7 +255,7 @@ function SaleSearch({ onEdit }) {
         },
       });
     },
-    [handleSearch]
+    [handleSearch, t]
   );
 
   // Format display date
@@ -199,7 +268,7 @@ function SaleSearch({ onEdit }) {
   // Print All Client Slips (FR-SALESEARCH-025)
   const handlePrintAllSlips = useCallback(async () => {
     if (sales.length === 0) {
-      notifications.show({ title: 'No Data', message: 'No sales to print', color: 'yellow' });
+      notifications.show({ title: t.noDataTitle, message: t.noDataMsg, color: 'yellow' });
       return;
     }
 
@@ -233,30 +302,30 @@ function SaleSearch({ onEdit }) {
                         <p style="font-size:16px;direction:rtl">اے ایل شیخ فش ٹریڈر اینڈ ڈسٹری بیوٹر</p>
                         <p>Shop No. W-644 Gunj Mandi Rawalpindi</p>
                         <p>Ph: +92-3008501724 | 051-5534607</p>
-                        <h3>Sale Receipt / بکری رسید</h3>
+                        <h3>${t.receiptTitle}</h3>
                     </div>
                     <div class="info">
-                        <span><strong>Receipt #:</strong> ${sale.sale_number}</span>
-                        <span><strong>Date:</strong> ${formatDisplayDate(sale.sale_date)}</span>
-                        <span><strong>Customer:</strong> ${sale.customer_name || '-'}</span>
+                        <span><strong>${t.receiptNo}:</strong> ${sale.sale_number}</span>
+                        <span><strong>${t.date}:</strong> ${formatDisplayDate(sale.sale_date)}</span>
+                        <span><strong>${t.customer}:</strong> ${sale.customer_name || '-'}</span>
                     </div>
                     <table>
-                        <thead><tr><th>Item</th><th style="text-align:right">Weight (kg)</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead>
+                        <thead><tr><th style="text-align:${isUr ? 'right' : 'left'}">${t.itemCol}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.weightCol} (kg)</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.rateCol}</th><th style="text-align:${isUr ? 'right' : 'left'}">${t.amountCol}</th></tr></thead>
                         <tbody>${itemRows}</tbody>
                     </table>
                     <table class="totals">
-                        <tr><td>Net Amount:</td><td><strong>Rs. ${(sale.net_amount || 0).toFixed(2)}</strong></td></tr>
-                        <tr><td>Cash Received:</td><td>Rs. ${(sale.cash_received || 0).toFixed(2)}</td></tr>
-                        <tr class="grand-total"><td>Balance:</td><td>Rs. ${(sale.balance_amount || 0).toFixed(2)}</td></tr>
+                        <tr><td>${t.netAmtCol}:</td><td><strong>Rs. ${(sale.net_amount || 0).toFixed(2)}</strong></td></tr>
+                        <tr><td>${t.cashReceivedCol}:</td><td>Rs. ${(sale.cash_received || 0).toFixed(2)}</td></tr>
+                        <tr class="grand-total"><td>${t.balanceCol}:</td><td>Rs. ${(sale.balance_amount || 0).toFixed(2)}</td></tr>
                     </table>
                 </div>`;
         })
         .join('');
 
-      const html = `<!DOCTYPE html><html><head><title>All Customer Slips</title>
+      const html = `<!DOCTYPE html><html dir="${isUr ? 'rtl' : 'ltr'}"><head><title>${t.printAllTitle}</title>
             <style>
                 @page { margin: 1cm; }
-                body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; color: #333; }
+                body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; color: #333; direction: ${isUr ? 'rtl' : 'ltr'}; }
                 .slip { padding: 20px; page-break-after: always; }
                 .slip:last-child { page-break-after: auto; }
                 .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
@@ -264,8 +333,8 @@ function SaleSearch({ onEdit }) {
                 .info { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px; }
                 table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
                 th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; }
-                th { background: #f5f5f5; text-align: left; }
-                .totals { text-align: right; font-size: 13px; } .totals td { border: none; padding: 3px 8px; }
+                th { background: #f5f5f5; text-align: ${isUr ? 'right' : 'left'}; }
+                .totals { text-align: ${isUr ? 'right' : 'left'}; font-size: 13px; } .totals td { border: none; padding: 3px 8px; }
                 .grand-total { font-size: 16px; font-weight: bold; border-top: 2px solid #333 !important; }
                 @media print { body { padding: 0; } }
             </style></head><body>${slipHtml}</body></html>`;
@@ -280,14 +349,14 @@ function SaleSearch({ onEdit }) {
     } catch (error) {
       console.error('Print all slips error:', error);
       notifications.show({
-        title: 'Error',
-        message: 'Failed to generate client slips',
+        title: t.searchErrorTitle,
+        message: t.printErrorMsg,
         color: 'red',
       });
     } finally {
       setLoading(false);
     }
-  }, [sales]);
+  }, [sales, t, isUr]);
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">
@@ -295,17 +364,17 @@ function SaleSearch({ onEdit }) {
 
       <Stack gap="md">
         <Title order={4} className="text-blue-700">
-          🔍 Search Sales (بکری تلاش)
+          🔍 {t.title}
         </Title>
 
         <Divider />
 
         {/* Filters */}
-        <Grid align="end">
+        <Grid align="end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={3}>
             <DatePickerInput
-              label="شروع تاریخ / From Date"
-              placeholder="Start date"
+              label={t.dateFrom}
+              placeholder=""
               value={dateFrom}
               onChange={setDateFrom}
               maxDate={dateTo || undefined}
@@ -313,8 +382,8 @@ function SaleSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <DatePickerInput
-              label="اختتام تاریخ / To Date"
-              placeholder="End date"
+              label={t.dateTo}
+              placeholder=""
               value={dateTo}
               onChange={setDateTo}
               minDate={dateFrom || undefined}
@@ -322,8 +391,8 @@ function SaleSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <Select
-              label="گاہک / Customer"
-              placeholder="Select customer"
+              label={t.customer}
+              placeholder=""
               data={customers}
               value={selectedCustomer}
               onChange={setSelectedCustomer}
@@ -333,7 +402,7 @@ function SaleSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <Checkbox
-              label="تمام گاہک / All Customers"
+              label={t.allCustomers}
               checked={allCustomers}
               onChange={(e) => setAllCustomers(e.target.checked)}
               mt="xl"
@@ -341,11 +410,11 @@ function SaleSearch({ onEdit }) {
           </Grid.Col>
         </Grid>
 
-        <Grid align="end">
+        <Grid align="end" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Grid.Col span={3}>
             <TextInput
-              label="بکری نمبر / Sale #"
-              placeholder="Enter sale number"
+              label={t.saleNo}
+              placeholder=""
               value={saleNumber}
               onChange={(e) => setSaleNumber(e.target.value)}
               disabled={!searchBySaleNumber}
@@ -353,7 +422,7 @@ function SaleSearch({ onEdit }) {
           </Grid.Col>
           <Grid.Col span={3}>
             <Checkbox
-              label="بکری نمبر سے تلاش / Search by Sale #"
+              label={t.searchBySaleNo}
               checked={searchBySaleNumber}
               onChange={(e) => setSearchBySaleNumber(e.target.checked)}
               mt="xl"
@@ -367,10 +436,10 @@ function SaleSearch({ onEdit }) {
                 onClick={handlePrintAllSlips}
                 disabled={sales.length === 0}
               >
-                🖨️ تمام رسیدیں پرنٹ / Print All Customer Slips
+                🖨️ {t.printSlips}
               </Button>
               <Button variant="filled" color="blue" onClick={handleSearch}>
-                تلاش / Search
+                {t.search}
               </Button>
             </Group>
           </Grid.Col>
@@ -383,10 +452,14 @@ function SaleSearch({ onEdit }) {
           <Group
             gap="sm"
             p="xs"
-            style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}
+            style={{
+              background: 'var(--mantine-color-blue-0)',
+              borderRadius: 8,
+              direction: isUr ? 'rtl' : 'ltr',
+            }}
           >
             <Text size="sm" fw={500}>
-              {selectedIds.size} منتخب / selected
+              {selectedIds.size} {t.selected}
             </Text>
             <Button
               size="xs"
@@ -394,13 +467,9 @@ function SaleSearch({ onEdit }) {
               color="red"
               onClick={() => {
                 modals.openConfirmModal({
-                  title: 'منتخب بکریاں حذف کریں / Delete Selected Sales',
-                  children: (
-                    <Text size="sm">
-                      کیا آپ {selectedIds.size} منتخب بکری(یاں) حذف کرنا چاہتے ہیں؟
-                    </Text>
-                  ),
-                  labels: { confirm: 'حذف کریں / Delete All', cancel: 'منسوخ / Cancel' },
+                  title: t.deleteSelectedTitle,
+                  children: <Text size="sm">{t.deleteSelectedMsg(selectedIds.size)}</Text>,
+                  labels: { confirm: t.deleteAll, cancel: t.cancel },
                   confirmProps: { color: 'red' },
                   onConfirm: async () => {
                     for (const id of selectedIds) {
@@ -409,30 +478,30 @@ function SaleSearch({ onEdit }) {
                     setSelectedIds(new Set());
                     handleSearch();
                     notifications.show({
-                      title: 'حذف ہو گئیں',
-                      message: `${selectedIds.size} بکری(یاں) حذف ہو گئیں`,
+                      title: t.deleteSuccessTitle,
+                      message: t.deleteSuccessMsg,
                       color: 'green',
                     });
                   },
                 });
               }}
             >
-              🗑️ منتخب حذف کریں / Delete Selected
+              🗑️ {t.deleteSelectedBtn}
             </Button>
             <Button size="xs" variant="subtle" onClick={() => setSelectedIds(new Set())}>
-              انتخاب صاف کریں / Clear Selection
+              {t.clearSelection}
             </Button>
           </Group>
         )}
 
         {/* Results */}
-        <Group justify="space-between">
+        <Group justify="space-between" style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Text size="sm" c="dimmed">
-            ریکارڈ ملے / Records Found: <strong>{sales.length}</strong>
+            {t.recordsFound}: <strong>{sales.length}</strong>
           </Text>
         </Group>
 
-        <ScrollArea h={400}>
+        <ScrollArea h={400} style={{ direction: isUr ? 'rtl' : 'ltr' }}>
           <Table striped withTableBorder highlightOnHover style={{ tableLayout: 'fixed' }}>
             <Table.Thead>
               <Table.Tr>
@@ -467,27 +536,32 @@ function SaleSearch({ onEdit }) {
                   />
                 </Table.Th>
                 {[
-                  ['saleNum', 'بکری نمبر', 'Sale #'],
-                  ['date', 'تاریخ', 'Date'],
-                  ['customer', 'گاہک', 'Customer'],
-                  ['supplier', 'بیوپاری', 'Supplier'],
-                  ['vehicle', 'گڑی نمبر', 'Vehicle No'],
-                  ['netAmt', 'خالص رقم', 'Net Amount'],
-                  ['balance', 'بقایا', 'Balance'],
-                  ['status', 'حالت', 'Status'],
-                  ['actions', 'عمل', 'Actions'],
-                ].map(([key, ur, en]) => {
+                  ['saleNum', t.saleNumCol, ''],
+                  ['date', t.dateCol, ''],
+                  ['customer', t.customerCol, ''],
+                  ['supplier', t.supplierCol, ''],
+                  ['vehicle', t.vehicleCol, ''],
+                  ['netAmt', t.netAmtCol, ''],
+                  ['balance', t.balanceCol, ''],
+                  ['status', t.statusCol, ''],
+                  ['actions', t.actionsCol, ''],
+                ].map(([key, label]) => {
                   const rp = getResizeProps(key);
                   return (
                     <Table.Th
                       key={key}
                       style={{
                         ...rp.style,
-                        textAlign: ['netAmt', 'balance'].includes(key) ? 'right' : undefined,
+                        textAlign: ['netAmt', 'balance'].includes(key)
+                          ? isUr
+                            ? 'left'
+                            : 'right'
+                          : isUr
+                            ? 'right'
+                            : 'left',
                       }}
                     >
-                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{ur}</div>
-                      <div style={{ fontWeight: 400, fontSize: 10, opacity: 0.6 }}>{en}</div>
+                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{label}</div>
                       <div {...rp.resizeHandle} />
                     </Table.Th>
                   );
@@ -499,11 +573,7 @@ function SaleSearch({ onEdit }) {
                 <Table.Tr>
                   <Table.Td colSpan={10}>
                     <Text c="dimmed" ta="center" py="xl">
-                      کوئی بکری نہیں ملی — اوپر کے فلٹر استعمال کریں۔
-                      <br />
-                      <span style={{ fontSize: 12 }}>
-                        No sales found. Use the filters above to search.
-                      </span>
+                      {t.noSalesFound}
                     </Text>
                   </Table.Td>
                 </Table.Tr>
@@ -522,22 +592,30 @@ function SaleSearch({ onEdit }) {
                         }}
                       />
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
                       <Text fw={500}>{sale.sale_number}</Text>
                     </Table.Td>
-                    <Table.Td>{formatDisplayDate(sale.sale_date)}</Table.Td>
-                    <Table.Td>{sale.customer_name || '-'}</Table.Td>
-                    <Table.Td>{sale.supplier_name || '-'}</Table.Td>
-                    <Table.Td>{sale.vehicle_number || '-'}</Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {formatDisplayDate(sale.sale_date)}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {sale.customer_name || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {sale.supplier_name || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
+                      {sale.vehicle_number || '-'}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       Rs. {(sale.net_amount || 0).toFixed(2)}
                     </Table.Td>
-                    <Table.Td style={{ textAlign: 'right' }}>
+                    <Table.Td style={{ textAlign: isUr ? 'left' : 'right', direction: 'ltr' }}>
                       <Text c={sale.balance_amount > 0 ? 'red' : 'green'}>
                         Rs. {(sale.balance_amount || 0).toFixed(2)}
                       </Text>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: isUr ? 'right' : 'left' }}>
                       <Badge
                         color={sale.status === 'posted' ? 'green' : 'orange'}
                         variant="light"
